@@ -30,18 +30,28 @@ public class AccesoEvaluacion {
     }
 
     public boolean visible(ActorActual actor, Participacion participacion) {
+        return visible(actor, participacion.getPracticaId(), participacion.getEstudianteId());
+    }
+
+    public boolean visible(ActorActual actor, Long practicaId, Long estudianteId) {
         if (actor.esAdmin()) {
             return true;
         }
         if (actor.esEstudiante()) {
-            return Objects.equals(participacion.getEstudianteId(), actor.estudianteId());
+            return Objects.equals(estudianteId, actor.estudianteId());
         }
         if (actor.esDocente()) {
-            return catalogo.buscarPractica(participacion.getPracticaId())
+            return catalogo.buscarPractica(practicaId)
                     .map(practica -> Objects.equals(practica.docenteId(), actor.docenteId()))
                     .orElse(false);
         }
         return false;
+    }
+
+    public void exigirVisible(Participacion participacion, ActorActual actor) {
+        if (!visible(actor, participacion)) {
+            throw new RecursoNoEncontradoException("Participación no encontrada.");
+        }
     }
 
     public Participacion exigirParticipacion(Long id) {

@@ -19,23 +19,25 @@ import jakarta.validation.Valid;
 public class ResultadoController {
 
     private final EvaluacionFacade facade;
+    private final ConsultaResultado consulta;
 
-    public ResultadoController(EvaluacionFacade facade) {
+    public ResultadoController(EvaluacionFacade facade, ConsultaResultado consulta) {
         this.facade = facade;
+        this.consulta = consulta;
     }
 
     @GetMapping
     public List<ResultadoRespuesta> listar(
             @RequestParam(required = false) Long practica,
             @RequestParam(required = false) Long estudiante) {
-        return facade.listar(practica, estudiante);
+        return consulta.listar(practica, estudiante);
     }
 
     @GetMapping("/notas-oficiales")
     public List<NotaOficialRespuesta> listarOficiales(
             @RequestParam(required = false) Long practica,
             @RequestParam(required = false) Long estudiante) {
-        return facade.listarOficiales(practica, estudiante);
+        return consulta.listarOficiales(practica, estudiante);
     }
 
     @PostMapping("/nota-oficial")
@@ -45,7 +47,7 @@ public class ResultadoController {
 
     @GetMapping("/{id}")
     public ResultadoRespuesta obtener(@PathVariable Long id) {
-        return facade.obtener(id);
+        return consulta.obtener(id);
     }
 
     @PostMapping("/practica/{practicaId}/evaluar-pendientes")

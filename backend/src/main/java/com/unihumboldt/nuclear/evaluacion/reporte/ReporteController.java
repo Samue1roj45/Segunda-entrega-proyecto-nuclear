@@ -13,24 +13,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/reportes")
 public class ReporteController {
 
-    private final ReporteFacade facade;
+    private final DescargaReporte descarga;
 
-    public ReporteController(ReporteFacade facade) {
-        this.facade = facade;
+    public ReporteController(DescargaReporte descarga) {
+        this.descarga = descarga;
     }
 
     @GetMapping("/evaluacion.pdf")
     public ResponseEntity<byte[]> pdf(
             @RequestParam(required = false) Long practica,
             @RequestParam(required = false) Long estudiante) {
-        return archivo(facade.pdf(practica, estudiante));
+        return archivo(descarga.pdf(practica, estudiante));
     }
 
     @GetMapping("/evaluacion.xlsx")
     public ResponseEntity<byte[]> excel(
             @RequestParam(required = false) Long practica,
             @RequestParam(required = false) Long estudiante) {
-        return archivo(facade.excel(practica, estudiante));
+        return archivo(descarga.excel(practica, estudiante));
     }
 
     private ResponseEntity<byte[]> archivo(ArchivoReporte reporte) {

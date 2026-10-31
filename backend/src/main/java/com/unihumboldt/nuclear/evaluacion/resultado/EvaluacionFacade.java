@@ -86,13 +86,13 @@ public class EvaluacionFacade {
     }
 
     @Transactional(readOnly = true)
-    public ResultadoRespuesta obtener(Long id) {
-        ActorActual actor = acceso.exigirActor();
-        Resultado resultado = resultados.findById(id)
+    public Resultado exigirResultado(Long id) {
+        return resultados.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Resultado no encontrado."));
-        if (!acceso.visible(actor, resultado.getParticipacion())) {
-            throw new RecursoNoEncontradoException("Resultado no encontrado.");
-        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResultadoRespuesta consultarCerrado(Resultado resultado) {
         if (resultado.getParticipacion().getEstado() == EstadoParticipacion.EN_CURSO) {
             throw new ReglaNegocioException("El resultado aún no está disponible para consulta.");
         }
@@ -101,10 +101,8 @@ public class EvaluacionFacade {
 
     @Transactional(readOnly = true)
     public List<ResultadoRespuesta> listar(Long practicaId, Long estudianteId) {
-        ActorActual actor = acceso.exigirActor();
         Map<String, NotaOficial> oficiales = mapaOficiales();
         return resultados.findAllByOrderByIdDesc().stream()
-                .filter(r -> acceso.visible(actor, r.getParticipacion()))
                 .filter(r -> practicaId == null || Objects.equals(r.getParticipacion().getPracticaId(), practicaId))
                 .filter(r -> estudianteId == null || Objects.equals(r.getParticipacion().getEstudianteId(), estudianteId))
                 .map(r -> toRespuesta(r, oficiales))
@@ -142,9 +140,7 @@ public class EvaluacionFacade {
 
     @Transactional(readOnly = true)
     public List<NotaOficialRespuesta> listarOficiales(Long practicaId, Long estudianteId) {
-        ActorActual actor = acceso.exigirActor();
         return notasOficiales.findAllByOrderByIdDesc().stream()
-                .filter(n -> acceso.visible(actor, n.getParticipacion()))
                 .filter(n -> practicaId == null || Objects.equals(n.getPracticaId(), practicaId))
                 .filter(n -> estudianteId == null || Objects.equals(n.getEstudianteId(), estudianteId))
                 .map(n -> toOficial(n, resultados.findByParticipacionId(n.getParticipacion().getId()).orElse(null)))

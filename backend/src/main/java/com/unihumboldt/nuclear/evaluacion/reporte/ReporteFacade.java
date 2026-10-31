@@ -10,12 +10,9 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
 import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
 import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
 import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficial;
@@ -33,45 +30,27 @@ public class ReporteFacade {
     private final ResultadoRepository resultados;
     private final NotaOficialRepository notasOficiales;
     private final CatalogoAcademico catalogo;
-    private final AccesoEvaluacion acceso;
 
     public ReporteFacade(
             ParticipacionRepository participaciones,
             ResultadoRepository resultados,
             NotaOficialRepository notasOficiales,
-            CatalogoAcademico catalogo,
-            AccesoEvaluacion acceso) {
+            CatalogoAcademico catalogo) {
         this.participaciones = participaciones;
         this.resultados = resultados;
         this.notasOficiales = notasOficiales;
         this.catalogo = catalogo;
-        this.acceso = acceso;
     }
 
-    @Transactional(readOnly = true)
-    public ArchivoReporte pdf(Long practicaId, Long estudianteId) {
-        byte[] bytes = ReportePdfOpenPdf.generar(filas(practicaId, estudianteId));
-        return new ArchivoReporte("reporte-evaluacion.pdf", PDF, bytes);
+    ArchivoReporte pdfDe(List<FilaReporteEvaluacion> filas) {
+        return new ArchivoReporte("reporte-evaluacion.pdf", PDF, ReportePdfOpenPdf.generar(filas));
     }
 
-    @Transactional(readOnly = true)
-    public ArchivoReporte excel(Long practicaId, Long estudianteId) {
-        byte[] bytes = ReporteExcelPoi.generar(filas(practicaId, estudianteId));
-        return new ArchivoReporte("reporte-evaluacion.xlsx", XLSX, bytes);
+    ArchivoReporte excelDe(List<FilaReporteEvaluacion> filas) {
+        return new ArchivoReporte("reporte-evaluacion.xlsx", XLSX, ReporteExcelPoi.generar(filas));
     }
 
     List<FilaReporteEvaluacion> filas(Long practicaId, Long estudianteId) {
-        ActorActual actor = acceso.exigirActor();
-        Long estudianteFiltro = estudianteId;
-        if (actor.esEstudiante()) {
-            if (estudianteId != null && !Objects.equals(estudianteId, actor.estudianteId())) {
-                throw new AccesoDenegadoException("Un estudiante solo puede descargar su propio reporte.");
-            }
-            estudianteFiltro = actor.estudianteId();
-        }
-        if (practicaId != null && (actor.esDocente() || actor.esAdmin())) {
-            acceso.exigirPracticaDocente(practicaId, actor);
-        }
         Map<Long, Resultado> porParticipacion = resultados.findAllByOrderByIdDesc().stream()
                 .filter(r -> r.getParticipacion() != null)
                 .collect(Collectors.toMap(r -> r.getParticipacion().getId(), Function.identity(), (a, b) -> a));
@@ -81,11 +60,9 @@ public class ReporteFacade {
                         n -> n.getPracticaId() + ":" + n.getEstudianteId(),
                         Function.identity(),
                         (a, b) -> a));
-        Long estudianteFinal = estudianteFiltro;
         return participaciones.findAllByOrderByIdDesc().stream()
-                .filter(p -> acceso.visible(actor, p))
                 .filter(p -> practicaId == null || Objects.equals(p.getPracticaId(), practicaId))
-                .filter(p -> estudianteFinal == null || Objects.equals(p.getEstudianteId(), estudianteFinal))
+                .filter(p -> estudianteId == null || Objects.equals(p.getEstudianteId(), estudianteId))
                 .sorted(Comparator
                         .comparing(Participacion::getPracticaId, Comparator.nullsLast(Long::compareTo))
                         .thenComparing(Participacion::getEstudianteId, Comparator.nullsLast(Long::compareTo))

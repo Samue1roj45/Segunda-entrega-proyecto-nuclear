@@ -167,6 +167,19 @@ class NotificacionApiTest {
                         .headers(est(11)))
                 .andExpect(status().isNotFound());
 
+        mockMvc.perform(get("/api/retroalimentaciones")
+                        .with(user("est1"))
+                        .headers(est(10)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].estudianteId").value(10));
+
+        mockMvc.perform(get("/api/retroalimentaciones")
+                        .with(user("est2"))
+                        .headers(est(11)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
                         .with(user("docente99"))
                         .headers(doc(99)))
