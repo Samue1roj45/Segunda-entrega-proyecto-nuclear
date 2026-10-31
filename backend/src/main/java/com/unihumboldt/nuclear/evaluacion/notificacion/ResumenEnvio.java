@@ -9,4 +9,11 @@ public record ResumenEnvio(int enviadas, int omitidasDuplicado, int errores) {
             case ERROR -> new ResumenEnvio(enviadas, omitidasDuplicado, errores + 1);
         };
     }
+
+    public ResumenEnvio acumular(ResumenEnvio otro) {
+        return new ResumenEnvio(
+                enviadas + otro.enviadas(),
+                omitidasDuplicado + otro.omitidasDuplicado(),
+                errores + otro.errores());
+    }
 }
