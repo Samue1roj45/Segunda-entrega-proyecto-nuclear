@@ -10,14 +10,18 @@ public class PublicadorEventos {
     private final List<ObservadorAcademico> observadores;
 
     public PublicadorEventos(List<ObservadorAcademico> observadores) {
-        this.observadores = observadores;
+        this.observadores = List.copyOf(observadores);
     }
 
-    public ResultadoEnvio publicar(EventoAcademico evento) {
-        ResultadoEnvio ultimo = ResultadoEnvio.OMITIDA_DUPLICADO;
+    /**
+     * Notifica a todos los observadores y acumula sus envíos.
+     * Un observador no sustituye el resultado de los demás.
+     */
+    public ResumenEnvio publicar(EventoAcademico evento) {
+        ResumenEnvio resumen = new ResumenEnvio(0, 0, 0);
         for (ObservadorAcademico observador : observadores) {
-            ultimo = observador.recibir(evento);
+            resumen = resumen.acumular(observador.recibir(evento));
         }
-        return ultimo;
+        return resumen;
     }
 }
