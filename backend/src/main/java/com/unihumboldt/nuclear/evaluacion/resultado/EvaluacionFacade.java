@@ -26,10 +26,8 @@ import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
 import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
 import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
-import com.unihumboldt.nuclear.evaluacion.notificacion.EventoAcademico;
-import com.unihumboldt.nuclear.evaluacion.notificacion.PublicadorEventos;
+import com.unihumboldt.nuclear.evaluacion.notificacion.NotificacionFacade;
 import com.unihumboldt.nuclear.evaluacion.notificacion.ResumenEnvio;
-import com.unihumboldt.nuclear.evaluacion.notificacion.TipoNotificacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionada;
 import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
 
@@ -42,7 +40,7 @@ public class EvaluacionFacade {
     private final NotaOficialRepository notasOficiales;
     private final CatalogoAcademico catalogo;
     private final AccesoEvaluacion acceso;
-    private final PublicadorEventos publicador;
+    private final NotificacionFacade notificaciones;
     private final Clock clock;
 
     public EvaluacionFacade(
@@ -52,7 +50,7 @@ public class EvaluacionFacade {
             NotaOficialRepository notasOficiales,
             CatalogoAcademico catalogo,
             AccesoEvaluacion acceso,
-            PublicadorEventos publicador,
+            NotificacionFacade notificaciones,
             Clock clock) {
         this.resultados = resultados;
         this.participaciones = participaciones;
@@ -60,7 +58,7 @@ public class EvaluacionFacade {
         this.notasOficiales = notasOficiales;
         this.catalogo = catalogo;
         this.acceso = acceso;
-        this.publicador = publicador;
+        this.notificaciones = notificaciones;
         this.clock = clock;
     }
 
@@ -197,27 +195,7 @@ public class EvaluacionFacade {
 
     @Transactional
     public ResumenEnvio publicarCalificaciones(Long practicaId) {
-        ActorActual actor = acceso.exigirActor();
-        PracticaRef practica = acceso.exigirPracticaDocente(practicaId, actor);
-        ResumenEnvio resumen = new ResumenEnvio(0, 0, 0);
-        for (Resultado resultado : resultados.findAllByOrderByIdDesc()) {
-            Participacion participacion = resultado.getParticipacion();
-            if (!Objects.equals(participacion.getPracticaId(), practica.id())) {
-                continue;
-            }
-            String cuerpo = "Se publico la calificacion del intento " + participacion.getNumeroIntento()
-                    + " de '" + practica.nombre() + "'. Nota: " + resultado.getNotaFinal()
-                    + " / " + resultado.getEscalaMaxima() + ".";
-            resumen = resumen.acumular(publicador.publicar(new EventoAcademico(
-                    TipoNotificacion.CALIFICACION,
-                    "CALIFICACION:" + participacion.getId(),
-                    practica.id(),
-                    participacion.getEstudianteId(),
-                    participacion.getId(),
-                    "Calificacion publicada: " + practica.nombre(),
-                    cuerpo)));
-        }
-        return resumen;
+        return notificaciones.publicarCalificaciones(practicaId);
     }
 
     private EstrategiaEvaluacion estrategiaPara(Participacion participacion) {
