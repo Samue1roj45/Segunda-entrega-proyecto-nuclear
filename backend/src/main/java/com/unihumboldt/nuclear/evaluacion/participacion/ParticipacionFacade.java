@@ -150,9 +150,7 @@ public class ParticipacionFacade {
     }
 
     @Transactional(readOnly = true)
-    public ParticipacionRespuesta obtener(Long id) {
-        ActorActual actor = acceso.exigirActor();
-        Participacion participacion = acceso.exigirParticipacionVisible(id, actor);
+    public ParticipacionRespuesta describir(Participacion participacion) {
         PracticaRef practica = catalogo.buscarPractica(participacion.getPracticaId()).orElse(null);
         return toRespuesta(participacion, practica);
     }
@@ -165,9 +163,7 @@ public class ParticipacionFacade {
             Integer numeroIntento,
             LocalDate fechaDesde,
             LocalDate fechaHasta) {
-        ActorActual actor = acceso.exigirActor();
         return repositorio.findAllByOrderByIdDesc().stream()
-                .filter(p -> acceso.visible(actor, p))
                 .filter(p -> practicaId == null || Objects.equals(p.getPracticaId(), practicaId))
                 .filter(p -> estudianteId == null || Objects.equals(p.getEstudianteId(), estudianteId))
                 .filter(p -> estado == null || p.getEstado() == estado)

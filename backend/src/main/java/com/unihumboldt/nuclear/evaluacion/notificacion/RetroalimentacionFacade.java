@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
+import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
 import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
 import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
@@ -20,32 +19,31 @@ import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
 public class RetroalimentacionFacade {
 
     private final RetroalimentacionRepository repositorio;
-    private final AccesoEvaluacion acceso;
+    private final CatalogoAcademico catalogo;
     private final PublicadorEventos publicador;
     private final Clock clock;
 
     public RetroalimentacionFacade(
             RetroalimentacionRepository repositorio,
-            AccesoEvaluacion acceso,
+            CatalogoAcademico catalogo,
             PublicadorEventos publicador,
             Clock clock) {
         this.repositorio = repositorio;
-        this.acceso = acceso;
+        this.catalogo = catalogo;
         this.publicador = publicador;
         this.clock = clock;
     }
 
     @Transactional
-    public RetroalimentacionRespuesta registrar(RegistrarRetroalimentacionRequest request) {
-        ActorActual actor = acceso.exigirActor();
-        if (!actor.esDocente() && !actor.esAdmin()) {
-            throw new AccesoDenegadoException("Solo el docente puede registrar retroalimentación.");
-        }
-        Participacion participacion = acceso.exigirParticipacion(request.participacionId());
-        PracticaRef practica = acceso.exigirPracticaDocente(participacion.getPracticaId(), actor);
+    public RetroalimentacionRespuesta guardar(
+            ActorActual actor,
+            Participacion participacion,
+            RegistrarRetroalimentacionRequest request) {
         if (request.texto() == null || request.texto().isBlank()) {
             throw new ReglaNegocioException("El texto de retroalimentación es obligatorio.");
         }
+        PracticaRef practica = catalogo.buscarPractica(participacion.getPracticaId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada."));
         OffsetDateTime ahora = OffsetDateTime.now(clock);
         Retroalimentacion retro = repositorio.findByParticipacionId(participacion.getId()).orElseGet(Retroalimentacion::new);
         retro.setParticipacion(participacion);
@@ -68,25 +66,23 @@ public class RetroalimentacionFacade {
                 "Retroalimentacion de " + practica.nombre(),
                 "El docente publico retroalimentacion del intento " + participacion.getNumeroIntento()
                         + " de la practica '" + practica.nombre() + "'."));
-        return toRespuesta(retro);
+        return describir(retro);
     }
 
     @Transactional(readOnly = true)
-    public RetroalimentacionRespuesta obtener(Long id) {
-        ActorActual actor = acceso.exigirActor();
-        Retroalimentacion retro = repositorio.findById(id)
+    public Retroalimentacion exigir(Long id) {
+        return repositorio.findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Retroalimentación no encontrada."));
-        if (!acceso.visible(actor, retro.getParticipacion())) {
-            throw new RecursoNoEncontradoException("Retroalimentación no encontrada.");
-        }
+    }
+
+    @Transactional(readOnly = true)
+    public RetroalimentacionRespuesta describir(Retroalimentacion retro) {
         return toRespuesta(retro);
     }
 
     @Transactional(readOnly = true)
     public List<RetroalimentacionRespuesta> listar(Long practicaId, Long participacionId) {
-        ActorActual actor = acceso.exigirActor();
         return repositorio.findAllByOrderByIdDesc().stream()
-                .filter(r -> acceso.visible(actor, r.getParticipacion()))
                 .filter(r -> practicaId == null || Objects.equals(r.getPracticaId(), practicaId))
                 .filter(r -> participacionId == null || Objects.equals(r.getParticipacion().getId(), participacionId))
                 .map(this::toRespuesta)

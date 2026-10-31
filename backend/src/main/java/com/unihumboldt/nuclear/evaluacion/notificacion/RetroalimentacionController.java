@@ -16,26 +16,26 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/retroalimentaciones")
 public class RetroalimentacionController {
 
-    private final RetroalimentacionFacade facade;
+    private final GestionRetroalimentacion gestion;
 
-    public RetroalimentacionController(RetroalimentacionFacade facade) {
-        this.facade = facade;
+    public RetroalimentacionController(GestionRetroalimentacion gestion) {
+        this.gestion = gestion;
     }
 
     @PostMapping
     public RetroalimentacionRespuesta registrar(@Valid @RequestBody RegistrarRetroalimentacionRequest request) {
-        return facade.registrar(request);
+        return gestion.registrar(request);
     }
 
     @GetMapping
     public List<RetroalimentacionRespuesta> listar(
             @RequestParam(required = false) Long practica,
             @RequestParam(required = false) Long participacion) {
-        return facade.listar(practica, participacion);
+        return gestion.listar(practica, participacion);
     }
 
     @GetMapping("/{id}")
     public RetroalimentacionRespuesta obtener(@PathVariable Long id) {
-        return facade.obtener(id);
+        return gestion.obtener(id);
     }
 }

@@ -19,9 +19,11 @@ import jakarta.validation.Valid;
 public class ParticipacionController {
 
     private final ParticipacionFacade facade;
+    private final ConsultaParticipacion consulta;
 
-    public ParticipacionController(ParticipacionFacade facade) {
+    public ParticipacionController(ParticipacionFacade facade, ConsultaParticipacion consulta) {
         this.facade = facade;
+        this.consulta = consulta;
     }
 
     @GetMapping
@@ -32,7 +34,7 @@ public class ParticipacionController {
             @RequestParam(required = false) Integer numeroIntento,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta) {
-        return facade.listar(practica, estudiante, estado, numeroIntento, fechaDesde, fechaHasta);
+        return consulta.listar(practica, estudiante, estado, numeroIntento, fechaDesde, fechaHasta);
     }
 
     @PostMapping("/iniciar")
@@ -42,7 +44,7 @@ public class ParticipacionController {
 
     @GetMapping("/{id}")
     public ParticipacionRespuesta obtener(@PathVariable Long id) {
-        return facade.obtener(id);
+        return consulta.obtener(id);
     }
 
     @PostMapping("/{id}/respuestas")
