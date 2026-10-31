@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <rect x="0" y="280" width="800" height="170" fill="#1e293b"/>
+  <rect x="80" y="200" width="90" height="120" fill="#475569"/>
+  <rect x="200" y="170" width="110" height="150" fill="#64748b"/>
+  <rect x="340" y="190" width="100" height="130" fill="#475569"/>
+  <rect x="480" y="160" width="130" height="160" fill="#64748b"/>
+  <rect x="620" y="210" width="95" height="110" fill="#475569"/>
+  <circle cx="120" cy="80" r="35" fill="#fbbf24" opacity="0.35"/>
+  <text x="400" y="400" text-anchor="middle" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="18">Barrio vulnerable  noche</text>
+</svg>

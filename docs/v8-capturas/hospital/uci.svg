@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="30%">
+      <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="300" height="220" fill="#0f172a"/>
+  <rect width="300" height="220" fill="url(#glow)"/>
+  <rect x="0" y="0" width="300" height="24" fill="#1e3a8a"/>
+  <text x="150" y="16" text-anchor="middle" fill="#7dd3fc" font-family="Arial" font-size="10" font-weight="bold">UCI · UNIDAD CRITICA</text>
+  <!-- Cama UCI -->
+  <rect x="40" y="50" width="120" height="70" rx="3" fill="#334155" stroke="#64748b"/>
+  <rect x="48" y="58" width="104" height="48" fill="#1e293b"/>
+  <rect x="48" y="58" width="104" height="12" fill="#475569"/>
+  <!-- Monitores multiples -->
+  <rect x="180" y="42" width="100" height="72" fill="#020617" stroke="#38bdf8" stroke-width="1"/>
+  <rect x="186" y="48" width="88" height="28" fill="#0f172a"/>
+  <text x="230" y="66" text-anchor="middle" fill="#22c55e" font-family="monospace" font-size="9">HR 72</text>
+  <rect x="186" y="80" width="42" height="28" fill="#0f172a"/>
+  <text x="207" y="98" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="monospace">SpO2</text>
+  <rect x="232" y="80" width="42" height="28" fill="#0f172a"/>
+  <text x="253" y="98" text-anchor="middle" fill="#38bdf8" font-size="8" font-family="monospace">BP</text>
+  <!-- Respirador -->
+  <rect x="24" y="130" width="48" height="64" fill="#475569" stroke="#94a3b8"/>
+  <rect x="30" y="138" width="36" height="20" fill="#0f172a"/>
+  <circle cx="48" cy="175" r="10" fill="#1e293b" stroke="#38bdf8"/>
+  <!-- Tubos -->
+  <path d="M72 90 Q120 100 180 70" fill="none" stroke="#64748b" stroke-width="3"/>
+  <path d="M72 100 Q130 110 186 90" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.6"/>
+  <!-- Luz aviso -->
+  <circle cx="270" cy="40" r="8" fill="#22c55e"/>
+  <circle cx="270" cy="40" r="12" fill="#22c55e" opacity="0.2"/>
+  <!-- Senal restriccion -->
+  <rect x="8" y="180" width="120" height="28" rx="2" fill="#7f1d1d" stroke="#fca5a5"/>
+  <text x="68" y="198" text-anchor="middle" fill="#fecaca" font-size="8" font-family="Arial">ACCESO RESTRINGIDO</text>
+  <rect x="200" y="168" width="88" height="40" fill="#1e293b" stroke="#475569"/>
+  <text x="244" y="192" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="Arial">LAVADO MANOS</text>
+</svg>

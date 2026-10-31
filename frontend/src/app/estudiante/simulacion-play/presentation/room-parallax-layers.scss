@@ -1,0 +1,359 @@
+/* Capas decorativas por sala — solo presentación visual */
+
+.parallax-stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.depth-fog {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 70% at 50% 85%, transparent 30%, rgba(2, 6, 23, 0.35) 100%);
+  z-index: 4;
+}
+
+.layer-back,
+.layer-mid,
+.layer-front,
+.layer-props {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.layer-back {
+  z-index: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.25) 0%, transparent 35%, transparent 60%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.layer-mid { z-index: 1; }
+.layer-front { z-index: 2; }
+.layer-props { z-index: 3; }
+
+/* —— Hospital entrada —— */
+.room-entrada .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 6%;
+  bottom: 22%;
+  width: 22%;
+  height: 14%;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  border-radius: 8px 8px 4px 4px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(220, 38, 38, 0.25);
+}
+
+.room-entrada .layer-mid::after {
+  content: '';
+  position: absolute;
+  right: 14%;
+  top: 12%;
+  width: 28%;
+  height: 8%;
+  background: #dc2626;
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.45);
+  animation: signPulse 2.5s ease-in-out infinite;
+}
+
+.room-entrada .layer-front::before {
+  content: '';
+  position: absolute;
+  left: 42%;
+  bottom: 28%;
+  width: 22%;
+  height: 32%;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.08), rgba(15, 23, 42, 0.5));
+  border: 2px solid rgba(148, 163, 184, 0.25);
+}
+
+.room-entrada .layer-props::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  bottom: 24%;
+  width: 4%;
+  height: 6%;
+  background: #1e293b;
+  border-radius: 50%;
+  box-shadow: 140px 0 0 #1e293b, 280px 0 0 #1e293b;
+}
+
+/* —— Recepción —— */
+.room-recepcion .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  bottom: 30%;
+  width: 32%;
+  height: 22%;
+  background: linear-gradient(180deg, #64748b, #475569);
+  border-radius: 4px;
+  box-shadow: inset 0 -20px 0 rgba(30, 41, 59, 0.5);
+}
+
+.room-recepcion .layer-mid::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  bottom: 38%;
+  width: 24%;
+  height: 12%;
+  background: #1e293b;
+  opacity: 0.7;
+}
+
+.room-recepcion .layer-front::before {
+  content: '';
+  position: absolute;
+  right: 12%;
+  top: 18%;
+  width: 18%;
+  height: 35%;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.06), transparent);
+  border-left: 2px solid rgba(148, 163, 184, 0.2);
+}
+
+.room-recepcion .layer-props::after {
+  content: '';
+  position: absolute;
+  left: 24%;
+  bottom: 42%;
+  width: 8%;
+  height: 5%;
+  background: #38bdf8;
+  opacity: 0.35;
+  border-radius: 2px;
+  box-shadow: 40px 0 0 rgba(56, 189, 248, 0.25);
+}
+
+/* —— Sala de espera —— */
+.room-sala-espera .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  bottom: 32%;
+  width: 55%;
+  height: 8%;
+  background: repeating-linear-gradient(90deg, #475569 0, #475569 80px, #334155 80px, #334155 160px);
+  opacity: 0.55;
+}
+
+.room-sala-espera .layer-front::before {
+  content: '';
+  position: absolute;
+  right: 8%;
+  top: 22%;
+  width: 24%;
+  height: 22%;
+  background: #0f172a;
+  border: 3px solid #475569;
+  box-shadow: inset 0 0 30px rgba(56, 189, 248, 0.2);
+}
+
+.room-sala-espera .layer-front::after {
+  content: '';
+  position: absolute;
+  right: 10%;
+  top: 24%;
+  width: 20%;
+  height: 16%;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.15), transparent);
+  animation: tvFlicker 0.12s step-end infinite;
+}
+
+.room-sala-espera .layer-props::before {
+  content: '';
+  position: absolute;
+  left: 72%;
+  bottom: 38%;
+  width: 6%;
+  height: 18%;
+  background: linear-gradient(180deg, #94a3b8, #64748b);
+  border-radius: 4px;
+}
+
+/* —— Pasillo —— */
+.room-pasillo .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 35%;
+  bottom: 35%;
+  width: 22%;
+  height: 10%;
+  background: #94a3b8;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.room-pasillo .layer-front::after {
+  content: '';
+  position: absolute;
+  left: 52%;
+  top: 28%;
+  width: 10%;
+  height: 12%;
+  background: #dc2626;
+  opacity: 0.75;
+}
+
+/* —— Área médica —— */
+.room-area-medica .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  bottom: 32%;
+  width: 28%;
+  height: 12%;
+  background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+  border-radius: 8px;
+}
+
+.room-area-medica .layer-mid::after {
+  content: '';
+  position: absolute;
+  right: 14%;
+  top: 26%;
+  width: 16%;
+  height: 14%;
+  background: #0f172a;
+  border: 2px solid #475569;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.35);
+}
+
+.room-area-medica .layer-props::before {
+  content: '';
+  position: absolute;
+  right: 16%;
+  top: 30%;
+  width: 12%;
+  height: 6%;
+  background: #22d3ee;
+  opacity: 0.5;
+  animation: monitorLine 1.5s linear infinite;
+}
+
+/* —— Consultorio —— */
+.room-consultorio .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 16%;
+  bottom: 32%;
+  width: 26%;
+  height: 18%;
+  background: #57534e;
+  box-shadow: inset 0 0 0 2px #78716c;
+}
+
+.room-consultorio .layer-front::before {
+  content: '';
+  position: absolute;
+  left: 20%;
+  bottom: 36%;
+  width: 18%;
+  height: 10%;
+  background: #fff;
+  opacity: 0.85;
+  transform: rotate(-3deg);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.room-consultorio .layer-props::after {
+  content: '';
+  position: absolute;
+  right: 18%;
+  bottom: 34%;
+  width: 22%;
+  height: 24%;
+  background: repeating-linear-gradient(180deg, #a8a29e 0, #a8a29e 18px, #78716c 18px, #78716c 20px);
+  opacity: 0.45;
+}
+
+/* —— Comisaría recepción —— */
+.inst-comisaria.room-recepcion .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 14%;
+  bottom: 30%;
+  width: 30%;
+  height: 20%;
+  background: linear-gradient(180deg, #57534e, #44403c);
+}
+
+.inst-comisaria.room-recepcion .layer-front::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  top: 14%;
+  width: 12%;
+  height: 12%;
+  background: #ca8a04;
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.35);
+}
+
+/* —— Comisaría salas —— */
+.inst-comisaria.room-sala-espera .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  bottom: 34%;
+  width: 50%;
+  height: 7%;
+  background: #57534e;
+  opacity: 0.6;
+}
+
+.inst-comisaria.room-oficina-atencion .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 22%;
+  bottom: 32%;
+  width: 38%;
+  height: 22%;
+  background: #44403c;
+  box-shadow: inset 0 -30px 0 rgba(30, 41, 59, 0.4);
+}
+
+.inst-comisaria.room-area-psicosocial .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  bottom: 30%;
+  width: 35%;
+  height: 20%;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(15, 118, 110, 0.35));
+}
+
+.inst-comisaria.room-despacho .layer-mid::before {
+  content: '';
+  position: absolute;
+  left: 28%;
+  bottom: 30%;
+  width: 44%;
+  height: 22%;
+  background: #44403c;
+}
+
+.inst-comisaria.room-despacho .layer-front::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  top: 28%;
+  width: 14%;
+  height: 28%;
+  background: repeating-linear-gradient(180deg, #78716c 0, #78716c 16px, transparent 16px, transparent 18px);
+  opacity: 0.5;
+}
+
+@keyframes signPulse {
+  0%, 100% { opacity: 0.85; filter: brightness(1); }
+  50% { opacity: 0.55; filter: brightness(1.3); }
+}
+
+@keyframes monitorLine {
+  0% { transform: translateX(-100%); opacity: 0.3; }
+  100% { transform: translateX(200%); opacity: 0.8; }
+}

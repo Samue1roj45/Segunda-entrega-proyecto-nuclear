@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0c1929"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  
+  <rect x="60" y="100" width="1160" height="100" fill="#334155"/>
+  <rect x="100" y="400" width="70" height="90" rx="6" fill="#475569"/>
+  <rect x="200" y="400" width="70" height="90" rx="6" fill="#475569"/>
+  <rect x="300" y="400" width="70" height="90" rx="6" fill="#475569"/>
+  <rect x="400" y="400" width="70" height="90" rx="6" fill="#475569"/>
+  <rect x="500" y="400" width="70" height="90" rx="6" fill="#475569"/>
+  <rect x="900" y="220" width="300" height="200" fill="#0f172a" stroke="#64748b"/>
+  <rect x="920" y="240" width="260" height="150" fill="#38bdf8" opacity="0.15"/>
+  <rect x="120" y="280" width="100" height="180" fill="#78716c" opacity="0.4"/>
+  <rect x="680" y="300" width="80" height="140" fill="#57534e" opacity="0.35"/>
+  <rect x="240" y="200" width="200" height="120" fill="#1e40af" opacity="0.25"/>
+  <text x="260" y="270" fill="#e2e8f0" font-size="10" font-family="Arial">Derechos del paciente</text>
+  <rect x="0" y="520" width="1280" height="200" fill="url(#floor)"/>
+  <text x="640" y="48" text-anchor="middle" fill="rgba(248,250,252,0.15)" font-family="Georgia,serif" font-size="18" letter-spacing="8">SALA ESPERA</text>
+</svg>

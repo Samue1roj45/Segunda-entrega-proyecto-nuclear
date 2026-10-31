@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 528 428" width="528" height="428">
+  <rect width="528" height="428" fill="#fffbeb"/>
+  <rect x="0" y="0" width="528" height="16" fill="#b45309"/>
+  <text x="264" y="12" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="system-ui">ARCHIVO CLÍNICO</text>
+  <rect x="24" y="36" width="90" height="140" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+  <rect x="30" y="42" width="78" height="10" fill="#fbbf24"/>
+  <rect x="30" y="58" width="78" height="10" fill="#fcd34d"/>
+  <rect x="30" y="74" width="78" height="10" fill="#fcd34d"/>
+  <rect x="130" y="36" width="90" height="140" fill="#fde68a" stroke="#d97706" stroke-width="2"/>
+  <rect x="240" y="36" width="120" height="160" fill="#fff" stroke="#ca8a04" stroke-width="2"/>
+  <text x="300" y="120" text-anchor="middle" fill="#92400e" font-size="9" font-weight="600">HISTORIAS CLÍNICAS</text>
+  <rect x="380" y="40" width="120" height="150" fill="#fef3c7" stroke="#eab308"/>
+  <text x="440" y="115" text-anchor="middle" fill="#854d0e" font-size="8">EPICEE</text>
+  <rect x="40" y="200" width="200" height="70" fill="#fff" stroke="#a16207"/>
+  <text x="140" y="240" text-anchor="middle" fill="#78350f" font-size="8">MESA DE REVISIÓN</text>
+  <rect x="280" y="210" width="220" height="180" fill="#fff7ed" stroke="#d97706"/>
+  <line x1="300" y1="240" x2="480" y2="240" stroke="#fcd34d"/>
+  <line x1="300" y1="260" x2="460" y2="260" stroke="#fcd34d"/>
+  <line x1="300" y1="280" x2="470" y2="280" stroke="#fcd34d"/>
+  <text x="390" y="360" text-anchor="middle" fill="#92400e" font-size="8">CONFIDENCIAL</text>
+</svg>

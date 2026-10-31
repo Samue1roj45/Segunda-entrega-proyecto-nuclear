@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
+  <defs>
+    <pattern id="lino" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#f0fdf4"/>
+      <path d="M0 12h24M12 0v24" stroke="#bbf7d0" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="300" height="220" fill="url(#lino)"/>
+  <rect x="0" y="0" width="300" height="22" fill="#15803d"/>
+  <text x="150" y="15" text-anchor="middle" fill="#fff" font-family="Arial" font-size="10" font-weight="bold">ENFERMERIA</text>
+  <!-- Camilla 1 -->
+  <rect x="24" y="48" width="100" height="52" rx="4" fill="#e2e8f0" stroke="#64748b"/>
+  <rect x="28" y="52" width="92" height="36" fill="#f8fafc"/>
+  <rect x="24" y="96" width="8" height="24" fill="#475569"/>
+  <rect x="116" y="96" width="8" height="24" fill="#475569"/>
+  <rect x="50" y="44" width="48" height="8" fill="#94a3b8"/>
+  <!-- Camilla 2 -->
+  <rect x="160" y="48" width="100" height="52" rx="4" fill="#e2e8f0" stroke="#64748b"/>
+  <rect x="164" y="52" width="92" height="36" fill="#f8fafc"/>
+  <rect x="160" y="96" width="8" height="24" fill="#475569"/>
+  <rect x="252" y="96" width="8" height="24" fill="#475569"/>
+  <!-- Carro medicamentos -->
+  <rect x="40" y="130" width="56" height="48" fill="#fff" stroke="#64748b"/>
+  <rect x="44" y="134" width="48" height="12" fill="#dcfce7"/>
+  <circle cx="52" cy="158" r="6" fill="#ef4444"/>
+  <circle cx="72" cy="158" r="6" fill="#3b82f6"/>
+  <circle cx="92" cy="158" r="6" fill="#eab308"/>
+  <!-- Monitor -->
+  <rect x="200" y="120" width="72" height="56" fill="#1e293b"/>
+  <rect x="204" y="124" width="64" height="40" fill="#0f172a"/>
+  <polyline points="208,150 220,140 232,145 248,128 264,135" fill="none" stroke="#22c55e" stroke-width="2"/>
+  <rect x="228" y="168" width="16" height="8" fill="#475569"/>
+  <!-- Escritorio enfermera -->
+  <rect x="120" y="168" width="80" height="10" fill="#78716c"/>
+  <rect x="124" y="150" width="72" height="22" fill="#a8a29e"/>
+  <rect x="168" y="154" width="22" height="16" fill="#1e293b"/>
+  <!-- Cruz medica -->
+  <rect x="8" y="36" width="14" height="40" fill="#dc2626" opacity="0.9"/>
+  <rect x="2" y="48" width="26" height="14" fill="#dc2626" opacity="0.9"/>
+  <rect x="0" y="200" width="300" height="20" fill="#86efac" opacity="0.3"/>
+</svg>

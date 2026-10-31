@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0c1929"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  
+  <rect x="140" y="100" width="1000" height="420" fill="#1e3a5f"/>
+  <rect x="180" y="140" width="920" height="360" fill="#0f172a" opacity="0.4"/>
+  <rect x="500" y="180" width="280" height="70" fill="#dc2626"/>
+  <text x="640" y="228" text-anchor="middle" fill="#fff" font-family="Arial" font-size="32" font-weight="bold">URGENCIAS</text>
+  <rect x="520" y="300" width="240" height="180" fill="#334155" stroke="#64748b" stroke-width="3"/>
+  <rect x="540" y="320" width="200" height="140" fill="#38bdf8" opacity="0.12"/>
+  <rect x="560" y="400" width="160" height="8" fill="#94a3b8" opacity="0.5"/>
+  <rect x="60" y="500" width="180" height="90" fill="#dc2626"/>
+  <text x="150" y="545" text-anchor="middle" fill="#fff" font-size="11" font-family="Arial">AMBULANCIA</text>
+  <circle cx="120" cy="580" r="22" fill="#1e293b"/><circle cx="180" cy="580" r="22" fill="#1e293b"/>
+  <rect x="1000" y="480" width="40" height="50" fill="#fbbf24"/>
+  <rect x="80" y="520" width="24" height="32" fill="#f97316"/>
+  <rect x="110" y="530" width="24" height="32" fill="#f97316"/>
+  <ellipse cx="1020" cy="200" rx="60" ry="30" fill="#fef08a" opacity="0.35"/>
+  <rect x="0" y="520" width="1280" height="200" fill="url(#floor)"/>
+  <text x="640" y="48" text-anchor="middle" fill="rgba(248,250,252,0.15)" font-family="Georgia,serif" font-size="18" letter-spacing="8">ENTRADA</text>
+</svg>

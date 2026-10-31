@@ -1,0 +1,174 @@
+<div class="immersive-room" [class.paused]="paused()">
+  <div
+    #viewport
+    class="explore-viewport"
+    [style.--entity-scale]="entityScale()"
+    [style.--backdrop-zoom]="backdropZoom()"
+    tabindex="0"
+    role="application"
+    aria-label="Exploración del escenario. WASD o flechas para moverse. E para interactuar."
+    (keydown)="onKeyDown($event)"
+    (keyup)="onKeyUp($event)"
+    (click)="onViewportClick($event)">
+    <div class="explore-camera" [style.transform]="camTransform()">
+      <div
+        class="explore-world"
+        [class]="'room-' + roomId() + ' inst-' + institution()"
+        [class.transitioning]="transitioning()"
+        [style.width.px]="worldW"
+        [style.height.px]="worldH">
+        <div
+          class="stage-backdrop"
+          [style.backgroundImage]="'url(' + room().background + ')'"></div>
+        <div class="parallax-stack" aria-hidden="true">
+          <div class="layer-back"></div>
+          <div class="layer-mid" [style.transform]="parallaxMid()"></div>
+          <div class="layer-front" [style.transform]="parallaxFront()"></div>
+          <div class="layer-props"></div>
+          <div class="depth-fog"></div>
+        </div>
+        <div class="ambient-life" aria-hidden="true"></div>
+        <div class="ceiling-glow"></div>
+        <div class="ambient-layer"></div>
+        <div class="floor-shadow"></div>
+        <div class="vignette"></div>
+
+        @if (showAmbientWalkers()) {
+          <div class="walkers" aria-hidden="true">
+            <span class="walker w1"></span>
+            <span class="walker w2"></span>
+          </div>
+        }
+
+        @for (h of room().hotspots; track hotspotKey(h)) {
+          @if (h.observeId; as obsId) {
+            @if (observationById(obsId); as obs) {
+              <button
+                type="button"
+                class="entity observe"
+                [class.seen]="hasObserved(obs.id)"
+                [class.near]="isProximityTarget(h)"
+                [style]="hotspotStyle(h)"
+                (click)="onEntityClick($event, h)"
+                [attr.aria-label]="'Observar ' + obs.label">
+                <div class="observe-anchor">
+                  <span class="observe-glint" [class]="obsVisualKind(obs.id)">
+                    <span class="pulse"></span>
+                  </span>
+                </div>
+              </button>
+            }
+          }
+          @if (h.npcId && npcById(h.npcId); as npc) {
+            @if (charPres(npc); as pres) {
+              <button
+                type="button"
+                class="entity npc"
+                [class.near]="isProximityTarget(h)"
+                [style]="hotspotStyle(h)"
+                (click)="onEntityClick($event, h)"
+                [attr.aria-label]="'Entrevistar a ' + pres.nombreCompleto">
+                <div class="character-grounded" [class]="'role-' + npc.id + ' pose-' + pres.mood">
+                  <span class="shadow-oval"></span>
+                  <div class="figure mood-{{ pres.mood }}">
+                    <span class="head">
+                      <span class="hair"></span>
+                      <span class="face"></span>
+                      <span class="eyes"><span class="lid"></span></span>
+                    </span>
+                    <span class="torso"><span class="badge"></span></span>
+                    <span class="legs"></span>
+                  </div>
+                </div>
+              </button>
+            }
+          }
+          @if (h.objectId && objectById(h.objectId); as obj) {
+            <button
+              type="button"
+              class="entity object"
+              [class.near]="isProximityTarget(h)"
+              [style]="hotspotStyle(h)"
+              (click)="onEntityClick($event, h)"
+              [attr.aria-label]="'Revisar ' + obj.label">
+              <div class="prop-scene" [class]="objectVisualKind(obj.id)">
+                @if (objectVisualKind(obj.id) === 'prop-document') {
+                  <span class="prop-label">{{ obj.icon }}</span>
+                }
+              </div>
+            </button>
+          }
+          @if (h.exitTo) {
+            <button
+              type="button"
+              class="entity exit"
+              [class.near]="isProximityTarget(h)"
+              [style]="hotspotStyle(h)"
+              (click)="onEntityClick($event, h)"
+              [attr.aria-label]="h.exitLabel ?? 'Cambiar de área'">
+              <span class="door-arch"></span>
+              <span class="door-slab"></span>
+            </button>
+          }
+        }
+
+        <div
+          class="investigator"
+          [class.walking]="isWalking()"
+          [class.facing-left]="facing() === 'left'"
+          [class.facing-right]="facing() === 'right'"
+          [class.facing-up]="facing() === 'up'"
+          [style]="playerStyle()"
+          [style.marginTop.px]="walkBob()"
+          aria-hidden="true">
+          <span class="inv-shadow"></span>
+          <img src="/assets/simulacion/player.svg" alt="" />
+        </div>
+      </div>
+    </div>
+
+    @if (transitionCurtain()) {
+      <div class="transition-curtain" aria-hidden="true">
+        <div class="transition-vignette"></div>
+      </div>
+    }
+
+    @if (locationCard(); as loc) {
+      <div class="location-card" aria-live="polite">
+        <div class="loc-card-inner">
+          <span class="loc-inst">{{ loc.institution }}</span>
+          <span class="loc-divider"></span>
+          <strong class="loc-room">{{ loc.room }}</strong>
+        </div>
+      </div>
+    }
+
+    @if (proximityLabel(); as hint) {
+      <div class="proximity-prompt" aria-live="polite">
+        <kbd>E</kbd>
+        <span>{{ hint }}</span>
+      </div>
+    }
+
+    <div class="room-header">
+      <h2>{{ room().label }}</h2>
+      <span>{{ room().ambiance }}</span>
+    </div>
+  </div>
+
+  <app-location-map
+    [rooms]="rooms()"
+    [currentRoom]="roomId()"
+    [visited]="visitedRooms()"
+    [mapLabel]="mapLabel()"
+    [graph]="mapGraph()"
+    (navigate)="goToRoom($event)" />
+
+  @if (fieldNote(); as note) {
+    <div class="field-note" aria-live="polite">{{ note }}</div>
+  }
+
+  <p class="move-hint">
+    <kbd>WASD</kbd> o flechas · Clic para caminar · <kbd>E</kbd> cerca de personas y objetos
+  </p>
+</div>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" width="400" height="220">
+  <defs>
+    <pattern id="tiles" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#f0f9ff"/>
+      <rect x="0" y="0" width="10" height="10" fill="#e0f2fe" opacity="0.4"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="220" fill="url(#tiles)"/>
+  <rect x="0" y="0" width="400" height="12" fill="#0284c7"/>
+  <text x="200" y="9" text-anchor="middle" fill="#fff" font-size="9" font-weight="700" font-family="system-ui">SALA DE ESPERA</text>
+  <rect x="40" y="50" width="48" height="40" rx="6" fill="#7dd3fc" stroke="#0ea5e9"/>
+  <rect x="120" y="50" width="48" height="40" rx="6" fill="#7dd3fc" stroke="#0ea5e9"/>
+  <rect x="200" y="50" width="48" height="40" rx="6" fill="#7dd3fc" stroke="#0ea5e9"/>
+  <rect x="280" y="55" width="48" height="40" rx="6" fill="#7dd3fc" stroke="#0ea5e9"/>
+  <rect x="360" y="60" width="28" height="36" rx="4" fill="#bae6fd" stroke="#38bdf8"/>
+  <rect x="30" y="120" width="340" height="8" fill="#94a3b8" opacity="0.3"/>
+  <rect x="60" y="140" width="80" height="50" fill="none" stroke="#64748b" stroke-dasharray="4 3"/>
+  <text x="100" y="168" text-anchor="middle" fill="#64748b" font-size="7">Zona familiar</text>
+  <circle cx="320" cy="170" r="22" fill="#fef3c7" stroke="#f59e0b"/>
+  <text x="320" y="174" text-anchor="middle" font-size="14">ñ</text>
+  <rect x="8" y="198" width="120" height="16" rx="2" fill="#1e40af"/>
+  <text x="68" y="209" text-anchor="middle" fill="#fff" font-size="7">SILENCIO · FAVOR ESPERAR</text>
+</svg>

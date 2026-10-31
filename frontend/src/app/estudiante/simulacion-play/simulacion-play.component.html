@@ -1,0 +1,308 @@
+<div
+  #playShell
+  class="play-shell"
+  [class.fullscreen-immersive]="showImmersiveExplore()"
+  [class.fullscreen-on]="fullscreenMode()">
+  @if (phase() === 'intro-narrative') {
+    <app-intro-narrativa (finished)="onIntroTerminada()" />
+  }
+
+  @if (phase() === 'content-warning') {
+    <app-contenido-sensible
+      (continuar)="onAceptarContenidoSensible()"
+      (salir)="onSalirSimulacion()" />
+  }
+
+  @if (loading()) {
+    <div class="splash">
+      <div class="spinner"></div>
+      <p>Preparando simulación…</p>
+    </div>
+  }
+
+  @if (errorInicio()) {
+    <div class="splash error">
+      <mat-icon>block</mat-icon>
+      <h2>No puedes iniciar esta práctica</h2>
+      <p>{{ errorInicio() }}</p>
+      <a mat-flat-button color="primary" routerLink="/estudiante">
+        <mat-icon>arrow_back</mat-icon>
+        Volver al dashboard
+      </a>
+    </div>
+  }
+
+  @if (showGameShell()) {
+    <header class="hud" [class.hud-compact]="phase() === 'explore'">
+      <div class="hud-left">
+        <span class="scene-tag">{{ sceneTitle() }}</span>
+        <span class="scene-sub">{{ sceneSubtitle() }}</span>
+        <span class="clue-counter">
+          <mat-icon>lightbulb</mat-icon>
+          {{ clueCount() }} hallazgos
+        </span>
+      </div>
+      <div class="hud-right">
+        @if (professionalNotice(); as notice) {
+          <p class="pro-notice" aria-live="polite">{{ notice }}</p>
+        }
+        @if (phase() === 'explore') {
+          <app-investigation-progress [stats]="investigationProgress()" />
+          <span class="investigation-pct">Investigación {{ investigacionPct() }}%</span>
+          <button type="button" class="fs-btn" (click)="toggleAmbient()" [attr.aria-label]="ambient.enabled() ? 'Silenciar ambiente' : 'Activar ambiente'">
+            <mat-icon>{{ ambient.enabled() ? 'volume_up' : 'volume_off' }}</mat-icon>
+          </button>
+          <button
+            type="button"
+            class="fs-btn"
+            (click)="toggleFullscreen()"
+            [attr.aria-label]="fullscreenMode() ? 'Salir de pantalla completa' : 'Pantalla completa'">
+            <mat-icon>{{ fullscreenMode() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+            <span class="fs-label">{{ fullscreenMode() ? 'Salir' : 'Pantalla completa' }}</span>
+          </button>
+        }
+        <div class="timer">
+          <mat-icon>schedule</mat-icon>
+          {{ tiempoFormato() }}
+        </div>
+      </div>
+    </header>
+
+    <div
+      class="immersive-layout"
+      [class.dossier-open]="expedienteOpen()"
+      [class.explore-active]="phase() === 'explore'">
+      <section class="scene-column" aria-label="Escenario de investigación">
+        @if (showImmersiveExplore()) {
+          <div class="scene-stack">
+            <app-immersive-scene
+              [institution]="activeSceneId()"
+              [institutionTitle]="institutionDisplayTitle()"
+              [roomId]="immersiveRoomId()"
+              [rooms]="immersiveRooms()"
+              [roomMap]="immersiveRoomMap()"
+              [ubicacionLabel]="immersiveRoomLabel()"
+              [mapLabel]="activeSceneId() === 'comisaria' ? 'Comisaría de Familia' : 'Hospital de urgencias'"
+              [npcs]="sceneConfig().npcs"
+              [objects]="sceneConfig().objects"
+              [paused]="explorePaused()"
+              (roomChange)="onImmersiveRoomChange($event)"
+              (interact)="onImmersiveInteract($event)"
+              (observationRecorded)="onObservationRecorded()" />
+
+            <button
+              type="button"
+              class="dossier-toggle-fab"
+              [class.open]="expedienteOpen()"
+              [class.pulse]="expedienteUnlockPulse()"
+              (click)="toggleExpediente()"
+              [attr.aria-expanded]="expedienteOpen()"
+              aria-label="Abrir o cerrar expediente">
+              <mat-icon>{{ expedienteOpen() ? 'chevron_right' : 'menu_book' }}</mat-icon>
+              <span>Expediente</span>
+            </button>
+            @if (interviewPanel(); as ip) {
+              @if (!dialogue()) {
+                <app-interview-panel
+                  [npcLabel]="ip.npcLabel"
+                  [npcRole]="interviewNpcPresentation()?.rolCaso ?? ''"
+                  [npcEmotion]="interviewNpcPresentation()?.emocion ?? ''"
+                  [portraitUrl]="interviewNpcPresentation()?.portraitUrl ?? ''"
+                  [portraitColor]="ip.portraitColor"
+                  [topics]="interviewTopics()"
+                  (topicSelected)="onSeleccionarTemaEntrevista($event)"
+                  (finished)="cerrarEntrevista()" />
+              }
+            }
+            @if (documentView(); as doc) {
+              <app-document-viewer
+                [title]="doc.title"
+                [lines]="doc.lines"
+                [hasMore]="doc.hasMore"
+                [canRegister]="true"
+                (register)="registrarDocumento()"
+                (closed)="cerrarDocumento()" />
+            }
+            @if (dialogue(); as d) {
+              <app-inworld-dialogue
+                [title]="dialogueNpcPresentation()?.nombreCompleto ?? d.title"
+                [subtitle]="dialogueNpcPresentation()?.rolCaso ?? ''"
+                [emotion]="dialogueNpcPresentation()?.emocion ?? ''"
+                [portraitUrl]="dialogueNpcPresentation()?.portraitUrl ?? ''"
+                [line]="dialogueLineActual()"
+                [progress]="dialogueProgress()"
+                [isLast]="d.index >= d.lines.length - 1"
+                [kind]="d.kind"
+                [portraitColor]="dialoguePortraitColor()"
+                [registerLabel]="dialogueRegisterLabel()"
+                (advance)="avanzarDialogo()"
+                (closed)="cerrarDialogo()" />
+            }
+          </div>
+        }
+      </section>
+
+      @if (phase() === 'explore' && expedienteOpen()) {
+        <div class="dossier-backdrop" (click)="expedienteOpen.set(false)" aria-hidden="true"></div>
+        <aside class="dossier-drawer" aria-label="Registro profesional del caso">
+          <app-expediente-caso
+            layout="embedded"
+            [open]="true"
+            [unlockPulse]="expedienteUnlockPulse()"
+            [investigacionLabel]="expedienteSceneLabel()"
+            (closed)="expedienteOpen.set(false)" />
+        </aside>
+      }
+    </div>
+
+    @if (phase() !== 'explore') {
+      <app-expediente-caso
+        [open]="expedienteOpen()"
+        layout="overlay"
+        [investigacionLabel]="expedienteSceneLabel()"
+        (closed)="expedienteOpen.set(false)" />
+    }
+
+    @if (phase() === 'explore') {
+      <a mat-icon-button routerLink="/estudiante" class="exit-link-fab" aria-label="Salir de la simulación">
+        <mat-icon>arrow_back</mat-icon>
+      </a>
+    } @else {
+      <a mat-stroked-button routerLink="/estudiante" class="exit-link">
+        <mat-icon>arrow_back</mat-icon>
+        Salir (participación abierta)
+      </a>
+    }
+  }
+
+  @if (phase() === 'hypothesis-hospital') {
+    <app-hypothesis-panel
+      title="Hipótesis hospitalaria"
+      subtitle="Según lo investigado en urgencias, ¿cómo evalúas la situación? Sin calificación."
+      (selected)="onHypothesisSelected($event)" />
+  }
+
+  @if (phase() === 'hypothesis-comisaria') {
+    <app-hypothesis-panel
+      title="Hipótesis institucional"
+      subtitle="Tras la investigación en comisaría, ¿cómo reevalúas el caso? Sin calificación."
+      (selected)="onHypothesisSelected($event)" />
+  }
+
+  @if (phase() === 'decision-hospital' || phase() === 'decision-comisaria') {
+    @if (activeDecision(); as dec) {
+      <div class="gate-overlay">
+        <article class="decision-panel">
+          <span class="dec-kicker">Intervención profesional</span>
+          <h2>{{ dec.prompt }}</h2>
+          <p class="dec-context">{{ dec.context }}</p>
+          <div class="action-grid">
+            @for (opt of dec.options; track opt.id) {
+              <button type="button" class="action-card" (click)="elegirAccion(opt)">
+                <mat-icon>{{ opt.icon }}</mat-icon>
+                <strong>{{ opt.actionTitle }}</strong>
+                <span>{{ opt.actionSubtitle }}</span>
+              </button>
+            }
+          </div>
+        </article>
+      </div>
+    }
+  }
+
+  @if (phase() === 'confirm-hospital' || phase() === 'confirm-comisaria') {
+    @if (pendingChoice(); as opt) {
+      <div class="gate-overlay">
+        <article class="gate-card confirm">
+          <mat-icon>{{ opt.icon }}</mat-icon>
+          <h2>¿Confirmas esta acción?</h2>
+          <p><strong>{{ opt.actionTitle }}</strong></p>
+          <p>{{ opt.actionSubtitle }}</p>
+          @if (mappingError()) {
+            <p class="mapping-error">{{ mappingError() }}</p>
+          }
+          <div class="confirm-actions">
+            <button mat-stroked-button (click)="cancelarConfirmacion()">Revisar otras opciones</button>
+            <button mat-flat-button color="primary" (click)="confirmarDecision()" [disabled]="savingDecision()">
+              {{ savingDecision() ? 'Registrando…' : 'Confirmar intervención' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    }
+  }
+
+  @if (phase() === 'consequence-hospital' || phase() === 'consequence-comisaria') {
+    @if (activeConsequence(); as opt) {
+      <div class="gate-overlay">
+        <article class="consequence-panel">
+          <mat-icon>{{ opt.icon }}</mat-icon>
+          <h2>{{ opt.consequenceTitle }}</h2>
+          @for (line of opt.consequenceLines; track line) {
+            <p>{{ line }}</p>
+          }
+          <button mat-flat-button color="primary" (click)="cerrarConsecuencia()">Continuar el caso</button>
+        </article>
+      </div>
+    }
+  }
+
+  @if (phase() === 'minigame-timeline') {
+    <div class="gate-overlay minigame">
+      <article class="minigame-card">
+        <p class="mg-intro">Reconstruye la línea temporal del caso con lo que investigaste.</p>
+        <app-timeline-minigame [events]="timelineEvents" (completed)="onTimelineDone()" />
+      </article>
+    </div>
+  }
+
+  @if (phase() === 'minigame-route') {
+    <div class="gate-overlay minigame">
+      <article class="minigame-card">
+        <p class="mg-intro">Organiza la ruta de atención interinstitucional del caso.</p>
+        <app-route-minigame [steps]="routeSteps" (completed)="onRouteDone()" />
+      </article>
+    </div>
+  }
+
+  @if (phase() === 'minigame-risk') {
+    <div class="gate-overlay minigame">
+      <article class="minigame-card wide">
+        <p class="mg-intro">Clasifica factores de riesgo y medidas de protección según tu investigación.</p>
+        <app-risk-minigame [cards]="riskCards" (completed)="onRiskDone()" />
+      </article>
+    </div>
+  }
+
+  @if (phase() === 'case-synthesis') {
+    <div class="gate-overlay">
+      <article class="gate-card synthesis">
+        <mat-icon>inventory_2</mat-icon>
+        <h2>Síntesis del caso</h2>
+        <p>
+          Revisaste personas, evidencias, contradicciones y hechos. El expediente queda listo para cierre institucional.
+        </p>
+        <ul class="syn-stats">
+          <li>{{ clueCount() }} pistas registradas</li>
+          <li>{{ expediente.contradicciones().length }} contradicciones detectadas</li>
+        </ul>
+        <button mat-flat-button color="primary" (click)="irASintesisFinal()">Cerrar investigación</button>
+      </article>
+    </div>
+  }
+
+  @if (phase() === 'finalize-confirm') {
+    <div class="gate-overlay">
+      <article class="gate-card synthesis">
+        <mat-icon>assignment_turned_in</mat-icon>
+        <h2>Finalizar participación</h2>
+        <p>
+          Al cerrar el expediente recibirás la retroalimentación académica completa de tus decisiones.
+        </p>
+        <button mat-flat-button color="primary" (click)="finalizarParticipacion()" [disabled]="finalizing()">
+          {{ finalizing() ? 'Cerrando expediente…' : 'Finalizar y ver retroalimentación' }}
+        </button>
+      </article>
+    </div>
+  }
+</div>

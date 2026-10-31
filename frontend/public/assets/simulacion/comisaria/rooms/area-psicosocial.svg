@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8a29e" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#ca8a04" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  
+  <rect x="80" y="140" width="480" height="300" fill="#115e59" opacity="0.35"/>
+  <rect x="600" y="140" width="560" height="300" fill="#0f766e" opacity="0.3"/>
+  <rect x="120" y="220" width="180" height="100" fill="#fff" opacity="0.06"/>
+  <rect x="680" y="220" width="180" height="100" fill="#fff" opacity="0.06"/>
+  <rect x="400" y="180" width="480" height="50" fill="#14b8a6" opacity="0.25"/>
+  <rect x="0" y="520" width="1280" height="200" fill="url(#floor)"/>
+  <text x="640" y="48" text-anchor="middle" fill="rgba(248,250,252,0.15)" font-family="Georgia,serif" font-size="18" letter-spacing="8">AREA PSICOSOCIAL</text>
+</svg>

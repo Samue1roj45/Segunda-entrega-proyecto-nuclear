@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 220">
+  <rect width="300" height="220" fill="#f1f5f9"/>
+  <rect x="0" y="0" width="300" height="18" fill="#0f172a"/>
+  <text x="150" y="12" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Arial" font-weight="bold">ARCHIVO · EXPEDIENTES</text>
+  <!-- Pasillo estanterias -->
+  <rect x="0" y="24" width="140" height="196" fill="#e2e8f0"/>
+  <g>
+    <rect x="8" y="32" width="60" height="180" fill="#475569"/>
+    <rect x="12" y="40" width="52" height="8" fill="#94a3b8"/>
+    <rect x="12" y="52" width="52" height="8" fill="#cbd5e1"/>
+    <rect x="12" y="64" width="52" height="8" fill="#94a3b8"/>
+    <rect x="12" y="76" width="52" height="8" fill="#cbd5e1"/>
+    <rect x="12" y="88" width="52" height="8" fill="#fca5a5"/>
+    <rect x="72" y="32" width="60" height="180" fill="#475569"/>
+    <rect x="76" y="40" width="52" height="8" fill="#cbd5e1"/>
+    <rect x="76" y="52" width="52" height="8" fill="#94a3b8"/>
+  </g>
+  <!-- Area consulta -->
+  <rect x="148" y="24" width="152" height="196" fill="#fff"/>
+  <rect x="160" y="100" width="120" height="12" fill="#334155"/>
+  <rect x="164" y="82" width="112" height="22" fill="#64748b"/>
+  <rect x="220" y="86" width="40" height="16" fill="#1e293b"/>
+  <!-- Carpeta expediente -->
+  <rect x="168" y="140" width="48" height="56" fill="#fbbf24" stroke="#b45309"/>
+  <rect x="172" y="148" width="40" height="6" fill="#fff" opacity="0.5"/>
+  <text x="192" y="175" text-anchor="middle" fill="#78350f" font-size="7" font-family="Arial">EXP.</text>
+  <rect x="228" y="140" width="48" height="56" fill="#93c5fd" stroke="#1e40af"/>
+  <!-- Cartel reservado -->
+  <rect x="160" y="36" width="120" height="28" fill="#7f1d1d"/>
+  <text x="220" y="54" text-anchor="middle" fill="#fecaca" font-size="8" font-family="Arial">ACCESO AUTORIZADO</text>
+  <!-- Archivador metal -->
+  <rect x="160" y="168" width="72" height="48" fill="#64748b"/>
+  <rect x="164" y="172" width="64" height="6" fill="#94a3b8"/>
+  <rect x="164" y="182" width="64" height="6" fill="#cbd5e1"/>
+  <rect x="248" y="168" width="40" height="48" fill="#475569"/>
+</svg>

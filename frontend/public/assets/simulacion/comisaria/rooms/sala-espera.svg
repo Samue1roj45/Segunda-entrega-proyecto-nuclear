@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a8a29e" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#ca8a04" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#sky)"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  
+  <rect x="80" y="120" width="1120" height="90" fill="#44403c"/>
+  <rect x="100" y="400" width="68" height="88" rx="5" fill="#57534e"/>
+  <rect x="200" y="400" width="68" height="88" rx="5" fill="#57534e"/>
+  <rect x="300" y="400" width="68" height="88" rx="5" fill="#57534e"/>
+  <rect x="400" y="400" width="68" height="88" rx="5" fill="#57534e"/>
+  <rect x="880" y="240" width="280" height="160" fill="#292524"/>
+  <rect x="120" y="260" width="220" height="100" fill="#ca8a04" opacity="0.2"/>
+  <text x="130" y="310" fill="#fef3c7" font-size="11" font-family="Arial">Atencion a victimas</text>
+  <rect x="0" y="520" width="1280" height="200" fill="url(#floor)"/>
+  <text x="640" y="48" text-anchor="middle" fill="rgba(248,250,252,0.15)" font-family="Georgia,serif" font-size="18" letter-spacing="8">SALA ESPERA</text>
+</svg>

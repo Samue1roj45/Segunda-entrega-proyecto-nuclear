@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 448" width="400" height="448">
+  <rect width="400" height="448" fill="#fef9c3"/>
+  <rect x="0" y="0" width="400" height="16" fill="#a16207"/>
+  <text x="200" y="12" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="system-ui">PROTECCIÓN</text>
+  <rect x="30" y="40" width="340" height="80" fill="#fff" stroke="#ca8a04"/>
+  <path d="M200 55 L220 95 L180 95 Z" fill="#eab308" stroke="#a16207"/>
+  <text x="200" y="105" text-anchor="middle" fill="#854d0e" font-size="9" font-weight="600">MEDIDAS DE PROTECCIÓN</text>
+  <rect x="40" y="140" width="150" height="120" fill="#fef08a" stroke="#eab308"/>
+  <rect x="210" y="140" width="150" height="120" fill="#fff" stroke="#ca8a04"/>
+  <text x="115" y="205" text-anchor="middle" fill="#713f12" font-size="8">SALA ATENCIÓN</text>
+  <text x="285" y="205" text-anchor="middle" fill="#713f12" font-size="8">COORDINACIÓN</text>
+  <rect x="50" y="290" width="300" height="130" fill="#fffbeb" stroke="#d97706"/>
+  <text x="200" y="355" text-anchor="middle" fill="#92400e" font-size="8">RUTA INSTITUCIONAL</text>
+</svg>

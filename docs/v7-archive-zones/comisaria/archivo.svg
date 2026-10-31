@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 368 720" width="368" height="720">
+  <rect width="368" height="720" fill="#f1f5f9"/>
+  <rect x="0" y="0" width="368" height="16" fill="#334155"/>
+  <text x="184" y="12" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="system-ui">ARCHIVO</text>
+  <rect x="20" y="30" width="70" height="130" fill="#94a3b8" stroke="#475569"/>
+  <rect x="26" y="36" width="58" height="12" fill="#cbd5e1"/>
+  <rect x="100" y="30" width="70" height="130" fill="#94a3b8" stroke="#475569"/>
+  <rect x="180" y="30" width="80" height="150" fill="#64748b" stroke="#334155"/>
+  <text x="220" y="110" text-anchor="middle" fill="#f8fafc" font-size="8">EXPEDIENTES</text>
+  <rect x="20" y="180" width="90" height="140" fill="#94a3b8" stroke="#475569"/>
+  <text x="65" y="255" text-anchor="middle" fill="#fff" font-size="7">DENUNCIAS</text>
+  <rect x="120" y="180" width="90" height="140" fill="#94a3b8" stroke="#475569"/>
+  <text x="165" y="255" text-anchor="middle" fill="#fff" font-size="7">REPORTES</text>
+  <rect x="220" y="340" width="120" height="160" fill="#fff" stroke="#64748b"/>
+  <text x="280" y="430" text-anchor="middle" fill="#334155" font-size="8">RUTA PROTECCIÓN</text>
+  <rect x="30" y="500" width="300" height="180" fill="#e2e8f0" stroke="#475569"/>
+  <text x="180" y="590" text-anchor="middle" fill="#1e293b" font-size="9" font-weight="600">DOCUMENTACIÓN RESERVADA</text>
+</svg>
