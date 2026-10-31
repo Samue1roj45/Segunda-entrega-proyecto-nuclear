@@ -13,22 +13,28 @@ import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
 import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
 import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
+import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
 import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
+import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
+import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
 
 @Service
 public class NotificacionFacade {
 
     private final NotificacionRepository repositorio;
+    private final ResultadoRepository resultados;
     private final CatalogoAcademico catalogo;
     private final AccesoEvaluacion acceso;
     private final PublicadorEventos publicador;
 
     public NotificacionFacade(
             NotificacionRepository repositorio,
+            ResultadoRepository resultados,
             CatalogoAcademico catalogo,
             AccesoEvaluacion acceso,
             PublicadorEventos publicador) {
         this.repositorio = repositorio;
+        this.resultados = resultados;
         this.catalogo = catalogo;
         this.acceso = acceso;
         this.publicador = publicador;
@@ -66,6 +72,34 @@ public class NotificacionFacade {
                     autorizacion.estudianteId(),
                     null,
                     "Cambio en practica " + practica.nombre(),
+                    cuerpo)));
+        }
+        return resumen;
+    }
+
+    /**
+     * RF-27: avisa calificaciones ya persistidas. No calcula ni reescribe notas.
+     */
+    @Transactional
+    public ResumenEnvio publicarCalificaciones(Long practicaId) {
+        ActorActual actor = acceso.exigirActor();
+        PracticaRef practica = acceso.exigirPracticaDocente(practicaId, actor);
+        ResumenEnvio resumen = new ResumenEnvio(0, 0, 0);
+        for (Resultado resultado : resultados.findAllByOrderByIdDesc()) {
+            Participacion participacion = resultado.getParticipacion();
+            if (!Objects.equals(participacion.getPracticaId(), practica.id())) {
+                continue;
+            }
+            String cuerpo = "Se publico la calificacion del intento " + participacion.getNumeroIntento()
+                    + " de '" + practica.nombre() + "'. Nota: " + resultado.getNotaFinal()
+                    + " / " + resultado.getEscalaMaxima() + ".";
+            resumen = resumen.acumular(publicador.publicar(new EventoAcademico(
+                    TipoNotificacion.CALIFICACION,
+                    "CALIFICACION:" + participacion.getId(),
+                    practica.id(),
+                    participacion.getEstudianteId(),
+                    participacion.getId(),
+                    "Calificacion publicada: " + practica.nombre(),
                     cuerpo)));
         }
         return resumen;

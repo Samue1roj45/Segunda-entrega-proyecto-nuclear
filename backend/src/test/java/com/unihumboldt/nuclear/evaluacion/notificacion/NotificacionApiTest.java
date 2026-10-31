@@ -205,6 +205,37 @@ class NotificacionApiTest {
     }
 
     @Test
+    void rf27ErrorSmtpNoModificaNiBorraResultado() throws Exception {
+        long pid = iniciarYFinalizar();
+        mockMvc.perform(get("/api/resultados")
+                        .with(user("est1"))
+                        .headers(est(10)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].participacionId").value(pid))
+                .andExpect(jsonPath("$[0].notaFinal").value(0.00));
+
+        doThrow(new MailSendException("smtp caido")).when(mailSender).send(any(SimpleMailMessage.class));
+
+        mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
+                        .with(user("docente5"))
+                        .headers(doc(5)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errores").value(1));
+
+        mockMvc.perform(get("/api/resultados")
+                        .with(user("est1"))
+                        .headers(est(10)))
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].notaFinal").value(0.00));
+
+        mockMvc.perform(get("/api/notificaciones")
+                        .with(user("est1"))
+                        .headers(est(10)))
+                .andExpect(jsonPath("$[0].tipo").value("CALIFICACION"))
+                .andExpect(jsonPath("$[0].estado").value("ERROR"));
+    }
+
+    @Test
     void rf27ErrorSmtpNoBorraRetroalimentacion() throws Exception {
         long pid = iniciarYFinalizar();
         doThrow(new MailSendException("smtp caido")).when(mailSender).send(any(SimpleMailMessage.class));
