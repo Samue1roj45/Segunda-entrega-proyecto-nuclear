@@ -21,6 +21,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.unihumboldt.nuclear.evaluacion.notificacion.EstadoEnvio;
+import com.unihumboldt.nuclear.evaluacion.notificacion.Notificacion;
+import com.unihumboldt.nuclear.evaluacion.notificacion.NotificacionRepository;
+import com.unihumboldt.nuclear.evaluacion.notificacion.TipoNotificacion;
 import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficial;
 import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficialRepository;
 import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
@@ -55,6 +59,9 @@ class ParticipacionMysqlSchemaIT {
 
     @Autowired
     private NotaOficialRepository notasOficiales;
+
+    @Autowired
+    private NotificacionRepository notificaciones;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -143,6 +150,46 @@ class ParticipacionMysqlSchemaIT {
         assertEquals(participacion.getId(), recargada.getParticipacion().getId());
         assertEquals(50L, recargada.getDocenteId());
         assertEquals(fechaSeleccion.toInstant(), recargada.getFechaSeleccion().toInstant());
+    }
+
+    @Test
+    void persisteNotificacionYLaRecupera() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(400L, 1));
+        OffsetDateTime fechaCreacion = OffsetDateTime.parse("2026-11-01T16:00:00-05:00");
+
+        Notificacion notificacion = new Notificacion();
+        notificacion.setTipo(TipoNotificacion.CALIFICACION);
+        notificacion.setClaveIdempotencia("calificacion-practica-1-estudiante-10");
+        notificacion.setPracticaId(participacion.getPracticaId());
+        notificacion.setEstudianteId(participacion.getEstudianteId());
+        notificacion.setParticipacionId(participacion.getId());
+        notificacion.setDestinatarioCorreo("est1@uni.edu");
+        notificacion.setAsunto("Calificacion publicada");
+        notificacion.setCuerpo("Su nota oficial ya esta disponible.");
+        notificacion.setEstado(EstadoEnvio.PENDIENTE);
+        notificacion.setFechaCreacion(fechaCreacion);
+
+        Notificacion guardada = notificaciones.saveAndFlush(notificacion);
+        Long id = guardada.getId();
+        assertNotNull(id);
+
+        entityManager.clear();
+
+        Notificacion recargada = notificaciones.findByClaveIdempotencia(
+                "calificacion-practica-1-estudiante-10").orElseThrow();
+        assertEquals(id, recargada.getId());
+        assertEquals(TipoNotificacion.CALIFICACION, recargada.getTipo());
+        assertEquals("calificacion-practica-1-estudiante-10", recargada.getClaveIdempotencia());
+        assertEquals(1L, recargada.getPracticaId());
+        assertEquals(10L, recargada.getEstudianteId());
+        assertEquals(participacion.getId(), recargada.getParticipacionId());
+        assertEquals("est1@uni.edu", recargada.getDestinatarioCorreo());
+        assertEquals("Calificacion publicada", recargada.getAsunto());
+        assertEquals("Su nota oficial ya esta disponible.", recargada.getCuerpo());
+        assertEquals(EstadoEnvio.PENDIENTE, recargada.getEstado());
+        assertNull(recargada.getErrorMensaje());
+        assertEquals(fechaCreacion.toInstant(), recargada.getFechaCreacion().toInstant());
+        assertNull(recargada.getFechaEnvio());
     }
 
     private static Participacion participacion(long autorizacionId, int numeroIntento) {
