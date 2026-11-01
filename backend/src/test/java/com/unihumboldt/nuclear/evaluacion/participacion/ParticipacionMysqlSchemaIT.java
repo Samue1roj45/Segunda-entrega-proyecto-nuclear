@@ -21,6 +21,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficial;
+import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficialRepository;
 import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
 import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
 
@@ -50,6 +52,9 @@ class ParticipacionMysqlSchemaIT {
 
     @Autowired
     private ResultadoRepository resultados;
+
+    @Autowired
+    private NotaOficialRepository notasOficiales;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -110,6 +115,34 @@ class ParticipacionMysqlSchemaIT {
         assertEquals(5, recargado.getEscalaMaxima());
         assertEquals(0, new BigDecimal("4.00").compareTo(recargado.getNotaFinal()));
         assertEquals(fechaCalculo.toInstant(), recargado.getFechaCalculo().toInstant());
+    }
+
+    @Test
+    void persisteNotaOficialYLaRecupera() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(300L, 1));
+        OffsetDateTime fechaSeleccion = OffsetDateTime.parse("2026-11-01T15:00:00-05:00");
+
+        NotaOficial nota = new NotaOficial();
+        nota.setPracticaId(participacion.getPracticaId());
+        nota.setEstudianteId(participacion.getEstudianteId());
+        nota.setParticipacion(participacion);
+        nota.setDocenteId(50L);
+        nota.setFechaSeleccion(fechaSeleccion);
+
+        NotaOficial guardada = notasOficiales.saveAndFlush(nota);
+        Long id = guardada.getId();
+        assertNotNull(id);
+
+        entityManager.clear();
+
+        NotaOficial recargada = notasOficiales.findByPracticaIdAndEstudianteId(
+                participacion.getPracticaId(), participacion.getEstudianteId()).orElseThrow();
+        assertEquals(id, recargada.getId());
+        assertEquals(1L, recargada.getPracticaId());
+        assertEquals(10L, recargada.getEstudianteId());
+        assertEquals(participacion.getId(), recargada.getParticipacion().getId());
+        assertEquals(50L, recargada.getDocenteId());
+        assertEquals(fechaSeleccion.toInstant(), recargada.getFechaSeleccion().toInstant());
     }
 
     private static Participacion participacion(long autorizacionId, int numeroIntento) {
