@@ -1,0 +1,22 @@
+{
+  "caso" : "CP-RF01-04",
+  "descripcion" : "Correo que no es institucional",
+  "ejecutado" : "2026-11-01T18:17:23",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@gmail.com\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 400,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:17:23.3070118",
+        "estado" : 400,
+        "error" : "Bad Request",
+        "mensaje" : "Debe ingresar su correo institucional (@institucion.edu.co).",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  } ]
+}
