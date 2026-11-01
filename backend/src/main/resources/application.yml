@@ -5,9 +5,10 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5435}/${POSTGRES_DB:evaluacion_db}
-    username: ${POSTGRES_USER:evaluacion_user}
-    password: ${POSTGRES_PASSWORD:evaluacion_pass}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:5435}/${MYSQL_DB:evaluacion_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Bogota
+    username: ${MYSQL_USER:evaluacion_user}
+    password: ${MYSQL_PASSWORD:evaluacion_pass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: none
