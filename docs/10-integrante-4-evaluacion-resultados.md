@@ -15,10 +15,14 @@ No se usa Python ni Django.
 
 ## Decisiones funcionales
 
-1. Dos intentos por autorización. Historial independiente. La ausencia (nota 0) no reabre el mismo intento ni bloquea el segundo.
-2. Notificaciones por correo Spring Boot.
-3. `nota = (peso_obtenido / peso_total) * rubrica.escala_maxima` (100 si no hay escala).
-4. RN17: no iniciar después de la mitad del intervalo de la práctica.
+1. Cada estudiante tiene **máximo dos intentos** por autorización. El historial de cada intento es independiente.
+2. Una **ausencia** se registra con **nota 0** y permanece **NO_INICIADA**. No es un intento incompleto: la incompleta sale de un intento **EN_CURSO** que se cierra como **INCOMPLETA** con las respuestas que hubiera. La ausencia no reabre ese intento ni impide abrir el segundo.
+3. El **docente selecciona** cuál intento será la **nota oficial** (`POST /api/resultados/nota-oficial`).
+4. Esa selección **no modifica** `notaFinal` de ningún intento.
+5. Si el docente **no ha elegido** nota oficial, **no** se asume la nota mayor ni la más reciente.
+6. Notificaciones por correo Spring Boot.
+7. `nota = (peso_obtenido / peso_total) * rubrica.escala_maxima` (100 si no hay escala).
+8. RN17: no iniciar después de la mitad del intervalo de la práctica.
 
 ## Estado de los requisitos
 
@@ -42,11 +46,10 @@ Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustitu
 
 - Fórmula: `(peso_obtenido / peso_total) * rubrica.escala_maxima`. Si no hay rúbrica, escala = 100.
 - Un `Resultado` por participación (intento). Un reintento crea otra participación y otro resultado; no se reescribe el anterior.
-- **Incompleta:** participación `EN_CURSO` al evaluar pendientes → estado `INCOMPLETA` y nota con las respuestas registradas (preguntas sin respuesta no suman peso).
-- **Ausencia:** autorización sin intento iniciado → participación `NO_INICIADA` con nota 0. Ese intento no se puede iniciar después; el estudiante puede abrir el segundo intento.
+- Al evaluar pendientes: `EN_CURSO` pasa a `INCOMPLETA` (nota con respuestas registradas); autorización sin inicio queda `NO_INICIADA` con resultado de ausencia. La distinción de negocio está en **Decisiones funcionales**.
 - Solo el estudiante dueño responde y finaliza. `calcular` no reescribe una nota ya persistida.
-- Nota oficial: el docente elige el intento (`POST /api/resultados/nota-oficial`). No se altera `notaFinal` de cada intento.
 - Consulta: estudiante solo sus resultados; docente solo prácticas con `docenteId` propio.
+- La nota oficial y el tope de dos intentos están en **Decisiones funcionales**; no se repetirán aquí.
 
 ## Endpoints RF-12 / RF-15 / RF-13 / RF-14 / RF-24
 
