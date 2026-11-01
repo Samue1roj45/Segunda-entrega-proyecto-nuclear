@@ -159,6 +159,35 @@ class ParticipacionMysqlSchemaIT {
     }
 
     @Test
+    void rechazaNotaOficialDuplicadaPorPracticaYEstudiante() {
+        Participacion intentoUno = repositorio.saveAndFlush(participacion(600L, 1));
+        Participacion intentoDos = repositorio.saveAndFlush(participacion(601L, 2));
+
+        NotaOficial primera = new NotaOficial();
+        primera.setPracticaId(1L);
+        primera.setEstudianteId(10L);
+        primera.setParticipacion(intentoUno);
+        primera.setDocenteId(50L);
+        primera.setFechaSeleccion(OffsetDateTime.parse("2026-11-01T15:00:00-05:00"));
+        assertNotNull(notasOficiales.saveAndFlush(primera).getId());
+
+        NotaOficial duplicada = new NotaOficial();
+        duplicada.setPracticaId(1L);
+        duplicada.setEstudianteId(10L);
+        duplicada.setParticipacion(intentoDos);
+        duplicada.setDocenteId(51L);
+        duplicada.setFechaSeleccion(OffsetDateTime.parse("2026-11-01T16:00:00-05:00"));
+
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> notasOficiales.saveAndFlush(duplicada));
+        assertTrue(
+                mensajeDeCausas(error).contains("uk_nota_oficial_practica_estudiante"),
+                () -> "Se esperaba el rechazo de uk_nota_oficial_practica_estudiante: "
+                        + mensajeDeCausas(error));
+    }
+
+    @Test
     void persisteNotificacionYLaRecupera() {
         Participacion participacion = repositorio.saveAndFlush(participacion(400L, 1));
         OffsetDateTime fechaCreacion = OffsetDateTime.parse("2026-11-01T16:00:00-05:00");
