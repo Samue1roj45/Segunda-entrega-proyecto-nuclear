@@ -40,6 +40,22 @@ No se usa Python ni Django.
 
 Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. No están integrados JWT, el catálogo académico real ni un frontend en este repositorio.
 
+## Relación tabla 4.1 y clases reales
+
+Nombres comprobados en el código de esta rama. La columna **4.1** es lo exigido; **Adicional** es coordinación que existe en la arquitectura pero no está pedida para ese RF.
+
+| RF | 4.1 | Clases del patrón exigido | Responsabilidad | Adicional (no exigido por 4.1) |
+|---|---|---|---|---|
+| RF-12 | State | `EstadoDeParticipacion`, `EstadoNoIniciada`, `EstadoEnCurso`, `EstadoFinalizada`, `EstadoIncompleta`, `MaquinaEstadoParticipacion` | Cada estado admite o rechaza iniciar, finalizar o marcar incompleta. | `ParticipacionFacade` orquesta inicio/fin; no sustituye al State. |
+| RF-13 | Strategy y Facade | `EstrategiaEvaluacion`, `EvaluacionCompletaStrategy`, `CalculoRubrica`, `EvaluacionFacade` | El Facade elige estrategia y persiste la nota; no reescribe un `Resultado` existente. | — |
+| RF-14 | State, Facade y Proxy | State: los mismos estados de RF-12 (`consultarCerrado` no entrega un intento `EN_CURSO`). Facade: `EvaluacionFacade`. Proxy: `ConsultaResultado`, `ResultadoConsultaProxy` | El Proxy limita visibilidad; el Facade arma el resultado y la nota oficial elegida por el docente. | — |
+| RF-15 | Facade y Proxy | `ParticipacionFacade`, `ConsultaParticipacion`, `ParticipacionConsultaProxy` | El Proxy filtra dueño/práctica; el Facade describe e historializa intentos. | — |
+| RF-16 | Facade y Proxy | `ReporteFacade`, `DescargaReporte`, `ReporteDescargaProxy` | El Proxy autoriza la descarga; el Facade arma filas y PDF/Excel sin recalcular notas. | Generadores `ReportePdfOpenPdf` y `ReporteExcelPoi` (no son el Proxy). |
+| RF-21 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `NotificacionFacade` | El Facade publica convocatoria/cambio; el Observer envía correo con idempotencia. | `NotificacionCorreoServicio` persiste el intento SMTP; no es un segundo observador. |
+| RF-24 | Strategy | `EstrategiaEvaluacion`, `EvaluacionIncompletaStrategy`, `EvaluacionAusenciaStrategy`, `EvaluacionCompletaStrategy` | Incompleta usa respuestas registradas; ausencia deja nota 0 en `NO_INICIADA`. | `EvaluacionFacade.evaluarPendientes` y el State (`marcarIncompleta`) coordinan el cierre; 4.1 no pide Facade ni State en este RF. |
+| RF-26 | Facade y Proxy | `RetroalimentacionFacade`, `GestionRetroalimentacion`, `RetroalimentacionProxy` | El Proxy restringe registro y consulta; el Facade guarda el texto por intento. | Al guardar se publica un evento (eso es RF-27, no un patrón extra de RF-26). |
+| RF-27 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `NotificacionFacade.publicarCalificaciones`; el feedback sale de `RetroalimentacionFacade.guardar` | Avisa calificaciones ya persistidas y retroalimentación; no altera `notaFinal`. | `EvaluacionFacade.publicarCalificaciones` solo delega en `NotificacionFacade`. |
+
 Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustituirá por el módulo de usuarios; hoy el actor llega en cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id`.
 
 ## RF-13 / RF-14 / RF-24
