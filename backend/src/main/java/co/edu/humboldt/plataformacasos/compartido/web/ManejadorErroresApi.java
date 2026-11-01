@@ -1,6 +1,8 @@
 package co.edu.humboldt.plataformacasos.compartido.web;
 
 import co.edu.humboldt.plataformacasos.autenticacion.servicio.CredencialesInvalidasException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.SolicitudInvalidaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** Traduce las excepciones de la aplicación a respuestas HTTP con el cuerpo ErrorApi. */
 @RestControllerAdvice
@@ -26,6 +29,21 @@ public class ManejadorErroresApi {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     ResponseEntity<ErrorApi> cuerpoIlegible(HttpMessageNotReadableException e, HttpServletRequest solicitud) {
         return responder(HttpStatus.BAD_REQUEST, "El cuerpo de la solicitud no es un JSON válido.", solicitud);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ResponseEntity<ErrorApi> parametroInvalido(MethodArgumentTypeMismatchException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.BAD_REQUEST, "Valor no válido para '" + e.getName() + "'.", solicitud);
+    }
+
+    @ExceptionHandler(NoAutenticadoException.class)
+    ResponseEntity<ErrorApi> noAutenticado(NoAutenticadoException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.UNAUTHORIZED, e.getMessage(), solicitud);
+    }
+
+    @ExceptionHandler(AccesoDenegadoException.class)
+    ResponseEntity<ErrorApi> accesoDenegado(AccesoDenegadoException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.FORBIDDEN, e.getMessage(), solicitud);
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)

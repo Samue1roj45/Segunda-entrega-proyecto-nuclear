@@ -1,5 +1,7 @@
 package co.edu.humboldt.plataformacasos.configuracion.seguridad;
 
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
 import co.edu.humboldt.plataformacasos.compartido.web.ErrorApi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +24,8 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class RespuestasErrorSeguridad implements AuthenticationEntryPoint, AccessDeniedHandler {
 
-    static final String MENSAJE_NO_AUTENTICADO = "Debe iniciar sesión para acceder a este recurso.";
-    static final String MENSAJE_ACCESO_DENEGADO = "No tiene permiso para realizar esta operación.";
+    static final String MENSAJE_NO_AUTENTICADO = NoAutenticadoException.MENSAJE;
+    static final String MENSAJE_ACCESO_DENEGADO = AccesoDenegadoException.MENSAJE;
 
     private final ObjectMapper objectMapper;
 
