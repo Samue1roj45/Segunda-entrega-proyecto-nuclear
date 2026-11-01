@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -228,6 +229,37 @@ class ParticipacionMysqlSchemaIT {
         assertEquals("Revise las preguntas de ponderacion.", recargada.getTexto());
         assertEquals(fechaCreacion.toInstant(), recargada.getFechaCreacion().toInstant());
         assertEquals(fechaActualizacion.toInstant(), recargada.getFechaActualizacion().toInstant());
+    }
+
+    @Test
+    void rechazaResultadoConParticipacionInexistente() {
+        Resultado resultado = new Resultado();
+        resultado.setParticipacion(entityManager.getEntityManager().getReference(Participacion.class, 9_999_999L));
+        resultado.setCorrectas(0);
+        resultado.setIncorrectas(0);
+        resultado.setNoRespondidas(0);
+        resultado.setPesoObtenido(0);
+        resultado.setPesoTotal(10);
+        resultado.setEscalaMaxima(5);
+        resultado.setNotaFinal(new BigDecimal("0.00"));
+        resultado.setFechaCalculo(OffsetDateTime.parse("2026-11-01T18:00:00-05:00"));
+
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> resultados.saveAndFlush(resultado));
+        assertTrue(
+                mensajeDeCausas(error).contains("fk_resultado_participacion"),
+                () -> "Se esperaba el rechazo de fk_resultado_participacion: " + mensajeDeCausas(error));
+    }
+
+    private static String mensajeDeCausas(Throwable error) {
+        StringBuilder texto = new StringBuilder();
+        for (Throwable actual = error; actual != null; actual = actual.getCause()) {
+            if (actual.getMessage() != null) {
+                texto.append(actual.getMessage()).append(' ');
+            }
+        }
+        return texto.toString().toLowerCase();
     }
 
     private static Participacion participacion(long autorizacionId, int numeroIntento) {
