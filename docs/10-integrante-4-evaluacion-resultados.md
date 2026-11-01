@@ -1,4 +1,4 @@
-# Integrante 4 — Evaluación y resultados (esqueleto Spring Boot)
+# Integrante 4 — Evaluación y resultados
 
 Alcance: RF-12, RF-13, RF-14, RF-15, RF-16, RF-21, RF-24, RF-26, RF-27.
 
@@ -20,12 +20,21 @@ No se usa Python ni Django.
 3. `nota = (peso_obtenido / peso_total) * rubrica.escala_maxima` (100 si no hay escala).
 4. RN17: no iniciar después de la mitad del intervalo de la práctica.
 
-## Estado
+## Estado de los requisitos
 
-- RF-12 y RF-15: implementados.
-- RF-13, RF-14 y RF-24: implementados (nota con rúbrica, consulta, incompletos y ausencias).
-- RF-16: implementado (PDF OpenPDF 2.0.3 y Excel Apache POI 5.4.1).
-- RF-21, RF-26 y RF-27: implementados (correo Spring Mail, retroalimentación por intento, publicación de notas).
+| RF | Estado | Notas |
+|---|---|---|
+| RF-12 | Implementado | Inicio, fin, RN17, dos intentos independientes. State: `EstadoDeParticipacion` y estados concretos. |
+| RF-13 | Implementado | Nota con rúbrica. Strategy + `EvaluacionFacade.calcular` (no reescribe una nota persistida). |
+| RF-14 | Implementado | Consulta de resultado cerrado, nota oficial elegida por el docente. State + Facade + Proxy. |
+| RF-15 | Implementado | Consulta e historial de participaciones. Facade + `ParticipacionConsultaProxy`. |
+| RF-16 | Implementado | PDF OpenPDF 2.0.3 y Excel Apache POI 5.4.1. Facade + `ReporteDescargaProxy`. |
+| RF-21 | Implementado | Convocatoria y cambios. Observer (`PublicadorEventos`) + `NotificacionFacade`. |
+| RF-24 | Implementado | Incompleta ≠ ausencia (nota 0). Strategy de completa, incompleta y ausencia. |
+| RF-26 | Implementado | Retroalimentación por intento. Facade + `RetroalimentacionProxy`. |
+| RF-27 | Implementado | Aviso de calificaciones vía `NotificacionFacade` (el cálculo sigue en `EvaluacionFacade`) y aviso de feedback. Observer + Facade. |
+
+Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. No están integrados JWT, el catálogo académico real ni un frontend en este repositorio.
 
 Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustituirá por el módulo de usuarios; hoy el actor llega en cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id`.
 
