@@ -56,7 +56,34 @@ Nombres comprobados en el código de esta rama. La columna **4.1** es lo exigido
 | RF-26 | Facade y Proxy | `RetroalimentacionFacade`, `GestionRetroalimentacion`, `RetroalimentacionProxy` | El Proxy restringe registro y consulta; el Facade guarda el texto por intento. | Al guardar se publica un evento (eso es RF-27, no un patrón extra de RF-26). |
 | RF-27 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `NotificacionFacade.publicarCalificaciones`; el feedback sale de `RetroalimentacionFacade.guardar` | Avisa calificaciones ya persistidas y retroalimentación; no altera `notaFinal`. | `EvaluacionFacade.publicarCalificaciones` solo delega en `NotificacionFacade`. |
 
-Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustituirá por el módulo de usuarios; hoy el actor llega en cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id`.
+Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustituirá por el módulo de usuarios; hoy el actor llega en cabeceras temporales (detalle en **Actor y visibilidad por rol**).
+
+## Actor y visibilidad por rol
+
+Estos encabezados los resuelve `ActorHeaderResolver`. **No son JWT**: no hay token institucional ni claims del módulo de usuarios. Sin `X-Rol` y `X-Usuario-Id` válidos no hay actor (401 en rutas protegidas).
+
+| Encabezado | Uso actual |
+|---|---|
+| `X-Rol` | `ESTUDIANTE`, `DOCENTE` o `ADMIN` (valor de `Rol`) |
+| `X-Usuario-Id` | Identificador numérico del usuario |
+| `X-Estudiante-Id` | Obligatorio en la práctica para un estudiante |
+| `X-Docente-Id` | Obligatorio en la práctica para un docente |
+
+La visibilidad de consulta (`AccesoEvaluacion.visible` y, en notificaciones, el filtro de `NotificacionFacade`) es:
+
+| Recurso | Estudiante | Docente | Restricción cruzada |
+|---|---|---|---|
+| Participaciones | Solo las suyas (`estudianteId`) | Solo prácticas con su `docenteId` | Otro estudiante: 404. Docente de otra práctica: listado vacío / 404 |
+| Resultados y notas oficiales | Solo las suyas | Solo las de sus prácticas | Igual. Un resultado `EN_CURSO` no se consulta aunque sea propio |
+| Reportes PDF/Excel | Solo filas propias; `?estudiante=` de otro es 403 | `?practica=` de otra práctica es 403; sin filtro, solo sus prácticas | El reporte no mezcla grupos ajenos |
+| Notificaciones | Solo las dirigidas a su `estudianteId` | Solo las de prácticas propias | No ve convocatoria/cambio/calificación de otro |
+| Retroalimentaciones | Solo las de sus intentos | Solo las de sus prácticas | GET ajeno: 404. Registrar: solo docente (o admin) de esa práctica |
+
+Mutaciones de intento (responder, finalizar e iniciar): **solo el estudiante dueño**. El docente no responde ni finaliza en nombre del estudiante.
+
+`ADMIN` en código ve todos los recursos visibles y puede operar como docente de la práctica; no implica un módulo de administración entregado.
+
+Cuando exista JWT, estas cabeceras deben dejar de ser la fuente de identidad.
 
 ## RF-13 / RF-14 / RF-24
 
