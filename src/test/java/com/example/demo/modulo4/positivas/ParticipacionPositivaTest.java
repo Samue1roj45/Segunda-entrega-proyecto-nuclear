@@ -21,9 +21,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
-
-// MÓDULO 4 · ESCENARIOS POSITIVOS · RF-10 (responder y modificar) y RF-11 (respuestas y progreso) 6
-// Patrones probados: Proxy (control de acceso) y Observer (evento al guardar una respuesta).
+/*
+ MÓDULO 4 · ESCENARIOS POSITIVOS · RF-10 (responder y modificar) y RF-11 (respuestas y progreso) 6
+ Patrones probados: Proxy (control de acceso) y Observer (evento al guardar una respuesta).
+ */
 class ParticipacionPositivaTest {
 
     private final ParticipacionRepository repo = mock(ParticipacionRepository.class);

@@ -22,9 +22,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
-
-// MÓDULO 4 · ESCENARIOS POSITIVOS · RF-22 (ingreso tardío) y RF-23 (tiempo máximo) 4
-// Patrón probado: Strategy (políticas de ingreso).
+/*
+ MÓDULO 4 · ESCENARIOS POSITIVOS · RF-22 (ingreso tardío) y RF-23 (tiempo máximo) 4
+ Patrón probado: Strategy (políticas de ingreso).
+ */
 class IngresoTiempoPositivaTest {
 
     private static final LocalDateTime T0 = Datos.AHORA;

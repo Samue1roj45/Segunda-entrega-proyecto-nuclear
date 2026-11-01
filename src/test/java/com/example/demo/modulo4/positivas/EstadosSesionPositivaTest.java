@@ -16,9 +16,10 @@ import com.example.demo.state.SesionSinIniciar;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-// MÓDULO 4 · ESCENARIOS POSITIVOS · RF-19 (estados de la sesión) 4
-// Patrón probado: State (SesionSinIniciar, SesionEnCurso) y su contexto GestionSesionService.
+/*
+ MÓDULO 4 · ESCENARIOS POSITIVOS · RF-19 (estados de la sesión) 4
+ Patrón probado: State (SesionSinIniciar, SesionEnCurso) y su contexto GestionSesionService.
+ */
 class EstadosSesionPositivaTest {
 
     @Test

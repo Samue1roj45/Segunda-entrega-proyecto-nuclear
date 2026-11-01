@@ -23,9 +23,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
-
-// MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-10 (responder y modificar) y RF-11 (respuestas y progreso) 6
-// Pareja exacta de ParticipacionPositivaTest.
+/*
+ MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-10 (responder y modificar) y RF-11 (respuestas y progreso) 6
+ Pareja exacta de ParticipacionPositivaTest
+ */
 class ParticipacionNegativaTest {
 
     private final ParticipacionRepository repo = mock(ParticipacionRepository.class);

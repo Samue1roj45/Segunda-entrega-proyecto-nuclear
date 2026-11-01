@@ -19,9 +19,10 @@ import com.example.demo.state.SesionSinIniciar;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-// MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-19 (estados de la sesión) 4
-// Pareja exacta de EstadosSesionPositivaTest.
+/*
+ MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-19 (estados de la sesión) 4
+ Pareja exacta de EstadosSesionPositivaTest.
+ */
 class EstadosSesionNegativaTest {
 
     @Test

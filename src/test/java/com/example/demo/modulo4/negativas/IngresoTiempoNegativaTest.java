@@ -22,9 +22,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
-
-// MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-22 (ingreso tardío) y RF-23 (tiempo máximo) 4
-// Pareja exacta de IngresoTiempoPositivaTest.
+/*
+ MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-22 (ingreso tardío) y RF-23 (tiempo máximo) 4
+ Pareja exacta de IngresoTiempoPositivaTest.
+ */
 class IngresoTiempoNegativaTest {
 
     private static final LocalDateTime T0 = Datos.AHORA;

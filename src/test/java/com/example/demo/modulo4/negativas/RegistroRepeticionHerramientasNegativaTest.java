@@ -24,9 +24,10 @@ import com.example.demo.service.repeticion.CadenaValidacionRepeticion;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-// MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
-// Pareja exacta de RegistroRepeticionHerramientasPositivaTest.
+/*
+ MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
+ Pareja exacta de RegistroRepeticionHerramientasPositivaTest.
+ */
 class RegistroRepeticionHerramientasNegativaTest {
 
     private static final String RUTA = "$.herramientas";

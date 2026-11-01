@@ -23,9 +23,10 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-// MÓDULO 4 · ESCENARIOS POSITIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
-// Patrón probado: Chain of Responsibility (validación de la repetición).
+/*
+ MÓDULO 4 · ESCENARIOS POSITIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
+ Patrón probado: Chain of Responsibility (validación de la repetición).
+ */
 class RegistroRepeticionHerramientasPositivaTest {
 
     private static final LocalDateTime T0 = Datos.AHORA;
