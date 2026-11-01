@@ -72,6 +72,11 @@ public class Usuario {
         return new Usuario(correoInstitucional, nombreCompleto, Rol.DOCENTE);
     }
 
+    /** Estudiante activo. Su vinculación a casos y su código de autorización los gestiona el Módulo 3. */
+    public static Usuario nuevoEstudiante(String correoInstitucional, String nombreCompleto) {
+        return new Usuario(correoInstitucional, nombreCompleto, Rol.ESTUDIANTE);
+    }
+
     /**
      * RF-03: reemplaza los permisos del docente. Solo aplica a docentes y solo
      * con permisos marcados como asignables.
