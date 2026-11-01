@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -17,6 +20,9 @@ import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+
+import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
+import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -43,6 +49,9 @@ class ParticipacionMysqlSchemaIT {
     private ParticipacionRepository repositorio;
 
     @Autowired
+    private ResultadoRepository resultados;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     @Test
@@ -66,6 +75,41 @@ class ParticipacionMysqlSchemaIT {
 
         Participacion duplicada = participacion(100L, 1);
         assertThrows(DataIntegrityViolationException.class, () -> repositorio.saveAndFlush(duplicada));
+    }
+
+    @Test
+    void persisteResultadoYLoRecupera() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(200L, 1));
+        OffsetDateTime fechaCalculo = OffsetDateTime.parse("2026-11-01T14:00:00-05:00");
+
+        Resultado resultado = new Resultado();
+        resultado.setParticipacion(participacion);
+        resultado.setCorrectas(3);
+        resultado.setIncorrectas(1);
+        resultado.setNoRespondidas(0);
+        resultado.setPesoObtenido(8);
+        resultado.setPesoTotal(10);
+        resultado.setEscalaMaxima(5);
+        resultado.setNotaFinal(new BigDecimal("4.00"));
+        resultado.setFechaCalculo(fechaCalculo);
+
+        Resultado guardado = resultados.saveAndFlush(resultado);
+        Long id = guardado.getId();
+        assertNotNull(id);
+
+        entityManager.clear();
+
+        Resultado recargado = resultados.findById(id).orElseThrow();
+        assertEquals(id, recargado.getId());
+        assertEquals(participacion.getId(), recargado.getParticipacion().getId());
+        assertEquals(3, recargado.getCorrectas());
+        assertEquals(1, recargado.getIncorrectas());
+        assertEquals(0, recargado.getNoRespondidas());
+        assertEquals(8, recargado.getPesoObtenido());
+        assertEquals(10, recargado.getPesoTotal());
+        assertEquals(5, recargado.getEscalaMaxima());
+        assertEquals(0, new BigDecimal("4.00").compareTo(recargado.getNotaFinal()));
+        assertEquals(fechaCalculo.toInstant(), recargado.getFechaCalculo().toInstant());
     }
 
     private static Participacion participacion(long autorizacionId, int numeroIntento) {
