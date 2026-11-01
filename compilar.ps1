@@ -1,18 +1,22 @@
 ﻿# Abre el proyecto en Cursor y compila/prueba el backend con Maven.
+# -SinCursor: solo compila (lo usa confirmar.ps1).
+param([switch]$SinCursor)
 # El resultado queda en compilar.log (en esta misma carpeta).
 $root = $PSScriptRoot
 $log  = Join-Path $root 'compilar.log'
 "=== Compilación $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" | Out-File $log -Encoding utf8
 
-function Log($m) { $m | Tee-Object -FilePath $log -Append }
+function Log($m) { $m | Out-File $log -Append -Encoding utf8; Write-Host $m }
 
 # 1. Abrir la carpeta en Cursor
+if (-not $SinCursor) {
 $cursor = Get-Command cursor -ErrorAction SilentlyContinue
 if (-not $cursor) {
     $cand = Join-Path $env:LOCALAPPDATA 'Programs\cursor\Cursor.exe'
     if (Test-Path $cand) { Start-Process $cand -ArgumentList "`"$root`"" ; Log "Cursor: abierto ($cand)" }
     else { Log 'Cursor: no encontrado' }
 } else { Start-Process $cursor.Source -ArgumentList "`"$root`"" -WindowStyle Hidden; Log "Cursor: abierto ($($cursor.Source))" }
+}
 
 # 2. Buscar un JDK 17 o superior
 function VersionJava($exe) {
@@ -54,5 +58,7 @@ if (-not $mvn) { Log 'ERROR: no se encontró Maven (mvn.cmd).'; exit 1 }
 Log "Maven: $mvn"
 
 # 4. Compilar y ejecutar las pruebas
-& $mvn -f (Join-Path $root 'backend\pom.xml') -B verify 2>&1 | Tee-Object -FilePath $log -Append
-Log "=== Fin (código $LASTEXITCODE) ==="
+& $mvn -f (Join-Path $root 'backend\pom.xml') -B verify 2>&1 | ForEach-Object { "$_" } | Out-File $log -Append -Encoding utf8
+$codigo = $LASTEXITCODE
+Log "=== Fin (código $codigo) ==="
+exit $codigo

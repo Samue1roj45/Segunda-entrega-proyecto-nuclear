@@ -9,7 +9,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate   # El esquema lo controla Flyway, no Hibernate.
+      ddl-auto: none   # El esquema lo controla Flyway, no Hibernate.
   flyway:
     locations: classpath:db/migration
 
@@ -17,6 +17,11 @@ app:
   autenticacion:
     # Dominio aceptado por RF-01. Se configura por entorno.
     dominio-institucional: ${DOMINIO_INSTITUCIONAL:institucion.edu.co}
+  seguridad:
+    # Clave HMAC (Base64, mínimo 32 bytes) para firmar los tokens. Se define por entorno.
+    # Si se deja vacía se genera una aleatoria al arrancar (los tokens no sobreviven a un reinicio).
+    jwt-secreto: ${JWT_SECRETO:}
+    minutos-token: ${JWT_MINUTOS:60}
 
 ---
 # Perfil para ejecutar los casos de prueba del documento PT-DCP-01 con datos ficticios.

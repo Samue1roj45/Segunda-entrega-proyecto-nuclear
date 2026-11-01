@@ -13,7 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -47,7 +47,7 @@ public class Usuario {
     private boolean activo;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
-    private Instant fechaCreacion;
+    private LocalDateTime fechaCreacion;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_permiso", joinColumns = @JoinColumn(name = "usuario_id"))
@@ -64,7 +64,7 @@ public class Usuario {
         this.nombreCompleto = requerirTexto(nombreCompleto, "nombreCompleto");
         this.rol = Objects.requireNonNull(rol, "rol");
         this.activo = true;
-        this.fechaCreacion = Instant.now();
+        this.fechaCreacion = LocalDateTime.now();
     }
 
     /** RF-03: el docente se crea activo y sin permisos; el administrador los asigna después. */
@@ -133,7 +133,7 @@ public class Usuario {
         return activo;
     }
 
-    public Instant getFechaCreacion() {
+    public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
     }
 
