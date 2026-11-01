@@ -24,6 +24,8 @@ import org.testcontainers.utility.DockerImageName;
 import com.unihumboldt.nuclear.evaluacion.notificacion.EstadoEnvio;
 import com.unihumboldt.nuclear.evaluacion.notificacion.Notificacion;
 import com.unihumboldt.nuclear.evaluacion.notificacion.NotificacionRepository;
+import com.unihumboldt.nuclear.evaluacion.notificacion.Retroalimentacion;
+import com.unihumboldt.nuclear.evaluacion.notificacion.RetroalimentacionRepository;
 import com.unihumboldt.nuclear.evaluacion.notificacion.TipoNotificacion;
 import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficial;
 import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficialRepository;
@@ -62,6 +64,9 @@ class ParticipacionMysqlSchemaIT {
 
     @Autowired
     private NotificacionRepository notificaciones;
+
+    @Autowired
+    private RetroalimentacionRepository retroalimentaciones;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -190,6 +195,39 @@ class ParticipacionMysqlSchemaIT {
         assertNull(recargada.getErrorMensaje());
         assertEquals(fechaCreacion.toInstant(), recargada.getFechaCreacion().toInstant());
         assertNull(recargada.getFechaEnvio());
+    }
+
+    @Test
+    void persisteRetroalimentacionYLaRecupera() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(500L, 1));
+        OffsetDateTime fechaCreacion = OffsetDateTime.parse("2026-11-01T17:00:00-05:00");
+        OffsetDateTime fechaActualizacion = OffsetDateTime.parse("2026-11-01T17:05:00-05:00");
+
+        Retroalimentacion retroalimentacion = new Retroalimentacion();
+        retroalimentacion.setParticipacion(participacion);
+        retroalimentacion.setEstudianteId(participacion.getEstudianteId());
+        retroalimentacion.setPracticaId(participacion.getPracticaId());
+        retroalimentacion.setDocenteId(50L);
+        retroalimentacion.setTexto("Revise las preguntas de ponderacion.");
+        retroalimentacion.setFechaCreacion(fechaCreacion);
+        retroalimentacion.setFechaActualizacion(fechaActualizacion);
+
+        Retroalimentacion guardada = retroalimentaciones.saveAndFlush(retroalimentacion);
+        Long id = guardada.getId();
+        assertNotNull(id);
+
+        entityManager.clear();
+
+        Retroalimentacion recargada = retroalimentaciones.findByParticipacionId(participacion.getId())
+                .orElseThrow();
+        assertEquals(id, recargada.getId());
+        assertEquals(participacion.getId(), recargada.getParticipacion().getId());
+        assertEquals(10L, recargada.getEstudianteId());
+        assertEquals(1L, recargada.getPracticaId());
+        assertEquals(50L, recargada.getDocenteId());
+        assertEquals("Revise las preguntas de ponderacion.", recargada.getTexto());
+        assertEquals(fechaCreacion.toInstant(), recargada.getFechaCreacion().toInstant());
+        assertEquals(fechaActualizacion.toInstant(), recargada.getFechaActualizacion().toInstant());
     }
 
     private static Participacion participacion(long autorizacionId, int numeroIntento) {
