@@ -6,6 +6,10 @@ import co.edu.humboldt.plataformacasos.autenticacion.dominio.MensajesAutenticaci
 public class CredencialesInvalidasException extends RuntimeException {
 
     public CredencialesInvalidasException() {
-        super(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
+        this(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
+    }
+
+    public CredencialesInvalidasException(String mensajeGenerico) {
+        super(mensajeGenerico);
     }
 }

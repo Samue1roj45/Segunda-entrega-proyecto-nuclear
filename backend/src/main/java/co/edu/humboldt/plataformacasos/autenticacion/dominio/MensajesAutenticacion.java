@@ -8,6 +8,9 @@ public final class MensajesAutenticacion {
     public static final String CORREO_OBLIGATORIO = "El correo institucional es obligatorio.";
     public static final String CODIGO_OBLIGATORIO = "El código de autorización es obligatorio.";
     public static final String CAMPOS_OBLIGATORIOS = "El correo institucional y el código de autorización son obligatorios.";
+    /** Genérico para el inicio de sesión del personal (docentes y administrador). */
+    public static final String CREDENCIALES_PERSONAL_INVALIDAS = "Correo o contraseña inválidos.";
+    public static final String CORREO_Y_CLAVE_OBLIGATORIOS = "El correo y la contraseña son obligatorios.";
     public static final String CAMPO_DEMASIADO_LARGO = "El correo o el código superan la longitud permitida.";
 
     private MensajesAutenticacion() {

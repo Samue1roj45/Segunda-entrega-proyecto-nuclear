@@ -49,6 +49,10 @@ public class Usuario {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
+    /** Solo personal (docentes y administrador). Hash BCrypt; nunca la contraseña en claro. */
+    @Column(name = "clave_hash", length = 100)
+    private String claveHash;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_permiso", joinColumns = @JoinColumn(name = "usuario_id"))
     @Enumerated(EnumType.STRING)
@@ -107,6 +111,11 @@ public class Usuario {
         return activo && permisosEfectivos().contains(permiso);
     }
 
+    /** Docentes y administrador: inician sesión con contraseña. */
+    public boolean esPersonal() {
+        return rol == Rol.DOCENTE || rol == Rol.ADMINISTRADOR;
+    }
+
     public static String normalizarCorreo(String correo) {
         return requerirTexto(correo, "correoInstitucional").trim().toLowerCase(Locale.ROOT);
     }
@@ -140,6 +149,10 @@ public class Usuario {
 
     public LocalDateTime getFechaCreacion() {
         return fechaCreacion;
+    }
+
+    public String getClaveHash() {
+        return claveHash;
     }
 
     public Set<Permiso> getPermisosAsignados() {
