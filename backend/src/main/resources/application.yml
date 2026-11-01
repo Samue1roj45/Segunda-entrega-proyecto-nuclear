@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: plataforma-casos
+  datasource:
+    # Las credenciales se leen de variables de entorno; nunca se escriben en el código.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/plataforma_casos}
+    username: ${DB_USER:plataforma}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # El esquema lo controla Flyway, no Hibernate.
+  flyway:
+    locations: classpath:db/migration
+
+app:
+  autenticacion:
+    # Dominio aceptado por RF-01. Se configura por entorno.
+    dominio-institucional: ${DOMINIO_INSTITUCIONAL:institucion.edu.co}
+
+---
+# Perfil para ejecutar los casos de prueba del documento PT-DCP-01 con datos ficticios.
+spring:
+  config:
+    activate:
+      on-profile: pruebas
+  flyway:
+    locations: classpath:db/migration,classpath:db/semilla

@@ -1,0 +1,18 @@
+# Java / Maven
+backend/target/
+*.class
+# Angular / Node
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+# IDE
+.idea/
+.vscode/
+*.iml
+# Entorno (credenciales)
+.env
+compilar.log
+revisar_git.*
+subir_a_github.log
+codigo_github.txt
+subir_a_github.*

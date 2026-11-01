@@ -1,0 +1,72 @@
+---
+title: RF-02 / RF-03 · Proxy — Control de acceso y administración de docentes
+---
+classDiagram
+direction TB
+class AdministracionDocentesControlador {
+  -servicio: ServicioAdministracionDocentes
+}
+class ServicioAdministracionDocentes {
+  <<interface>>
+  +crearDocente(datos: CrearDocenteDTO) DocenteDTO
+  +listarDocentes() List~DocenteDTO~
+  +asignarPermisos(docenteId: Long, permisos: Set~Permiso~) DocenteDTO
+}
+class ProxyAdministracionDocentes {
+  -servicioReal: ServicioAdministracionDocentes
+  -autorizacion: ServicioAutorizacion
+}
+class ServicioAdministracionDocentesImpl {
+  -usuarioRepositorio: UsuarioRepositorio
+}
+class ServicioAutorizacion {
+  +verificarIdentidad() UsuarioAutenticado
+  +verificarPermiso(usuario: UsuarioAutenticado, permiso: Permiso) boolean
+  +exigirPermiso(permiso: Permiso) void
+}
+class Usuario {
+  <<entity>>
+  -id: Long
+  -correoInstitucional: String
+  -nombreCompleto: String
+  -rol: Rol
+  -activo: boolean
+  -permisosAsignados: Set~Permiso~
+  +permisosEfectivos() Set~Permiso~
+  +tienePermiso(permiso: Permiso) boolean
+}
+class Rol {
+  <<enumeration>>
+  ESTUDIANTE
+  DOCENTE
+  ADMINISTRADOR
+  +permisosBase() Set~Permiso~
+}
+class Permiso {
+  <<enumeration>>
+  PARTICIPAR_EN_CASOS
+  CONSULTAR_RESULTADOS_PROPIOS
+  GESTIONAR_CASOS
+  PROGRAMAR_SESIONES
+  CONSULTAR_PARTICIPACIONES
+  DESCARGAR_REPORTES
+  REGISTRAR_RETROALIMENTACION
+  AUTORIZAR_REPETICION
+  ADMINISTRAR_DOCENTES
+  +asignableADocente() boolean
+}
+class UsuarioRepositorio {
+  <<interface>>
+  +findByCorreoInstitucional(correo: String) Optional~Usuario~
+  +existsByCorreoInstitucional(correo: String) boolean
+}
+AdministracionDocentesControlador --> ServicioAdministracionDocentes
+ServicioAdministracionDocentes <|.. ProxyAdministracionDocentes
+ServicioAdministracionDocentes <|.. ServicioAdministracionDocentesImpl
+ProxyAdministracionDocentes --> ServicioAdministracionDocentesImpl : delega si está autorizado
+ProxyAdministracionDocentes --> ServicioAutorizacion : verifica permiso
+ServicioAdministracionDocentesImpl --> UsuarioRepositorio
+UsuarioRepositorio ..> Usuario
+Usuario --> Rol
+Usuario --> Permiso
+Rol ..> Permiso

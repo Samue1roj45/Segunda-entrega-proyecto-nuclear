@@ -1,0 +1,57 @@
+---
+title: RF-01 · Chain of Responsibility — Autenticación de estudiantes
+---
+classDiagram
+direction TB
+class ServicioAutenticacion {
+  -cadena: Validador~SolicitudAutenticacion~
+  +autenticarEstudiante(solicitud: SolicitudAutenticacion) SesionUsuario
+}
+class Validador~T~ {
+  <<interface>>
+  +establecerSiguiente(siguiente: Validador~T~) Validador~T~
+  +validar(solicitud: T) ResultadoValidacion
+}
+class ValidadorBase~T~ {
+  <<abstract>>
+  -siguiente: Validador~T~
+  +establecerSiguiente(siguiente: Validador~T~) Validador~T~
+  +validar(solicitud: T) ResultadoValidacion
+  #validarCondicion(solicitud: T) ResultadoValidacion
+}
+class ValidadorCamposObligatorios
+class ValidadorDominioInstitucional {
+  -dominioInstitucional: String
+}
+class ValidadorEstudianteRegistrado {
+  -usuarioRepositorio: UsuarioRepositorio
+}
+class ValidadorCodigoAutorizacion {
+  -verificador: VerificadorCodigoAutorizacion
+}
+class VerificadorCodigoAutorizacion {
+  <<interface>>
+  +esValido(estudianteId: Long, codigo: String) boolean
+}
+class SolicitudAutenticacion {
+  <<record>>
+  +correoInstitucional: String
+  +codigoAutorizacion: String
+}
+class ResultadoValidacion {
+  <<record>>
+  +aprobado: boolean
+  +mensaje: String
+}
+ServicioAutenticacion --> Validador : ejecuta la cadena
+Validador <|.. ValidadorBase
+ValidadorBase <|-- ValidadorCamposObligatorios
+ValidadorBase <|-- ValidadorDominioInstitucional
+ValidadorBase <|-- ValidadorEstudianteRegistrado
+ValidadorBase <|-- ValidadorCodigoAutorizacion
+ValidadorCamposObligatorios ..> ValidadorDominioInstitucional : siguiente
+ValidadorDominioInstitucional ..> ValidadorEstudianteRegistrado : siguiente
+ValidadorEstudianteRegistrado ..> ValidadorCodigoAutorizacion : siguiente
+ValidadorCodigoAutorizacion --> VerificadorCodigoAutorizacion : implementado por Módulo 3 (RF-20)
+ValidadorBase ..> SolicitudAutenticacion
+ValidadorBase ..> ResultadoValidacion
