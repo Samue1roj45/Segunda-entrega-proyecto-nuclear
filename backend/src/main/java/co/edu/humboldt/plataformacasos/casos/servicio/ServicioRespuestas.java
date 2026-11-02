@@ -4,6 +4,8 @@ import co.edu.humboldt.plataformacasos.casos.dominio.Pregunta;
 import co.edu.humboldt.plataformacasos.casos.dominio.Respuesta;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEstudioRepositorio;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosRespuestaRequest;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionDTO;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.MarcarCorrectaRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.PreguntaDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.RespuestaDTO;
@@ -26,7 +28,8 @@ public class ServicioRespuestas implements GestionRespuestas {
     @Override
     public RespuestaDTO agregar(Long idCaso, Long idPregunta, DatosRespuestaRequest datos) {
         Respuesta respuesta = acceso.paraModificar(idCaso).pregunta(idPregunta)
-                .agregarRespuesta(datos.codigo(), datos.texto(), datos.esCorrecta(), datos.porcentaje());
+                .agregarRespuesta(datos.codigo(), datos.texto(), datos.esCorrecta(), datos.porcentaje(),
+                        datos.justificacion());
         casos.flush();
         return RespuestaDTO.de(respuesta);
     }
@@ -40,7 +43,8 @@ public class ServicioRespuestas implements GestionRespuestas {
     @Override
     public RespuestaDTO actualizar(Long idCaso, Long idRespuesta, DatosRespuestaRequest datos) {
         Respuesta respuesta = acceso.paraModificar(idCaso).respuesta(idRespuesta);
-        respuesta.actualizar(datos.codigo(), datos.texto(), datos.esCorrecta(), datos.porcentaje());
+        respuesta.actualizar(datos.codigo(), datos.texto(), datos.esCorrecta(), datos.porcentaje(),
+                datos.justificacion());
         return RespuestaDTO.de(respuesta);
     }
 
@@ -58,5 +62,18 @@ public class ServicioRespuestas implements GestionRespuestas {
         Pregunta pregunta = acceso.paraModificar(idCaso).pregunta(idPregunta);
         pregunta.marcarCorrecta(solicitud.idRespuesta());
         return PreguntaDTO.de(pregunta);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public JustificacionDTO consultarJustificacion(Long idCaso, Long idRespuesta) {
+        return JustificacionDTO.de(acceso.paraConsultar(idCaso).respuesta(idRespuesta));
+    }
+
+    @Override
+    public JustificacionDTO registrarJustificacion(Long idCaso, Long idRespuesta, JustificacionRequest solicitud) {
+        Respuesta respuesta = acceso.paraModificar(idCaso).respuesta(idRespuesta);
+        respuesta.justificar(solicitud.justificacion());
+        return JustificacionDTO.de(respuesta);
     }
 }

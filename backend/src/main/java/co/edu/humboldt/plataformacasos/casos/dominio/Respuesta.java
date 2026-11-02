@@ -44,26 +44,44 @@ public class Respuesta {
     @Column(precision = 5, scale = 2)
     private BigDecimal porcentaje;
 
+    /** RF-08: explica por qué la opción es correcta o incorrecta. El estudiante no la ve durante el intento. */
+    @Column(columnDefinition = "TEXT")
+    private String justificacion;
+
     /** Requerido por JPA. */
     protected Respuesta() {
     }
 
-    Respuesta(Pregunta pregunta, String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje) {
+    Respuesta(Pregunta pregunta, String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje,
+              String justificacion) {
         this.pregunta = pregunta;
-        asignarDatos(codigo, texto, esCorrecta, porcentaje);
+        asignarDatos(codigo, texto, esCorrecta, porcentaje, justificacion);
     }
 
-    public void actualizar(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje) {
+    public void actualizar(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje,
+                           String justificacion) {
         prepararCambio();
-        asignarDatos(codigo, texto, esCorrecta, porcentaje);
+        asignarDatos(codigo, texto, esCorrecta, porcentaje, justificacion);
     }
 
-    private void asignarDatos(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje) {
+    /** RF-08: edita solo la justificación. */
+    public void justificar(String justificacion) {
+        prepararCambio();
+        asignarJustificacion(justificacion);
+    }
+
+    private void asignarDatos(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje,
+                              String justificacion) {
         String codigoLimpio = TextoDominio.normalizar(codigo, LimitesDsl.LONGITUD_CODIGO_RESPUESTA, "codigo");
         this.codigo = codigoLimpio == null ? null : codigoLimpio.toUpperCase(Locale.ROOT);
         this.texto = TextoDominio.normalizar(texto, LimitesDsl.LONGITUD_TEXTO, "texto");
         this.esCorrecta = esCorrecta;
         asignarPorcentaje(porcentaje);
+        asignarJustificacion(justificacion);
+    }
+
+    private void asignarJustificacion(String justificacion) {
+        this.justificacion = TextoDominio.normalizar(justificacion, LimitesDsl.LONGITUD_TEXTO, "justificacion");
     }
 
     private void asignarPorcentaje(BigDecimal valor) {
@@ -106,5 +124,9 @@ public class Respuesta {
 
     public BigDecimal getPorcentaje() {
         return porcentaje;
+    }
+
+    public String getJustificacion() {
+        return justificacion;
     }
 }

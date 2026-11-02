@@ -2,6 +2,8 @@ package co.edu.humboldt.plataformacasos.casos.web;
 
 import co.edu.humboldt.plataformacasos.casos.servicio.GestionRespuestas;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosRespuestaRequest;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionDTO;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.MarcarCorrectaRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.PreguntaDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.RespuestaDTO;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** RF-07: opciones de respuesta de cada pregunta. */
+/** RF-07 y RF-08: opciones de respuesta de cada pregunta y sus justificaciones. */
 @RestController
 @RequestMapping("/api/casos/{idCaso}")
 public class RespuestaControlador {
@@ -55,5 +57,16 @@ public class RespuestaControlador {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long idCaso, @PathVariable Long idRespuesta) {
         gestionRespuestas.eliminar(idCaso, idRespuesta);
+    }
+
+    @GetMapping("/respuestas/{idRespuesta}/justificacion")
+    public JustificacionDTO consultarJustificacion(@PathVariable Long idCaso, @PathVariable Long idRespuesta) {
+        return gestionRespuestas.consultarJustificacion(idCaso, idRespuesta);
+    }
+
+    @PutMapping("/respuestas/{idRespuesta}/justificacion")
+    public JustificacionDTO registrarJustificacion(@PathVariable Long idCaso, @PathVariable Long idRespuesta,
+                                                   @RequestBody JustificacionRequest solicitud) {
+        return gestionRespuestas.registrarJustificacion(idCaso, idRespuesta, solicitud);
     }
 }

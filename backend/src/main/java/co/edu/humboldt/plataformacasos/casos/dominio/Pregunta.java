@@ -65,9 +65,10 @@ public class Pregunta {
         this.enunciado = TextoDominio.normalizar(enunciado, LimitesDsl.LONGITUD_TEXTO, "enunciado");
     }
 
-    public Respuesta agregarRespuesta(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje) {
+    public Respuesta agregarRespuesta(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje,
+                                      String justificacion) {
         prepararCambio();
-        Respuesta respuesta = new Respuesta(this, codigo, texto, esCorrecta, porcentaje);
+        Respuesta respuesta = new Respuesta(this, codigo, texto, esCorrecta, porcentaje, justificacion);
         respuestas.add(respuesta);
         return respuesta;
     }

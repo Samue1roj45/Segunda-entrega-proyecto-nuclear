@@ -2,6 +2,8 @@ package co.edu.humboldt.plataformacasos.casos.servicio;
 
 import co.edu.humboldt.plataformacasos.autorizacion.RequierePermiso;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosRespuestaRequest;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionDTO;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.JustificacionRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.MarcarCorrectaRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.PreguntaDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.RespuestaDTO;
@@ -25,4 +27,12 @@ public interface GestionRespuestas {
     /** Deja una sola opción correcta en la pregunta, dentro de una misma transacción. */
     @RequierePermiso(Permiso.GESTIONAR_CASOS)
     PreguntaDTO marcarCorrecta(Long idCaso, Long idPregunta, MarcarCorrectaRequest solicitud);
+
+    /** RF-08. */
+    @RequierePermiso(Permiso.GESTIONAR_CASOS)
+    JustificacionDTO consultarJustificacion(Long idCaso, Long idRespuesta);
+
+    /** RF-08. */
+    @RequierePermiso(Permiso.GESTIONAR_CASOS)
+    JustificacionDTO registrarJustificacion(Long idCaso, Long idRespuesta, JustificacionRequest solicitud);
 }
