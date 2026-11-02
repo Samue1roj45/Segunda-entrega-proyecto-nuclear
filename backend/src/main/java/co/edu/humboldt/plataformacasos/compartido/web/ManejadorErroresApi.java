@@ -2,11 +2,14 @@ package co.edu.humboldt.plataformacasos.compartido.web;
 
 import co.edu.humboldt.plataformacasos.autenticacion.servicio.CredencialesInvalidasException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.SolicitudInvalidaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -44,6 +47,22 @@ public class ManejadorErroresApi {
     @ExceptionHandler(AccesoDenegadoException.class)
     ResponseEntity<ErrorApi> accesoDenegado(AccesoDenegadoException e, HttpServletRequest solicitud) {
         return responder(HttpStatus.FORBIDDEN, e.getMessage(), solicitud);
+    }
+
+    @ExceptionHandler(RecursoNoEncontradoException.class)
+    ResponseEntity<ErrorApi> noEncontrado(RecursoNoEncontradoException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.NOT_FOUND, e.getMessage(), solicitud);
+    }
+
+    @ExceptionHandler(ConflictoException.class)
+    ResponseEntity<ErrorApi> conflicto(ConflictoException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.CONFLICT, e.getMessage(), solicitud);
+    }
+
+    /** Respaldo ante carreras: la restricción UNIQUE de la base también se traduce a 409. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ErrorApi> integridad(DataIntegrityViolationException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.CONFLICT, "La operación entra en conflicto con datos existentes.", solicitud);
     }
 
     @ExceptionHandler(CredencialesInvalidasException.class)

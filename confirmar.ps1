@@ -22,6 +22,7 @@ function Confirmar-Pendiente {
     Log $resumen
     if ($codigo -ne 0) { throw "La compilación o las pruebas fallaron (código $codigo). No se hace commit." }
     Invocar-Git add -A
+    if (-not (& git.exe status --porcelain)) { Log 'Sin cambios: este commit ya estaba aplicado, se omite.'; Remove-Item $msg; return }
     Invocar-Git commit -F $msg
     Invocar-Git push -u origin $rama
     Invocar-Git log --oneline -1
