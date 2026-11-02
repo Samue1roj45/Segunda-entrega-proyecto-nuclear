@@ -1,0 +1,54 @@
+{
+  "caso" : "CP-RF01-05",
+  "descripcion" : "Campos obligatorios vacíos",
+  "ejecutado" : "2026-11-01T21:01:16",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 400,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:16.1621714",
+        "estado" : 400,
+        "error" : "Bad Request",
+        "mensaje" : "El correo institucional es obligatorio.",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@institucion.edu.co\",\"codigoAutorizacion\":\"\"}"
+    },
+    "respuesta" : {
+      "estado" : 400,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:16.1675428",
+        "estado" : 400,
+        "error" : "Bad Request",
+        "mensaje" : "El código de autorización es obligatorio.",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{}"
+    },
+    "respuesta" : {
+      "estado" : 400,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:16.1682451",
+        "estado" : 400,
+        "error" : "Bad Request",
+        "mensaje" : "El correo institucional y el código de autorización son obligatorios.",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  } ]
+}

@@ -1,0 +1,72 @@
+{
+  "caso" : "CP-RF03-06",
+  "descripcion" : "Usuario no administrador intenta crear un docente",
+  "ejecutado" : "2026-11-01T21:01:17",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"carlos.gomez@institucion.edu.co\",\"clave\":\"Clave-Docente-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:17.389596100Z",
+        "correoInstitucional" : "carlos.gomez@institucion.edu.co",
+        "nombreCompleto" : "Carlos Gómez",
+        "rol" : "DOCENTE",
+        "permisos" : [ "GESTIONAR_CASOS" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : "{\"nombreCompleto\":\"Intruso\",\"correoInstitucional\":\"intruso@institucion.edu.co\"}"
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.3925291",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/admin/docentes"
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "PUT",
+      "ruta" : "/api/admin/docentes/3/permisos",
+      "cuerpo" : "{\"permisos\":[\"DESCARGAR_REPORTES\"]}"
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.3952078",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/admin/docentes/3/permisos"
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.3984708",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/admin/docentes"
+      }
+    }
+  } ]
+}

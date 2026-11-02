@@ -1,0 +1,56 @@
+{
+  "caso" : "CP-RF03-05",
+  "descripcion" : "Retirar un permiso a un docente",
+  "ejecutado" : "2026-11-01T21:01:17",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "PUT",
+      "ruta" : "/api/admin/docentes/2/permisos",
+      "cuerpo" : "{\"permisos\":[]}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "id" : 2,
+        "correoInstitucional" : "carlos.gomez@institucion.edu.co",
+        "nombreCompleto" : "Carlos Gómez",
+        "activo" : true,
+        "permisos" : [ ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"carlos.gomez@institucion.edu.co\",\"clave\":\"Clave-Docente-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:17.783075100Z",
+        "correoInstitucional" : "carlos.gomez@institucion.edu.co",
+        "nombreCompleto" : "Carlos Gómez",
+        "rol" : "DOCENTE",
+        "permisos" : [ ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/GESTIONAR_CASOS",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.7845815",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/autorizacion/permisos/GESTIONAR_CASOS"
+      }
+    }
+  } ]
+}
