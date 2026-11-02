@@ -1,60 +1,75 @@
-# Módulo 1 · Usuarios, autenticación y permisos — Entrega 1 (base técnica)
+# Módulo 1 · Usuarios, autenticación y permisos (backend)
 
-Proyecto Nuclear · RF-01, RF-02, RF-03 · Responsable: Samuel Velásquez
+Proyecto Nuclear · RF-01, RF-02, RF-03 · Responsable: Samuel Velásquez · Rama `feature/modulo-1`
 
-## Qué incluye esta entrega
+Backend en **Java 17+ / Spring Boot 3.3**, base de datos **MySQL** (H2 en memoria para las pruebas),
+migraciones con **Flyway** y seguridad sin estado con **JWT**. Esta entrega es solo backend.
 
-| Parte | Contenido |
-|---|---|
-| `backend/` | Proyecto Spring Boot 3.3 (Java 17, Maven) con el modelo de datos del módulo, la migración MySQL (Flyway), los datos ficticios de prueba y la base genérica de Chain of Responsibility. |
-| `frontend/src/app/core/modelos/` | Modelos TypeScript de rol, permiso y sesión para copiar en el proyecto Angular. |
+## Requisitos y patrones
 
-La lógica de RF-01 (login), RF-02 (Proxy de acceso) y RF-03 (CRUD de docentes) llega en las entregas 2, 3 y 4.
-
-## Backend
-
-1. Crear la base de datos en MySQL 8:
-   ```sql
-   CREATE DATABASE plataforma_casos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   CREATE USER 'plataforma'@'localhost' IDENTIFIED BY '<tu-clave>';
-   GRANT ALL ON plataforma_casos.* TO 'plataforma'@'localhost';
-   ```
-2. Definir las variables de entorno (en IntelliJ: *Run Configuration → Environment variables*):
-   `DB_URL`, `DB_USER`, `DB_PASSWORD` y, si aplica, `DOMINIO_INSTITUCIONAL`.
-3. Compilar y probar: `mvn verify`
-4. Ejecutar con los datos ficticios de los casos de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas`
-
-Flyway crea las tablas al arrancar. Hibernate solo **valida** el esquema (`ddl-auto: validate`).
-
-## Frontend
-
-El proyecto Angular se genera con el CLI (no se incluyen archivos generados a mano):
-
-```bash
-npx @angular/cli@18 new frontend --routing --style=scss --standalone --skip-git
-```
-
-Luego copiar `frontend/src/app/core/modelos/` dentro de `frontend/src/app/core/`.
-
-## Patrones (según el documento de análisis de patrones)
-
-| Requisito | Patrón | Dónde |
+| Requisito | Patrón (documento de patrones del equipo) | Implementación |
 |---|---|---|
-| RF-01 | Chain of Responsibility | `compartido/validacion` (`Validador<T>`, `ValidadorBase<T>`, `ResultadoValidacion`). Genérico para que lo reutilicen RF-09, RF-20, RF-22 y RF-25. |
-| RF-02 | Proxy | Entrega 3 (`ServicioAutorizacion`, proxies por servicio). |
-| RF-03 | Ninguno directo | Capas: controlador → servicio → repositorio, con DTOs. |
+| RF-01 Autenticar estudiantes | Chain of Responsibility | `compartido/validacion` (`Validador<T>`, `ValidadorBase<T>`) y `autenticacion/validacion` (4 validadores encadenados en `CadenasAutenticacionConfig`) |
+| RF-02 Controlar acceso por rol | Proxy | `autorizacion/ServicioAutorizacion`, `ProxyAcceso` + `@RequierePermiso` |
+| RF-03 Administrar docentes y permisos | Ninguno directo (capas), protegido por el Proxy de RF-02 | `usuarios/administracion` + `usuarios/web` |
+
+## API
+
+| Método y ruta | Acceso | Respuestas |
+|---|---|---|
+| `POST /api/auth/estudiantes/login` `{correoInstitucional, codigoAutorizacion}` | Público | 200 token · 400 formato · 401 genérico |
+| `POST /api/auth/personal/login` `{correoInstitucional, clave}` | Público | 200 token · 400 · 401 genérico |
+| `GET /api/sesion` | Con sesión | 200 usuario, rol y permisos vigentes · 401 |
+| `GET /api/autorizacion/permisos/{permiso}` | Con sesión | 204 permitido · 403 · 401 · 400 permiso desconocido |
+| `GET /api/admin/docentes` | `ADMINISTRAR_DOCENTES` | 200 · 401 · 403 |
+| `POST /api/admin/docentes` `{nombreCompleto, correoInstitucional}` | `ADMINISTRAR_DOCENTES` | 201 · 400 · 409 correo duplicado · 401 · 403 |
+| `PUT /api/admin/docentes/{id}/permisos` `{permisos: [...]}` | `ADMINISTRAR_DOCENTES` | 200 · 400 · 404 · 401 · 403 |
+
+Todos los errores usan el mismo cuerpo: `{fecha, estado, error, mensaje, ruta}`.
+El token va en el encabezado `Authorization: Bearer <token>`.
+
+## Ejecutar
+
+1. MySQL 8: crear la base `plataforma_casos` y un usuario con permisos sobre ella.
+2. Variables de entorno: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRETO` (Base64, mínimo 32 bytes),
+   y opcionalmente `DOMINIO_INSTITUCIONAL` y `JWT_MINUTOS`.
+3. Con datos ficticios de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas` (carpeta `backend`).
+
+Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
+
+| Correo | Rol | Ingreso |
+|---|---|---|
+| admin.plataforma@institucion.edu.co | Administrador | clave `Clave-Admin-01` |
+| carlos.gomez@institucion.edu.co | Docente (GESTIONAR_CASOS) | clave `Clave-Docente-01` |
+| laura.mejia@institucion.edu.co | Docente (sin permisos) | clave `Clave-Docente-02` |
+| ana.perez@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_01` |
+| luis.rios@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_02` |
+
+## Pruebas
+
+`mvn verify` (o `compilar.cmd`) ejecuta 62 pruebas, entre ellas los 18 casos del documento PT-DCP-01
+(`CasosPruebaRf01Test`, `CasosPruebaRf02Test`, `CasosPruebaRf03Test`). Cada caso guarda su solicitud
+y su respuesta reales en `backend/target/evidencias/<caso>.json`.
+
+`confirmar.cmd` compila y prueba; solo si todo pasa hace el commit y lo sube.
+
+Documentos en `docs/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecución por parte e informe final).
 
 ## Antipatrones evitados
 
-- **Magic strings**: roles y permisos son `enum` en backend y frontend.
-- **Modelo anémico**: las reglas de permisos están en `Usuario` (`asignarPermisos`, `permisosEfectivos`), no en servicios sueltos.
-- **Credenciales en el código**: la conexión a la BD se lee de variables de entorno.
-- **Acoplamiento entre módulos**: el Módulo 1 solo conoce la interfaz `VerificadorCodigoAutorizacion`; el Módulo 3 la implementa.
-- **Esquema generado por el ORM**: Flyway versiona el esquema; Hibernate solo valida.
+- **God Object**: cada clase tiene una responsabilidad (validadores, servicio, proxy, controlador).
+- **Código flecha**: las reglas de RF-01 están en eslabones de una cadena, no en `if` anidados.
+- **Golden Hammer**: RF-03 no fuerza un patrón; usa capas y el Proxy de RF-02.
+- **Magic strings**: roles y permisos son `enum`.
+- **Seguridad solo en la interfaz**: toda verificación ocurre en el servidor.
+- **Entidades expuestas**: la API usa DTOs; no se exponen hashes.
+- **Credenciales en el código**: BD y clave JWT por variables de entorno; códigos y contraseñas solo como hash BCrypt.
+- **Modelo anémico**: las reglas de permisos asignables viven en `Usuario`.
 
-## Puntos de coordinación con el equipo
+## Pendiente para la integración con el equipo
 
-1. `ResultadoValidacion` unifica los diagramas 6.1 (`aprobado`, `mensaje`) y 6.2 (`valido`, `observaciones`). Todos deben usar esta clase.
-2. El Módulo 3 debe implementar `VerificadorCodigoAutorizacion` (RF-20).
-3. RF-01 solo define el ingreso de estudiantes. Falta acordar cómo inician sesión los docentes y el administrador.
-4. El catálogo de permisos (`Permiso`) es una propuesta derivada de los requisitos. Debe validarse con el equipo.
+1. Reemplazar `VerificadorCodigoAutorizacionTemporal` (y la tabla `codigo_autorizacion_temporal`)
+   por la implementación de `VerificadorCodigoAutorizacion` del Módulo 3 (RF-20).
+2. Alinear el modelo (`usuario`, `usuario_permiso`) con la base de datos compartida del equipo.
+3. Validar el supuesto del ingreso de docentes y administrador con contraseña (RF-01 solo cubre estudiantes).
+4. Validar el catálogo de permisos y el dominio institucional real.
