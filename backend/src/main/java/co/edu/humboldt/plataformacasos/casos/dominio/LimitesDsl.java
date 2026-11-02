@@ -22,6 +22,10 @@ public final class LimitesDsl {
 
     /** OCL-12. */
     public static final int LONGITUD_CRITERIO = 150;
+    /** OCL-05. */
+    public static final int MINIMO_RESPUESTAS_POR_PREGUNTA = 2;
+    /** OCL-07. */
+    public static final long RESPUESTAS_CORRECTAS_POR_PREGUNTA = 1;
 
     /** DECIMAL(5,2). */
     static final int DECIMALES_VALOR = 2;

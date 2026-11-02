@@ -33,4 +33,10 @@ public class ConfiguracionServiciosCasos {
     GestionRespuestas gestionRespuestas(ServicioRespuestas servicioReal, ServicioAutorizacion autorizacion) {
         return ProxyAcceso.proteger(GestionRespuestas.class, servicioReal, autorizacion);
     }
+
+    @Bean
+    @Primary
+    PublicacionCasos publicacionCasos(FachadaPublicacionCasos servicioReal, ServicioAutorizacion autorizacion) {
+        return ProxyAcceso.proteger(PublicacionCasos.class, servicioReal, autorizacion);
+    }
 }
