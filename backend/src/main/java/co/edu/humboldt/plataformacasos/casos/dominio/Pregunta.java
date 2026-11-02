@@ -1,5 +1,7 @@
 package co.edu.humboldt.plataformacasos.casos.dominio;
 
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,7 +10,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.BatchSize;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /** Pregunta de un escenario. Puede prepararse gradualmente mientras el caso sea un borrador. */
 @Entity
@@ -30,6 +41,11 @@ public class Pregunta {
     @Column(nullable = false)
     private int orden;
 
+    @OneToMany(mappedBy = "pregunta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    @BatchSize(size = LimitesDsl.TAMANO_LOTE_CONSULTA)
+    private List<Respuesta> respuestas = new ArrayList<>();
+
     /** Requerido por JPA. */
     protected Pregunta() {
     }
@@ -47,6 +63,34 @@ public class Pregunta {
 
     private void asignarEnunciado(String enunciado) {
         this.enunciado = TextoDominio.normalizar(enunciado, LimitesDsl.LONGITUD_TEXTO, "enunciado");
+    }
+
+    public Respuesta agregarRespuesta(String codigo, String texto, Boolean esCorrecta, BigDecimal porcentaje) {
+        prepararCambio();
+        Respuesta respuesta = new Respuesta(this, codigo, texto, esCorrecta, porcentaje);
+        respuestas.add(respuesta);
+        return respuesta;
+    }
+
+    public void eliminarRespuesta(Long idRespuesta) {
+        prepararCambio();
+        respuestas.remove(respuestaExistente(idRespuesta));
+    }
+
+    /** RF-07: deja la opción indicada como la correcta y las demás como incorrectas, en un solo paso. */
+    public void marcarCorrecta(Long idRespuesta) {
+        prepararCambio();
+        Respuesta correcta = respuestaExistente(idRespuesta);
+        respuestas.forEach(r -> r.declararCorrecta(r == correcta));
+    }
+
+    Optional<Respuesta> buscarRespuesta(Long idRespuesta) {
+        return respuestas.stream().filter(r -> idRespuesta.equals(r.getId())).findFirst();
+    }
+
+    private Respuesta respuestaExistente(Long idRespuesta) {
+        return buscarRespuesta(idRespuesta)
+                .orElseThrow(() -> new RecursoNoEncontradoException("La respuesta no existe en esta pregunta."));
     }
 
     void prepararCambio() {
@@ -67,5 +111,9 @@ public class Pregunta {
 
     public int getOrden() {
         return orden;
+    }
+
+    public List<Respuesta> getRespuestas() {
+        return Collections.unmodifiableList(respuestas);
     }
 }

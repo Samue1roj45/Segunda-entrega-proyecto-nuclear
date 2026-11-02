@@ -131,6 +131,12 @@ public class CasoEstudio {
                 .orElseThrow(() -> new RecursoNoEncontradoException("La pregunta no existe en este caso."));
     }
 
+    public Respuesta respuesta(Long idRespuesta) {
+        return escenarios.stream().flatMap(e -> e.getPreguntas().stream())
+                .flatMap(p -> p.buscarRespuesta(idRespuesta).stream()).findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException("La respuesta no existe en este caso."));
+    }
+
     /** Punto único de control: rechaza el cambio si el estado no lo permite y registra la fecha. */
     void prepararCambio() {
         if (!estado.permiteEditarContenido()) {
