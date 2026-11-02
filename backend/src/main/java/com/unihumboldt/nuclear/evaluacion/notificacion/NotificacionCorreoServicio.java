@@ -2,8 +2,10 @@ package com.unihumboldt.nuclear.evaluacion.notificacion;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -41,8 +43,14 @@ public class NotificacionCorreoServicio {
 
     @Transactional
     public ResultadoEnvio emitir(EventoAcademico evento) {
-        if (repositorio.existsByClaveIdempotencia(evento.claveIdempotencia())) {
-            return ResultadoEnvio.OMITIDA_DUPLICADO;
+        Optional<Notificacion> existente = repositorio.findByClaveIdempotencia(evento.claveIdempotencia());
+        if (existente.isPresent()) {
+            Notificacion previa = existente.get();
+            if (previa.getEstado() == EstadoEnvio.ENVIADA) {
+                return ResultadoEnvio.OMITIDA_DUPLICADO;
+            }
+            sincronizar(previa, evento);
+            return intentarSmtp(previa);
         }
         EstudianteRef estudiante = catalogo.buscarEstudiante(evento.estudianteId()).orElse(null);
         Notificacion n = new Notificacion();
@@ -56,8 +64,25 @@ public class NotificacionCorreoServicio {
         n.setCuerpo(evento.cuerpo());
         n.setEstado(EstadoEnvio.PENDIENTE);
         n.setFechaCreacion(OffsetDateTime.now(clock));
-        n = repositorio.save(n);
+        try {
+            n = repositorio.saveAndFlush(n);
+        } catch (DataIntegrityViolationException ex) {
+            return ResultadoEnvio.OMITIDA_DUPLICADO;
+        }
         return intentarSmtp(n);
+    }
+
+    private void sincronizar(Notificacion n, EventoAcademico evento) {
+        EstudianteRef estudiante = catalogo.buscarEstudiante(evento.estudianteId()).orElse(null);
+        n.setTipo(evento.tipo());
+        n.setPracticaId(evento.practicaId());
+        n.setEstudianteId(evento.estudianteId());
+        n.setParticipacionId(evento.participacionId());
+        if (estudiante != null && estudiante.correo() != null && !estudiante.correo().isBlank()) {
+            n.setDestinatarioCorreo(estudiante.correo());
+        }
+        n.setAsunto(evento.asunto());
+        n.setCuerpo(evento.cuerpo());
     }
 
     private ResultadoEnvio intentarSmtp(Notificacion n) {

@@ -101,6 +101,7 @@ public class EvaluacionFacade {
     public List<ResultadoRespuesta> listar(Long practicaId, Long estudianteId) {
         Map<String, NotaOficial> oficiales = mapaOficiales();
         return resultados.findAllByOrderByIdDesc().stream()
+                .filter(r -> r.getParticipacion().getEstado() != EstadoParticipacion.EN_CURSO)
                 .filter(r -> practicaId == null || Objects.equals(r.getParticipacion().getPracticaId(), practicaId))
                 .filter(r -> estudianteId == null || Objects.equals(r.getParticipacion().getEstudianteId(), estudianteId))
                 .map(r -> toRespuesta(r, oficiales))

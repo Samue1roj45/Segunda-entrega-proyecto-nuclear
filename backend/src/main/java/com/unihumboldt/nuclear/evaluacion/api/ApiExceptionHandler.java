@@ -2,6 +2,7 @@ package com.unihumboldt.nuclear.evaluacion.api;
 
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,5 +35,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> validacion(MethodArgumentNotValidException ex) {
         return ResponseEntity.badRequest().body(Map.of("detail", "Solicitud inválida."));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> integridad(DataIntegrityViolationException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "detail", "El registro viola una restricción de unicidad o integridad."));
     }
 }

@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -233,6 +234,21 @@ class NotificacionApiTest {
                         .headers(est(10)))
                 .andExpect(jsonPath("$[0].tipo").value("CALIFICACION"))
                 .andExpect(jsonPath("$[0].estado").value("ERROR"));
+
+        reset(mailSender);
+
+        mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
+                        .with(user("docente5"))
+                        .headers(doc(5)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enviadas").value(1))
+                .andExpect(jsonPath("$.omitidasDuplicado").value(0));
+
+        mockMvc.perform(get("/api/notificaciones")
+                        .with(user("est1"))
+                        .headers(est(10)))
+                .andExpect(jsonPath("$[0].tipo").value("CALIFICACION"))
+                .andExpect(jsonPath("$[0].estado").value("ENVIADA"));
     }
 
     @Test
