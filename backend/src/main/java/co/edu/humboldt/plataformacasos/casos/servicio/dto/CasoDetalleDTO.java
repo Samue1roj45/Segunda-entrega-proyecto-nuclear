@@ -11,13 +11,14 @@ public record CasoDetalleDTO(Long id, Long docenteId, String nombre, String desa
                              String contextoHistoria, Integer tiempoEstimadoMinutos, EstadoCaso estado,
                              LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
                              LocalDateTime fechaPublicacion, LocalDateTime fechaArchivado,
-                             List<EscenarioDTO> escenarios) {
+                             List<EscenarioDTO> escenarios, RubricaDTO rubrica) {
 
     public static CasoDetalleDTO de(CasoEstudio caso) {
         return new CasoDetalleDTO(caso.getId(), caso.getDocenteId(), caso.getNombre(),
                 caso.getDesarrolloSituacional(), caso.getContextoHistoria(), caso.getTiempoEstimadoMinutos(),
                 caso.getEstado(), caso.getFechaCreacion(), caso.getFechaActualizacion(),
                 caso.getFechaPublicacion(), caso.getFechaArchivado(),
-                caso.getEscenarios().stream().map(EscenarioDTO::de).toList());
+                caso.getEscenarios().stream().map(EscenarioDTO::de).toList(),
+                caso.getRubrica() == null ? null : RubricaDTO.de(caso.getRubrica()));
     }
 }

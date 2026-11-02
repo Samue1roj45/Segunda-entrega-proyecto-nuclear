@@ -7,10 +7,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
@@ -70,6 +72,10 @@ public class CasoEstudio {
     @OrderBy("orden ASC, id ASC")
     @BatchSize(size = LimitesDsl.TAMANO_LOTE_CONSULTA)
     private List<Escenario> escenarios = new ArrayList<>();
+
+    /** Nula mientras el docente no la registre: en BORRADOR el caso puede no tener rúbrica. */
+    @OneToOne(mappedBy = "caso", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Rubrica rubrica;
 
     /** Requerido por JPA. */
     protected CasoEstudio() {
@@ -137,6 +143,30 @@ public class CasoEstudio {
                 .orElseThrow(() -> new RecursoNoEncontradoException("La respuesta no existe en este caso."));
     }
 
+    /** RF-17: crea la rúbrica del caso o actualiza la que ya tiene; un caso tiene como máximo una. */
+    public Rubrica registrarRubrica(String nombre, String descripcion) {
+        prepararCambio();
+        if (rubrica == null) {
+            rubrica = new Rubrica(this, nombre, descripcion);
+        } else {
+            rubrica.asignarDatos(nombre, descripcion);
+        }
+        return rubrica;
+    }
+
+    public void retirarRubrica() {
+        prepararCambio();
+        rubricaRegistrada();
+        rubrica = null;
+    }
+
+    public Rubrica rubricaRegistrada() {
+        if (rubrica == null) {
+            throw new RecursoNoEncontradoException("El caso no tiene una rúbrica asociada.");
+        }
+        return rubrica;
+    }
+
     /** Punto único de control: rechaza el cambio si el estado no lo permite y registra la fecha. */
     void prepararCambio() {
         if (!estado.permiteEditarContenido()) {
@@ -195,5 +225,10 @@ public class CasoEstudio {
 
     public List<Escenario> getEscenarios() {
         return Collections.unmodifiableList(escenarios);
+    }
+
+    /** Puede ser nula. */
+    public Rubrica getRubrica() {
+        return rubrica;
     }
 }

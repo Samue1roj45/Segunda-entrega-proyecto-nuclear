@@ -20,6 +20,9 @@ public final class LimitesDsl {
     /** OCL-11. */
     public static final BigDecimal PORCENTAJE_MAXIMO = new BigDecimal("100");
 
+    /** OCL-12. */
+    public static final int LONGITUD_CRITERIO = 150;
+
     /** DECIMAL(5,2). */
     static final int DECIMALES_VALOR = 2;
     /** DECIMAL(5,2). */
