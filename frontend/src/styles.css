@@ -51,6 +51,9 @@ a { color: var(--marino-suave); }
 
 label.campo { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; font-weight: 600; color: var(--marino-suave); flex: 1 1 12rem; min-width: 0; }
 
+/* En una columna, la base flexible se aplicaría a la altura y dejaría huecos bajo cada campo. */
+.pila > label.campo, .pila-corta > label.campo { flex: none; }
+
 input, textarea, select {
   width: 100%;
   font: inherit;
