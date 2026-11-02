@@ -1,7 +1,6 @@
 package com.unihumboldt.nuclear.evaluacion.resultado;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
 import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
 import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
@@ -71,13 +70,11 @@ class ResultadoApiTest {
     void rf13CalculaNotaConPesosYEscala100() throws Exception {
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].notaFinal").value(50.00))
                 .andExpect(jsonPath("$[0].escalaMaxima").value(100))
@@ -92,12 +89,10 @@ class ResultadoApiTest {
         catalogo.registrar(new RubricaRef(1L, 50L, 50));
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].escalaMaxima").value(50))
                 .andExpect(jsonPath("$[0].notaFinal").value(25.00));
@@ -107,14 +102,12 @@ class ResultadoApiTest {
     void rf14EstudianteConsultaSuResultado() throws Exception {
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         JsonNode lista = leer(getResultados(10));
         long rid = lista.get(0).get("id").asLong();
 
         mockMvc.perform(get("/api/resultados/{id}", rid)
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participacionId").value(pid))
                 .andExpect(jsonPath("$.detallePreguntas", hasSize(2)));
@@ -124,13 +117,11 @@ class ResultadoApiTest {
     void rf14EstudianteNoVeResultadoAjeno() throws Exception {
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         long rid = leer(getResultados(10)).get(0).get("id").asLong();
 
         mockMvc.perform(get("/api/resultados/{id}", rid)
-                        .with(user("est2"))
-                        .headers(est(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(status().isNotFound());
     }
 
@@ -138,34 +129,29 @@ class ResultadoApiTest {
     void rf24IncompletaParcialYAusenciaCero() throws Exception {
         long pid = iniciarYResponderUnaCorrecta();
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.incompletas").value(1))
                 .andExpect(jsonPath("$.ausencias").value(1));
 
         mockMvc.perform(get("/api/resultados?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$[0].estadoParticipacion").value("INCOMPLETA"))
                 .andExpect(jsonPath("$[0].notaFinal").value(50.00));
 
         MvcResult ausencia = mockMvc.perform(get("/api/resultados?estudiante=11")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$[0].estadoParticipacion").value("NO_INICIADA"))
                 .andExpect(jsonPath("$[0].notaFinal").value(0.00))
                 .andReturn();
         long ridAusencia = objectMapper.readTree(ausencia.getResponse().getContentAsString()).get(0).get("id").asLong();
         mockMvc.perform(get("/api/resultados/{id}", ridAusencia)
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estadoParticipacion").value("NO_INICIADA"));
 
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$.incompletas").value(0))
                 .andExpect(jsonPath("$.ausencias").value(0));
     }
@@ -180,12 +166,10 @@ class ResultadoApiTest {
 
         long pid = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$[0].notaFinal").value(0.00))
                 .andExpect(jsonPath("$[0].pesoTotal").value(0))
                 .andExpect(jsonPath("$[0].escalaMaxima").value(100));
@@ -194,32 +178,27 @@ class ResultadoApiTest {
     @Test
     void rf14EstudianteNoVeNotaOficialAjena() throws Exception {
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
         JsonNode lista = leer(mockMvc.perform(get("/api/resultados?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andReturn());
         long participacionId = lista.get(0).get("participacionId").asLong();
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":" + participacionId + "}"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/resultados/notas-oficiales")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].estudianteId").value(10));
 
         mockMvc.perform(get("/api/resultados/notas-oficiales")
-                        .with(user("est2"))
-                        .headers(est(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
@@ -228,18 +207,15 @@ class ResultadoApiTest {
     void rf14DocenteNoListaPracticaAjena() throws Exception {
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("docente99"))
-                        .headers(doc(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente99"))
-                        .headers(doc(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isForbidden());
     }
 
@@ -247,27 +223,22 @@ class ResultadoApiTest {
     void rf13ConservaResultadosDeIntentosAnteriores() throws Exception {
         long id1 = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id1)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         long id2 = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"preguntaId\":1,\"respuestaId\":11}"))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"preguntaId\":2,\"respuestaId\":21}"));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].numeroIntento").value(2))
                 .andExpect(jsonPath("$[0].notaFinal").value(100.00))
@@ -279,19 +250,15 @@ class ResultadoApiTest {
     void noReescribeNotaAlFinalizarOEvaluarDeNuevo() throws Exception {
         long pid = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$[0].notaFinal").value(50.00))
                 .andExpect(jsonPath("$", hasSize(1)));
     }
@@ -299,27 +266,22 @@ class ResultadoApiTest {
     @Test
     void ausenciaCeroSeConservaSiHaySegundoIntento() throws Exception {
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
         long id2 = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":2,\"respuestaId\":21}"));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[?(@.estudianteId==10 && @.numeroIntento==1)].notaFinal").value(org.hamcrest.Matchers.hasItem(0.0)))
                 .andExpect(jsonPath("$[?(@.estudianteId==10 && @.numeroIntento==2)].notaFinal").value(org.hamcrest.Matchers.hasItem(100.0)));
@@ -328,27 +290,22 @@ class ResultadoApiTest {
     @Test
     void docenteSeleccionaNotaOficialSinAlterarIntentos() throws Exception {
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
         long id2 = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":2,\"respuestaId\":21}"));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         JsonNode lista = leer(mockMvc.perform(get("/api/resultados?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andReturn());
         long idAusencia = 0;
@@ -362,36 +319,31 @@ class ResultadoApiTest {
         }
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":" + idSegundo + "}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente99"))
-                        .headers(doc(99))
+                        .with(ActorTokens.docente(99))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":" + idSegundo + "}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":99999}"))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":11,\"participacionId\":" + idAusencia + "}"))
                 .andExpect(status().isBadRequest());
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":" + idAusencia + "}"))
                 .andExpect(status().isOk())
@@ -399,8 +351,7 @@ class ResultadoApiTest {
                 .andExpect(jsonPath("$.notaOficial").value(0.00));
 
         mockMvc.perform(get("/api/resultados?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==1)].oficial").value(org.hamcrest.Matchers.hasItem(true)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==2)].oficial").value(org.hamcrest.Matchers.hasItem(false)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==1)].notaFinal").value(org.hamcrest.Matchers.hasItem(0.0)))
@@ -408,30 +359,26 @@ class ResultadoApiTest {
                 .andExpect(jsonPath("$[?(@.numeroIntento==2)].notaOficial").value(org.hamcrest.Matchers.hasItem(0.0)));
 
         mockMvc.perform(post("/api/resultados/nota-oficial")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"practicaId\":1,\"estudianteId\":10,\"participacionId\":" + idSegundo + "}"))
                 .andExpect(jsonPath("$.numeroIntento").value(2))
                 .andExpect(jsonPath("$.notaOficial").value(100.00));
 
         mockMvc.perform(get("/api/resultados?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==2)].oficial").value(org.hamcrest.Matchers.hasItem(true)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==1)].oficial").value(org.hamcrest.Matchers.hasItem(false)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==1)].notaFinal").value(org.hamcrest.Matchers.hasItem(0.0)))
                 .andExpect(jsonPath("$[?(@.numeroIntento==2)].notaFinal").value(org.hamcrest.Matchers.hasItem(100.0)));
 
         mockMvc.perform(get("/api/resultados/notas-oficiales?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].participacionId").value(idSegundo));
 
         byte[] xlsx = mockMvc.perform(get("/api/reportes/evaluacion.xlsx?estudiante=10")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -459,8 +406,7 @@ class ResultadoApiTest {
     void responderPreguntaInvalidaEs400() throws Exception {
         long pid = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"preguntaId\":999,\"respuestaId\":11}"))
                 .andExpect(status().isBadRequest());
@@ -469,13 +415,11 @@ class ResultadoApiTest {
     private long iniciarYResponderParcial() throws Exception {
         long pid = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":2,\"respuestaId\":22}"));
         return pid;
@@ -484,8 +428,7 @@ class ResultadoApiTest {
     private long iniciarYResponderUnaCorrecta() throws Exception {
         long pid = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         return pid;
@@ -493,8 +436,7 @@ class ResultadoApiTest {
 
     private long iniciar(long estudianteId, long autorizacionId) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est" + estudianteId))
-                        .headers(est(estudianteId))
+                        .with(ActorTokens.estudiante(estudianteId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":" + autorizacionId + "}"))
                 .andExpect(status().isOk())
@@ -504,8 +446,7 @@ class ResultadoApiTest {
 
     private MvcResult getResultados(long estudianteId) throws Exception {
         return mockMvc.perform(get("/api/resultados")
-                        .with(user("est" + estudianteId))
-                        .headers(est(estudianteId)))
+                        .with(ActorTokens.estudiante(estudianteId)))
                 .andExpect(status().isOk())
                 .andReturn();
     }
@@ -514,19 +455,4 @@ class ResultadoApiTest {
         return objectMapper.readTree(result.getResponse().getContentAsString());
     }
 
-    private HttpHeaders est(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "ESTUDIANTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Estudiante-Id", String.valueOf(id));
-        return h;
-    }
-
-    private HttpHeaders doc(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "DOCENTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Docente-Id", String.valueOf(id));
-        return h;
-    }
 }

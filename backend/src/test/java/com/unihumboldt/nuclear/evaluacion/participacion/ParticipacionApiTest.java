@@ -1,7 +1,6 @@
 package com.unihumboldt.nuclear.evaluacion.participacion;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
 import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
 import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
@@ -62,8 +62,7 @@ class ParticipacionApiTest {
     @Test
     void rf12IniciarYFinalizarGuardaTiempos() throws Exception {
         MvcResult inicio = mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isOk())
@@ -75,8 +74,7 @@ class ParticipacionApiTest {
         long id = objectMapper.readTree(inicio.getResponse().getContentAsString()).get("id").asLong();
 
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id)
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("FINALIZADA"))
                 .andExpect(jsonPath("$.fin").isNotEmpty())
@@ -94,8 +92,7 @@ class ParticipacionApiTest {
         pendiente = repositorio.save(pendiente);
 
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pendiente.getId())
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value(
                         "No es posible finalizar una participación que no está en curso."));
@@ -106,8 +103,7 @@ class ParticipacionApiTest {
         JsonNode primero = iniciar(100, 10);
         long id1 = primero.get("id").asLong();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id1)
-                .with(user("est1"))
-                .headers(headersEstudiante(10)));
+                .with(ActorTokens.estudiante(10)));
 
         catalogo.actualizarAutorizacion(new AutorizacionRef(100L, 1L, 10L, "ABC123", true));
 
@@ -118,8 +114,7 @@ class ParticipacionApiTest {
         org.junit.jupiter.api.Assertions.assertEquals(2, segundo.get("numeroIntento").asInt());
 
         mockMvc.perform(get("/api/participaciones/{id}", id1)
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.estado").value("FINALIZADA"))
                 .andExpect(jsonPath("$.numeroIntento").value(1));
@@ -133,8 +128,7 @@ class ParticipacionApiTest {
                 ahora.minusHours(4), ahora.plusMinutes(10), "EN_CURSO", "Bienvenidos"));
 
         mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isBadRequest())
@@ -146,14 +140,12 @@ class ParticipacionApiTest {
         iniciar(100, 10);
 
         mockMvc.perform(get("/api/participaciones")
-                        .with(user("docente5"))
-                        .headers(headersDocente(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 
         mockMvc.perform(get("/api/participaciones")
-                        .with(user("docente99"))
-                        .headers(headersDocente(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
     }
@@ -164,8 +156,7 @@ class ParticipacionApiTest {
         long id = propio.get("id").asLong();
 
         mockMvc.perform(get("/api/participaciones/{id}", id)
-                        .with(user("est2"))
-                        .headers(headersEstudiante(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(status().isNotFound());
     }
 
@@ -175,28 +166,24 @@ class ParticipacionApiTest {
         long id = propio.get("id").asLong();
 
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id)
-                        .with(user("docente5"))
-                        .headers(headersDocente(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"preguntaId\":1,\"respuestaId\":11}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id)
-                        .with(user("docente5"))
-                        .headers(headersDocente(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void segundoIntentoTrasAusenciaNoReabreElPrimeroYElTerceroSeBloquea() throws Exception {
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(headersDocente(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
 
         MvcResult listado = mockMvc.perform(get("/api/participaciones?estudiante=10")
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].estado").value("NO_INICIADA"))
@@ -209,17 +196,14 @@ class ParticipacionApiTest {
         org.junit.jupiter.api.Assertions.assertEquals(2, segundo.get("numeroIntento").asInt());
 
         mockMvc.perform(get("/api/participaciones/{id}", idAusencia)
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$.estado").value("NO_INICIADA"));
 
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
-                .with(user("est1"))
-                .headers(headersEstudiante(10)));
+                .with(ActorTokens.estudiante(10)));
 
         mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est1"))
-                        .headers(headersEstudiante(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isBadRequest())
@@ -236,28 +220,11 @@ class ParticipacionApiTest {
 
     private JsonNode iniciar(long autorizacionId, long estudianteId) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est" + estudianteId))
-                        .headers(headersEstudiante(estudianteId))
+                        .with(ActorTokens.estudiante(estudianteId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":" + autorizacionId + "}"))
                 .andExpect(status().isOk())
                 .andReturn();
         return objectMapper.readTree(result.getResponse().getContentAsString());
-    }
-
-    private org.springframework.http.HttpHeaders headersEstudiante(long estudianteId) {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add("X-Rol", "ESTUDIANTE");
-        headers.add("X-Usuario-Id", String.valueOf(estudianteId));
-        headers.add("X-Estudiante-Id", String.valueOf(estudianteId));
-        return headers;
-    }
-
-    private org.springframework.http.HttpHeaders headersDocente(long docenteId) {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add("X-Rol", "DOCENTE");
-        headers.add("X-Usuario-Id", String.valueOf(docenteId));
-        headers.add("X-Docente-Id", String.valueOf(docenteId));
-        return headers;
     }
 }

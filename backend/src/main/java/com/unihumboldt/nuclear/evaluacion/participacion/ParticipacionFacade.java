@@ -16,7 +16,7 @@ import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.resultado.EvaluacionFacade;
+import com.unihumboldt.nuclear.evaluacion.resultado.CalculoNota;
 import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
 
 @Service
@@ -27,7 +27,7 @@ public class ParticipacionFacade {
     private final ResultadoRepository resultados;
     private final CatalogoAcademico catalogo;
     private final AccesoEvaluacion acceso;
-    private final EvaluacionFacade evaluacion;
+    private final CalculoNota evaluacion;
     private final Clock clock;
 
     public ParticipacionFacade(
@@ -36,7 +36,7 @@ public class ParticipacionFacade {
             ResultadoRepository resultados,
             CatalogoAcademico catalogo,
             AccesoEvaluacion acceso,
-            EvaluacionFacade evaluacion,
+            CalculoNota evaluacion,
             Clock clock) {
         this.repositorio = repositorio;
         this.respuestas = respuestas;
@@ -105,7 +105,6 @@ public class ParticipacionFacade {
         nueva.setEstudianteId(autorizacion.estudianteId());
         nueva.setAutorizacionId(autorizacion.id());
         nueva.setNumeroIntento(siguiente);
-        nueva.setEstado(EstadoParticipacion.NO_INICIADA);
         MaquinaEstadoParticipacion.iniciar(nueva, ahora);
         return toRespuesta(repositorio.save(nueva), practica);
     }

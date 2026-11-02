@@ -11,7 +11,7 @@ Alcance: RF-12, RF-13, RF-14, RF-15, RF-16, RF-21, RF-24, RF-26, RF-27.
 - OpenPDF 2.0.3 (MPL-2.0 / LGPL-2.1+) para PDF
 - Apache POI 5.4.1 (Apache License 2.0) para Excel
 
-No se usa Python, Django ni PostgreSQL (el `MODE=PostgreSQL` de `backend/src/test/resources/application-test.yml` es un modo de compatibilidad de H2 para las pruebas en memoria).
+No se usa Python, Django ni PostgreSQL. Las pruebas en memoria usan H2 en `MODE=MySQL` (`backend/src/test/resources/application-test.yml`).
 
 ## Decisiones funcionales
 
@@ -29,7 +29,7 @@ No se usa Python, Django ni PostgreSQL (el `MODE=PostgreSQL` de `backend/src/tes
 | RF | Estado | Notas |
 |---|---|---|
 | RF-12 | Implementado | Inicio, fin, RN17, dos intentos independientes. State: `EstadoDeParticipacion` y estados concretos. |
-| RF-13 | Implementado | Nota con rúbrica. Strategy + `EvaluacionFacade.calcular` (no reescribe una nota persistida). |
+| RF-13 | Implementado | Nota con rúbrica. Strategy + `EvaluacionFacade.calcular`, que delega en `CalculoNota` (no reescribe una nota persistida). |
 | RF-14 | Implementado | Consulta de resultado cerrado, nota oficial elegida por el docente. State + Facade + Proxy. |
 | RF-15 | Implementado | Consulta e historial de participaciones. Facade + `ParticipacionConsultaProxy`. |
 | RF-16 | Implementado | PDF OpenPDF 2.0.3 y Excel Apache POI 5.4.1. Facade + `ReporteDescargaProxy`. |
@@ -38,7 +38,7 @@ No se usa Python, Django ni PostgreSQL (el `MODE=PostgreSQL` de `backend/src/tes
 | RF-26 | Implementado | Retroalimentación por intento. Facade + `RetroalimentacionProxy`. |
 | RF-27 | Implementado | Aviso de calificaciones vía `NotificacionFacade` (el cálculo sigue en `EvaluacionFacade`) y aviso de feedback. Observer + Facade. |
 
-Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. No están integrados JWT ni el catálogo académico real. Existe un frontend Angular 21 en `frontend/` todavía **sin versionar** en esta rama; solo RF-15 (consulta de participaciones) llama al API y el resto son pantallas de estructura.
+Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. El API valida un JWT HS256; no emite sesiones ni trae el catálogo académico real. Existe un frontend Angular 21 en `frontend/` todavía **sin versionar** en esta rama; solo RF-15 (consulta de participaciones) llama al API, todavía sin `Authorization`, y el resto son pantallas de estructura.
 
 ## Relación tabla 4.1 y clases reales
 
@@ -46,28 +46,30 @@ Nombres comprobados en el código de esta rama. La columna **4.1** es lo exigido
 
 | RF | 4.1 | Clases del patrón exigido | Responsabilidad | Adicional (no exigido por 4.1) |
 |---|---|---|---|---|
-| RF-12 | State | `EstadoDeParticipacion`, `EstadoNoIniciada`, `EstadoEnCurso`, `EstadoFinalizada`, `EstadoIncompleta`, `MaquinaEstadoParticipacion` | Cada estado admite o rechaza iniciar, finalizar o marcar incompleta. | `ParticipacionFacade` orquesta inicio/fin; no sustituye al State. |
-| RF-13 | Strategy y Facade | `EstrategiaEvaluacion`, `EvaluacionCompletaStrategy`, `CalculoRubrica`, `EvaluacionFacade` | El Facade elige estrategia y persiste la nota; no reescribe un `Resultado` existente. | — |
-| RF-14 | State, Facade y Proxy | State: los mismos estados de RF-12 (`consultarCerrado` no entrega un intento `EN_CURSO`). Facade: `EvaluacionFacade`. Proxy: `ConsultaResultado`, `ResultadoConsultaProxy` | El Proxy limita visibilidad; el Facade arma el resultado y la nota oficial elegida por el docente. | — |
+| RF-12 | State | `EstadoDeParticipacion`, `EstadoNoIniciada`, `EstadoEnCurso`, `EstadoFinalizada`, `EstadoIncompleta`, `MaquinaEstadoParticipacion` | Cada estado admite o rechaza iniciar, finalizar o marcar incompleta. | `ParticipacionFacade` orquesta inicio/fin. `Participacion.setEstado` es de paquete: solo la máquina cambia un intento ya creado. `NO_INICIADA` es el valor inicial del campo; `enEstadoInicial` no es una transición. |
+| RF-13 | Strategy y Facade | `EstrategiaEvaluacion`, `EvaluacionCompletaStrategy`, `CalculoRubrica`, `EvaluacionFacade`, `CalculoNota` | La fachada delega en `CalculoNota`, que elige la estrategia y persiste la nota; no reescribe un `Resultado` existente. | — |
+| RF-14 | State, Facade y Proxy | State: los mismos estados de RF-12 (`consultarCerrado` no entrega un intento `EN_CURSO`). Facade: `EvaluacionFacade`, `LecturaResultados`, `NotaOficialServicio`. Proxy: `ConsultaResultado`, `ResultadoConsultaProxy` | El Proxy limita visibilidad. La fachada delega la lectura y la nota oficial elegida por el docente. | — |
 | RF-15 | Facade y Proxy | `ParticipacionFacade`, `ConsultaParticipacion`, `ParticipacionConsultaProxy` | El Proxy filtra dueño/práctica; el Facade describe e historializa intentos. | — |
 | RF-16 | Facade y Proxy | `ReporteFacade`, `DescargaReporte`, `ReporteDescargaProxy` | El Proxy autoriza la descarga; el Facade arma filas y PDF/Excel sin recalcular notas. | Generadores `ReportePdfOpenPdf` y `ReporteExcelPoi` (no son el Proxy). |
 | RF-21 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `NotificacionFacade` | El Facade publica convocatoria/cambio; el Observer envía correo con idempotencia. | `NotificacionCorreoServicio` persiste el intento SMTP; no es un segundo observador. |
-| RF-24 | Strategy | `EstrategiaEvaluacion`, `EvaluacionIncompletaStrategy`, `EvaluacionAusenciaStrategy`, `EvaluacionCompletaStrategy` | Incompleta usa respuestas registradas; ausencia deja nota 0 en `NO_INICIADA`. | `EvaluacionFacade.evaluarPendientes` y el State (`marcarIncompleta`) coordinan el cierre; 4.1 no pide Facade ni State en este RF. |
+| RF-24 | Strategy | `EstrategiaEvaluacion`, `EvaluacionIncompletaStrategy`, `EvaluacionAusenciaStrategy`, `EvaluacionCompletaStrategy` | Incompleta usa respuestas registradas; ausencia deja nota 0 en `NO_INICIADA`. | `CierrePendientes` (vía `EvaluacionFacade.evaluarPendientes`) y el State (`marcarIncompleta`) coordinan el cierre; 4.1 no pide Facade ni State en este RF. |
 | RF-26 | Facade y Proxy | `RetroalimentacionFacade`, `GestionRetroalimentacion`, `RetroalimentacionProxy` | El Proxy restringe registro y consulta; el Facade guarda el texto por intento. | Al guardar se publica un evento (eso es RF-27, no un patrón extra de RF-26). |
 | RF-27 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `NotificacionFacade.publicarCalificaciones`; el feedback sale de `RetroalimentacionFacade.guardar` | Avisa calificaciones ya persistidas y retroalimentación; no altera `notaFinal`. | `EvaluacionFacade.publicarCalificaciones` solo delega en `NotificacionFacade`. |
 
-Los tipos en `contrato` y el catálogo en memoria son temporales. JWT se sustituirá por el módulo de usuarios; hoy el actor llega en cabeceras temporales (detalle en **Actor y visibilidad por rol**).
+Los tipos en `contrato` y el catálogo en memoria son temporales. El módulo de usuarios emite el JWT; este módulo solo lo valida (detalle en **Actor y visibilidad por rol**).
 
 ## Actor y visibilidad por rol
 
-Estos encabezados los resuelve `ActorHeaderResolver`. **No son JWT**: no hay token institucional ni claims del módulo de usuarios. Sin `X-Rol` y `X-Usuario-Id` válidos no hay actor (401 en rutas protegidas).
+`ActorJwtResolver` construye el actor desde el JWT ya validado (`JwtConfig`, HS256, `JWT_SECRET`). Sin token, o con token inválido o vencido, la ruta protegida responde 401. Un token válido sin `rol` o sin usuario numérico responde 403.
 
-| Encabezado | Uso actual |
+| Claim | Uso |
 |---|---|
-| `X-Rol` | `ESTUDIANTE`, `DOCENTE` o `ADMIN` (valor de `Rol`) |
-| `X-Usuario-Id` | Identificador numérico del usuario |
-| `X-Estudiante-Id` | Obligatorio en la práctica para un estudiante |
-| `X-Docente-Id` | Obligatorio en la práctica para un docente |
+| `rol` | `ESTUDIANTE`, `DOCENTE` o `ADMIN` (valor de `Rol`) |
+| `usuarioId` | Identificador numérico. Si falta, se acepta `sub` numérico |
+| `estudianteId` | Obligatorio en la práctica para un estudiante |
+| `docenteId` | Obligatorio en la práctica para un docente |
+
+Las cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id` no aportan identidad.
 
 La visibilidad de consulta (`AccesoEvaluacion.visible` y, en notificaciones, el filtro de `NotificacionFacade`) es:
 
@@ -82,8 +84,6 @@ La visibilidad de consulta (`AccesoEvaluacion.visible` y, en notificaciones, el 
 Mutaciones de intento (responder, finalizar e iniciar): **solo el estudiante dueño**. El docente no responde ni finaliza en nombre del estudiante.
 
 `ADMIN` en código ve todos los recursos visibles y puede operar como docente de la práctica; no implica un módulo de administración entregado.
-
-Cuando exista JWT, estas cabeceras deben dejar de ser la fuente de identidad.
 
 ## RF-13 / RF-14 / RF-24
 
@@ -139,7 +139,7 @@ Detalle de grupos, cobertura y cómo aplicar/verificar el esquema MySQL: `backen
 ## Dependencias pendientes de integración
 
 - Módulos de prácticas, casos, preguntas, rúbricas y autorizaciones: hoy `CatalogoAcademicoEnMemoria`.
-- JWT / usuarios: el backend no incluye autenticador; fuera de las pruebas todos los endpoints salvo `GET /api/health` responden `401`. El actor se resuelve por cabeceras temporales `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id` (manipulables; no válidas como identidad en producción). Contrato propuesto y pruebas pendientes en `backend/README.md`, sección "Estado de la seguridad".
+- JWT / usuarios: este módulo valida el Bearer HS256 y lee los claims; no emite el token ni crea usuarios. El emisor debe compartir `JWT_SECRET` y los claims `rol`, `usuarioId`, `estudianteId` y `docenteId`. El frontend de esta rama no envía `Authorization`, así que hoy recibe `401` en las rutas protegidas. Detalle en `backend/README.md`, sección "Estado de la seguridad".
 - CORS: no configurado; el frontend en `http://localhost:4200` no puede consumir `http://localhost:8080` hasta coordinarlo con seguridad (orígenes, métodos y cabeceras necesarios en `backend/README.md`).
 - Persistencia de producción: `ddl-auto` none + MySQL 8; sin Flyway. `V1__crear_tablas_evaluacion.sql` se aplica manualmente sobre la base (Compose no lo ejecuta). No recrear el volumen `mysql_data` para aplicar cambios.
 - SMTP real / Mailhog: las pruebas usan `JavaMailSender` mockeado; no se envían correos reales.

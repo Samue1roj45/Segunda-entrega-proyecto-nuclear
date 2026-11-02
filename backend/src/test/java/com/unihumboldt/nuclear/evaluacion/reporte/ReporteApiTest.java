@@ -3,7 +3,6 @@ package com.unihumboldt.nuclear.evaluacion.reporte;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -23,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -37,6 +35,7 @@ import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.RubricaRef;
+import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,8 +72,7 @@ class ReporteApiTest {
     @Test
     void rf16PdfYExcelVacios() throws Exception {
         MvcResult pdf = mockMvc.perform(get("/api/reportes/evaluacion.pdf")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", org.hamcrest.Matchers.containsString("application/pdf")))
                 .andReturn();
@@ -83,8 +81,7 @@ class ReporteApiTest {
         assertTrue(new String(pdfBytes).contains("Sin registros"));
 
         MvcResult xlsx = mockMvc.perform(get("/api/reportes/evaluacion.xlsx")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andReturn();
         try (XSSFWorkbook libro = new XSSFWorkbook(new ByteArrayInputStream(xlsx.getResponse().getContentAsByteArray()))) {
@@ -98,13 +95,11 @@ class ReporteApiTest {
 
         mockMvc.perform(get("/api/reportes/evaluacion.xlsx")
                         .param("estudiante", "11")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isForbidden());
 
         byte[] xlsx = mockMvc.perform(get("/api/reportes/evaluacion.xlsx")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -118,20 +113,17 @@ class ReporteApiTest {
     void rf16DocentePropioIncluyeIncompletaYAusenciaYAjeno403() throws Exception {
         iniciarYResponderUna(10, 100);
         mockMvc.perform(post("/api/resultados/practica/1/evaluar-pendientes")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/reportes/evaluacion.pdf")
                         .param("practica", "1")
-                        .with(user("docente99"))
-                        .headers(doc(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isForbidden());
 
         byte[] pdf = mockMvc.perform(get("/api/reportes/evaluacion.pdf")
                         .param("practica", "1")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -144,8 +136,7 @@ class ReporteApiTest {
 
         byte[] xlsx = mockMvc.perform(get("/api/reportes/evaluacion.xlsx")
                         .param("practica", "1")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andReturn()
                 .getResponse()
                 .getContentAsByteArray();
@@ -160,22 +151,18 @@ class ReporteApiTest {
         catalogo.actualizarAutorizacion(new AutorizacionRef(100L, 1L, 10L, "ABC123", true));
         long id2 = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(user("est1"))
-                .headers(est(10))
+                .with(ActorTokens.estudiante(10))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":2,\"respuestaId\":21}"));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
 
         byte[] xlsx = mockMvc.perform(get("/api/reportes/evaluacion.xlsx")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -200,33 +187,28 @@ class ReporteApiTest {
     private void finalizarParcial(long estudianteId, long autorizacionId) throws Exception {
         long pid = iniciar(estudianteId, autorizacionId);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est" + estudianteId))
-                .headers(est(estudianteId))
+                .with(ActorTokens.estudiante(estudianteId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est" + estudianteId))
-                .headers(est(estudianteId))
+                .with(ActorTokens.estudiante(estudianteId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":2,\"respuestaId\":22}"));
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est" + estudianteId))
-                .headers(est(estudianteId)));
+                .with(ActorTokens.estudiante(estudianteId)));
     }
 
     private void iniciarYResponderUna(long estudianteId, long autorizacionId) throws Exception {
         long pid = iniciar(estudianteId, autorizacionId);
         mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(user("est" + estudianteId))
-                .headers(est(estudianteId))
+                .with(ActorTokens.estudiante(estudianteId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"preguntaId\":1,\"respuestaId\":11}"));
     }
 
     private long iniciar(long estudianteId, long autorizacionId) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est" + estudianteId))
-                        .headers(est(estudianteId))
+                        .with(ActorTokens.estudiante(estudianteId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":" + autorizacionId + "}"))
                 .andExpect(status().isOk())
@@ -259,19 +241,4 @@ class ReporteApiTest {
         }
     }
 
-    private HttpHeaders est(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "ESTUDIANTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Estudiante-Id", String.valueOf(id));
-        return h;
-    }
-
-    private HttpHeaders doc(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "DOCENTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Docente-Id", String.valueOf(id));
-        return h;
-    }
 }

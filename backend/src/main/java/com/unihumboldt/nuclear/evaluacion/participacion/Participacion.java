@@ -115,8 +115,24 @@ public class Participacion {
         return estado;
     }
 
-    public void setEstado(EstadoParticipacion estado) {
+    /**
+     * Solo la máquina de estados, en este mismo paquete, cambia el estado de un intento.
+     */
+    void setEstado(EstadoParticipacion estado) {
         this.estado = estado;
+    }
+
+    /**
+     * Arma una participación ya en su estado inicial. No es una transición:
+     * iniciar, finalizar o marcar incompleta sigue en {@link MaquinaEstadoParticipacion}.
+     */
+    public static Participacion enEstadoInicial(EstadoParticipacion estado) {
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado inicial es obligatorio.");
+        }
+        Participacion participacion = new Participacion();
+        participacion.estado = estado;
+        return participacion;
     }
 
     public boolean esTerminal() {

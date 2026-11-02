@@ -84,10 +84,9 @@ class ResultadoConsultaProxyTest {
     }
 
     private static Resultado resultadoDe(long estudianteId, long practicaId) {
-        Participacion p = new Participacion();
+        Participacion p = Participacion.enEstadoInicial(EstadoParticipacion.FINALIZADA);
         p.setEstudianteId(estudianteId);
         p.setPracticaId(practicaId);
-        p.setEstado(EstadoParticipacion.FINALIZADA);
         Resultado r = new Resultado();
         r.setParticipacion(p);
         r.setNotaFinal(new BigDecimal("50.00"));

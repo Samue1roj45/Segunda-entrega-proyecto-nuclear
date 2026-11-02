@@ -10,7 +10,7 @@ Módulo Spring Boot del Integrante 4 (RF-12 a RF-27). No incluye autenticación 
 - OpenPDF 2.0.3 y Apache POI 5.4.1 para reportes
 - Pruebas: JUnit 5, Spring Security Test, H2 (perfil `test`), Testcontainers MySQL (`*IT`)
 
-No se usa Python, Django ni PostgreSQL. La única mención a PostgreSQL es `MODE=PostgreSQL` en la URL H2 de `src/test/resources/application-test.yml`, que es un modo de compatibilidad de H2 para las pruebas en memoria.
+No se usa Python, Django ni PostgreSQL. Las pruebas en memoria usan H2 en `MODE=MySQL` (`src/test/resources/application-test.yml`).
 
 ## Requisitos previos
 
@@ -42,7 +42,8 @@ Variables que usa el arranque (nombres; los valores viven en tu `.env`):
 | `MYSQL_ROOT_PASSWORD` | Solo lo usa Compose para inicializar el contenedor | — |
 | `MYSQL_HOST_PORT` | Puerto que Compose publica en el host (`MYSQL_HOST_PORT:3306`) | `5435` |
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP; las pruebas mockean `JavaMailSender` y no envían correo | `localhost`, `1025`, vacío, vacío, `no-reply@simulador.local` |
-| `JWT_SECRET`, `JWT_EXPIRATION_MS` | **Reservadas** para el módulo de usuarios. Hoy ninguna clase del backend las lee (`app.jwt.*` no tiene consumidor) | — |
+| `JWT_SECRET` | Clave HS256 con la que `JwtConfig` valida el Bearer. La comparte el módulo de usuarios, que es quien emite el token. Mínimo 32 bytes | placeholder de desarrollo en `application.yml`; en despliegue debe definirse en el entorno |
+| `JWT_EXPIRATION_MS` | La usa el emisor al firmar. Este módulo no abre sesión: rechaza un token vencido por su claim `exp` | `3600000` |
 | `SPRING_PROFILES_ACTIVE` | Perfil Spring. El perfil `test` solo existe en el classpath de pruebas | — |
 
 `MYSQL_PORT` (JDBC) y `MYSQL_HOST_PORT` (Compose) deben coincidir si el backend corre fuera de Docker y la base dentro; por defecto ambos son `5435`.
@@ -130,27 +131,21 @@ mvn -f backend/pom.xml verify
 
 ### Qué cubre cada grupo
 
-- Unitarias: State (`MaquinaEstadoParticipacionTest`), fórmula de rúbrica (`CalculoRubricaTest`), Observer (`PublicadorEventosTest`), generadores PDF/XLSX, los cuatro Proxies, resolución de actor por cabeceras (`ActorHeaderResolverTest`).
-- API (`@SpringBootTest` + MockMvc): RF-12 a RF-27 con permisos por rol, idempotencia de notificaciones, error SMTP sin pérdida de datos, 401 sin principal.
+- Unitarias: State (`MaquinaEstadoParticipacionTest`), fórmula de rúbrica (`CalculoRubricaTest`), Observer (`PublicadorEventosTest`), generadores PDF/XLSX, los cuatro Proxies, claims del actor (`ActorJwtResolverTest`).
+- API (`@SpringBootTest` + MockMvc): RF-12 a RF-27 con permisos por rol, idempotencia de notificaciones, error SMTP sin pérdida de datos. `JwtAutenticacionTest` cubre token firmado (200), ausente, inválido o vencido (401), y cabeceras `X-*` que no conceden rol (401 o 403).
 - Integración MySQL: esquema V1 real.
 
-Las pruebas de API autentican con `SecurityMockMvcRequestPostProcessors.user(...)` y envían las cabeceras `X-*`. Eso no sustituye a una autenticación real (ver siguiente sección).
+Las pruebas de API arman el actor con `ActorTokens` (claims `rol`, `usuarioId`, `estudianteId` o `docenteId`). `JwtAutenticacionTest` además firma un Bearer real con `JwtEncoder` y la clave de `application-test.yml`.
 
 ## Estado de la seguridad y dependencias de integración
 
-### Autenticación: pendiente del módulo de usuarios
+### Autenticación: JWT HS256
 
-`SecurityConfig` exige un usuario autenticado en toda ruta salvo `GET /api/health`, pero **este módulo no incluye ningún autenticador** (ni JWT, ni HTTP Basic, ni filtro propio). Por tanto, fuera de las pruebas, **todos los endpoints de las tablas siguientes responden `401`** hasta que se integre el módulo de usuarios: `/api/participaciones/**`, `/api/resultados/**`, `/api/reportes/**`, `/api/notificaciones/**`, `/api/retroalimentaciones/**`.
+`SecurityConfig` deja `GET /api/health` público y exige un Bearer JWT en el resto. `JwtConfig` valida la firma HS256 con `app.jwt.secret` (`JWT_SECRET`). Un token ausente, mal formado o vencido responde `401`. Este módulo no inicia sesión ni crea usuarios: el módulo de usuarios emite el token con la misma clave.
 
-El rol de negocio lo resuelve `ActorHeaderResolver` a partir de `X-Rol` (`ESTUDIANTE`, `DOCENTE`, `ADMIN`), `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`. Esas cabeceras son **temporales y manipulables**: no deben usarse como fuente de identidad en producción. Si falta `X-Rol`/`X-Usuario-Id`, el rol es desconocido o un identificador no es numérico, no hay actor y la operación responde `403` con un mensaje genérico (sin detalles internos).
+`ActorJwtResolver` lee solo el principal `Jwt` ya validado. Claims: `rol` (`ESTUDIANTE`, `DOCENTE` o `ADMIN`), `usuarioId` (número o texto numérico; si falta, `sub` numérico), y de forma opcional `estudianteId` y `docenteId`. Si el token es válido pero el rol o el usuario no se pueden leer, no hay actor y la operación responde `403`. Las cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id` no se leen.
 
-Contrato de integración que necesita este módulo (propuesta para coordinar, no implementada aquí):
-
-1. Un filtro del módulo de usuarios que valide el token (`Authorization: Bearer ...`) y deje en el `SecurityContext` un `Authentication` autenticado.
-2. Una implementación de `com.unihumboldt.nuclear.evaluacion.contrato.ActorActualResolver` que construya `ActorActual(usuarioId, estudianteId, docenteId, rol)` a partir de los claims del token, sustituyendo a `ActorHeaderResolver`.
-3. Retirar las cabeceras `X-*` del frontend y de las pruebas cuando exista lo anterior.
-
-Pruebas que deberán ejecutarse cuando el JWT real esté integrado: `mvn -f backend/pom.xml verify` completo; además, casos nuevos de API con token válido/expirado/sin rol (200/401/403), suplantación de `estudianteId` o `docenteId` por cabecera (debe ignorarse), y una prueba end-to-end desde el frontend para `GET /api/participaciones`.
+El frontend de esta rama todavía no envía `Authorization`, así que sus llamadas a rutas protegidas reciben `401` hasta que lo haga.
 
 ### CORS: no configurado (coordinación con seguridad)
 
@@ -158,7 +153,7 @@ El backend no define CORS y el frontend Angular (`http://localhost:4200`) no usa
 
 - Orígenes: `http://localhost:4200` en desarrollo (configurable por variable para otros entornos).
 - Métodos: `GET`, `POST`, `OPTIONS`.
-- Cabeceras permitidas: `Content-Type`, `Authorization` (y `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id` solo mientras existan).
+- Cabeceras permitidas: `Content-Type`, `Authorization`.
 - Cabeceras expuestas: `Content-Disposition` (nombre de archivo de los reportes PDF/XLSX).
 
 ### Catálogo académico
@@ -181,7 +176,7 @@ Respuesta esperada (cuerpo JSON): `status` = `UP`, `modulo` = `evaluacion-result
 
 ## Endpoints del módulo (código actual)
 
-El API es Spring Boot (`*Controller` en `com.unihumboldt.nuclear.evaluacion`). Spring Security exige usuario autenticado en todas las rutas de abajo (`/api/health` es la única pública). El rol de negocio no va en JWT: se lee de `X-Rol` (`ESTUDIANTE`, `DOCENTE`, `ADMIN`) junto con `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`.
+El API es Spring Boot (`*Controller` en `com.unihumboldt.nuclear.evaluacion`). Spring Security exige un JWT Bearer en todas las rutas de abajo (`/api/health` es la única pública). El rol sale de los claims `rol`, `usuarioId`, `estudianteId` y `docenteId`.
 
 La tabla de `docs/10-integrante-4-evaluacion-resultados.md` coincide en método y ruta; aquí se añaden query, body y campos JSON tomados de los records.
 

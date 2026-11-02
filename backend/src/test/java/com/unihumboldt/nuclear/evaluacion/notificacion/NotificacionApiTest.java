@@ -7,7 +7,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
@@ -36,6 +34,7 @@ import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
 import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
 import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
+import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -68,51 +67,43 @@ class NotificacionApiTest {
     @Test
     void rf21ConvocatoriaYCambioConPermisosYSinDuplicado() throws Exception {
         mockMvc.perform(post("/api/notificaciones/practica/1/convocatoria")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/notificaciones/practica/1/convocatoria")
-                        .with(user("docente99"))
-                        .headers(doc(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/notificaciones/practica/1/convocatoria")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enviadas").value(2))
                 .andExpect(jsonPath("$.omitidasDuplicado").value(0));
 
         mockMvc.perform(post("/api/notificaciones/practica/1/convocatoria")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$.enviadas").value(0))
                 .andExpect(jsonPath("$.omitidasDuplicado").value(2));
 
         mockMvc.perform(post("/api/notificaciones/practica/1/cambio")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"motivo\":\"FECHAS\"}"))
                 .andExpect(jsonPath("$.enviadas").value(2));
         mockMvc.perform(post("/api/notificaciones/practica/1/cambio")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"motivo\":\"FECHAS\"}"))
                 .andExpect(jsonPath("$.omitidasDuplicado").value(2));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].estudianteId").value(10));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est2"))
-                        .headers(est(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(jsonPath("$[0].estudianteId").value(11));
 
         verify(mailSender, times(4)).send(any(SimpleMailMessage.class));
@@ -123,22 +114,19 @@ class NotificacionApiTest {
         long pid = iniciarYFinalizar();
 
         mockMvc.perform(post("/api/retroalimentaciones")
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"participacionId\":" + pid + ",\"texto\":\"Bien\"}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/retroalimentaciones")
-                        .with(user("docente99"))
-                        .headers(doc(99))
+                        .with(ActorTokens.docente(99))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"participacionId\":" + pid + ",\"texto\":\"Bien\"}"))
                 .andExpect(status().isForbidden());
 
         MvcResult creado = mockMvc.perform(post("/api/retroalimentaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"participacionId\":" + pid + ",\"texto\":\"Revisa el isotopo.\"}"))
                 .andExpect(status().isOk())
@@ -150,55 +138,46 @@ class NotificacionApiTest {
         long rid = idDe(creado);
 
         mockMvc.perform(post("/api/retroalimentaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"participacionId\":" + pid + ",\"texto\":\"Ajuste menor.\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.texto").value("Ajuste menor."));
 
         mockMvc.perform(get("/api/retroalimentaciones/{id}", rid)
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.texto").value("Ajuste menor."));
 
         mockMvc.perform(get("/api/retroalimentaciones/{id}", rid)
-                        .with(user("est2"))
-                        .headers(est(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/retroalimentaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].estudianteId").value(10));
 
         mockMvc.perform(get("/api/retroalimentaciones")
-                        .with(user("est2"))
-                        .headers(est(11)))
+                        .with(ActorTokens.estudiante(11)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
 
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
-                        .with(user("docente99"))
-                        .headers(doc(99)))
+                        .with(ActorTokens.docente(99)))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enviadas").value(1));
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$.omitidasDuplicado").value(1));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[*].tipo", hasItem("CALIFICACION")))
                 .andExpect(jsonPath("$[*].tipo", hasItem("RETROALIMENTACION")))
@@ -209,8 +188,7 @@ class NotificacionApiTest {
     void rf27ErrorSmtpNoModificaNiBorraResultado() throws Exception {
         long pid = iniciarYFinalizar();
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].participacionId").value(pid))
                 .andExpect(jsonPath("$[0].notaFinal").value(0.00));
@@ -218,35 +196,30 @@ class NotificacionApiTest {
         doThrow(new MailSendException("smtp caido")).when(mailSender).send(any(SimpleMailMessage.class));
 
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.errores").value(1));
 
         mockMvc.perform(get("/api/resultados")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].notaFinal").value(0.00));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$[0].tipo").value("CALIFICACION"))
                 .andExpect(jsonPath("$[0].estado").value("ERROR"));
 
         reset(mailSender);
 
         mockMvc.perform(post("/api/resultados/practica/1/publicar-calificaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.enviadas").value(1))
                 .andExpect(jsonPath("$.omitidasDuplicado").value(0));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$[0].tipo").value("CALIFICACION"))
                 .andExpect(jsonPath("$[0].estado").value("ENVIADA"));
     }
@@ -257,37 +230,32 @@ class NotificacionApiTest {
         doThrow(new MailSendException("smtp caido")).when(mailSender).send(any(SimpleMailMessage.class));
 
         mockMvc.perform(post("/api/retroalimentaciones")
-                        .with(user("docente5"))
-                        .headers(doc(5))
+                        .with(ActorTokens.docente(5))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"participacionId\":" + pid + ",\"texto\":\"Comentario persistente.\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.texto").value("Comentario persistente."));
 
         mockMvc.perform(get("/api/retroalimentaciones?participacion=" + pid)
-                        .with(user("docente5"))
-                        .headers(doc(5)))
+                        .with(ActorTokens.docente(5)))
                 .andExpect(jsonPath("$[0].texto").value("Comentario persistente."));
 
         mockMvc.perform(get("/api/notificaciones")
-                        .with(user("est1"))
-                        .headers(est(10)))
+                        .with(ActorTokens.estudiante(10)))
                 .andExpect(jsonPath("$[0].estado").value("ERROR"))
                 .andExpect(jsonPath("$[0].errorMensaje").value("smtp caido"));
     }
 
     private long iniciarYFinalizar() throws Exception {
         MvcResult inicio = mockMvc.perform(post("/api/participaciones/iniciar")
-                        .with(user("est1"))
-                        .headers(est(10))
+                        .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isOk())
                 .andReturn();
         long pid = idDe(inicio);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
-                .with(user("est1"))
-                .headers(est(10)));
+                .with(ActorTokens.estudiante(10)));
         return pid;
     }
 
@@ -299,21 +267,5 @@ class NotificacionApiTest {
             end++;
         }
         return Long.parseLong(body.substring(start, end));
-    }
-
-    private HttpHeaders est(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "ESTUDIANTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Estudiante-Id", String.valueOf(id));
-        return h;
-    }
-
-    private HttpHeaders doc(long id) {
-        HttpHeaders h = new HttpHeaders();
-        h.add("X-Rol", "DOCENTE");
-        h.add("X-Usuario-Id", String.valueOf(id));
-        h.add("X-Docente-Id", String.valueOf(id));
-        return h;
     }
 }
