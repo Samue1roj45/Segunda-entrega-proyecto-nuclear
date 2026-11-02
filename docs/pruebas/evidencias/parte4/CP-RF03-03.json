@@ -1,0 +1,40 @@
+{
+  "caso" : "CP-RF03-03",
+  "descripcion" : "Crear docente con correo ya registrado",
+  "ejecutado" : "2026-11-01T21:01:17",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"admin.plataforma@institucion.edu.co\",\"clave\":\"Clave-Admin-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:17.649842Z",
+        "correoInstitucional" : "admin.plataforma@institucion.edu.co",
+        "nombreCompleto" : "Administrador de la Plataforma",
+        "rol" : "ADMINISTRADOR",
+        "permisos" : [ "ADMINISTRAR_DOCENTES" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : "{\"nombreCompleto\":\"Carlos Gómez Duplicado\",\"correoInstitucional\":\"carlos.gomez@institucion.edu.co\"}"
+    },
+    "respuesta" : {
+      "estado" : 409,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.6557963",
+        "estado" : 409,
+        "error" : "Conflict",
+        "mensaje" : "El correo ya está registrado.",
+        "ruta" : "/api/admin/docentes"
+      }
+    }
+  } ]
+}
