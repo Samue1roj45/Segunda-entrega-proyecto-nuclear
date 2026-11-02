@@ -1,10 +1,12 @@
 package co.edu.humboldt.plataformacasos.casos.web;
 
 import co.edu.humboldt.plataformacasos.casos.dominio.EstadoCaso;
+import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.GestionCasos;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** RF-05: registro, consulta y edición de la estructura académica del caso. */
+/** RF-05: registro, consulta y edición del caso, también a partir de un documento DSL-CEPS. */
 @RestController
 @RequestMapping("/api/casos")
 public class CasoControlador {
@@ -48,5 +50,16 @@ public class CasoControlador {
     @PutMapping("/{idCaso}")
     public CasoDetalleDTO actualizar(@PathVariable Long idCaso, @RequestBody DatosCasoRequest datos) {
         return gestionCasos.actualizar(idCaso, datos);
+    }
+
+    @PostMapping("/importacion-dsl")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResultadoImportacionDTO importarDsl(@RequestBody DocumentoDsl documento) {
+        return gestionCasos.importarDsl(documento);
+    }
+
+    @GetMapping("/{idCaso}/dsl")
+    public DocumentoDsl exportarDsl(@PathVariable Long idCaso) {
+        return gestionCasos.exportarDsl(idCaso);
     }
 }

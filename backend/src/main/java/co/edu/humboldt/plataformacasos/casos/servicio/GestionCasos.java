@@ -2,9 +2,11 @@ package co.edu.humboldt.plataformacasos.casos.servicio;
 
 import co.edu.humboldt.plataformacasos.autorizacion.RequierePermiso;
 import co.edu.humboldt.plataformacasos.casos.dominio.EstadoCaso;
+import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
+import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.util.List;
@@ -24,4 +26,11 @@ public interface GestionCasos {
 
     @RequierePermiso(Permiso.GESTIONAR_CASOS)
     CasoDetalleDTO actualizar(Long idCaso, DatosCasoRequest datos);
+
+    /** Crea un BORRADOR a partir de un documento DSL-CEPS. No lo publica. */
+    @RequierePermiso(Permiso.GESTIONAR_CASOS)
+    ResultadoImportacionDTO importarDsl(DocumentoDsl documento);
+
+    @RequierePermiso(Permiso.GESTIONAR_CASOS)
+    DocumentoDsl exportarDsl(Long idCaso);
 }
