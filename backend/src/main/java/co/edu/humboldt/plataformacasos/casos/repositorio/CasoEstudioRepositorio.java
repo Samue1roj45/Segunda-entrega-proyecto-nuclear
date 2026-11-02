@@ -29,4 +29,16 @@ public interface CasoEstudioRepositorio extends JpaRepository<CasoEstudio, Long>
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select c from CasoEstudio c where c.id = :id")
     Optional<CasoEstudio> buscarParaModificar(@Param("id") Long id);
+
+    /** Para otros módulos: un caso solo existe para ellos después de publicarse. */
+    Optional<CasoEstudio> findByIdAndEstadoNot(Long id, EstadoCaso estadoExcluido);
+
+    @Query("""
+            select new co.edu.humboldt.plataformacasos.casos.repositorio.CasoProgramable(
+                c.id, c.nombre, c.tiempoEstimadoMinutos, c.docenteId, c.estado, c.fechaPublicacion)
+            from CasoEstudio c
+            where c.estado = :estado
+            order by c.fechaPublicacion desc, c.id desc
+            """)
+    List<CasoProgramable> listarPorEstado(@Param("estado") EstadoCaso estado);
 }
