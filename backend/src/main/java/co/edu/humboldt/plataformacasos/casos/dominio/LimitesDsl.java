@@ -9,6 +9,8 @@ public final class LimitesDsl {
     public static final int LONGITUD_NOMBRE = 150;
     /** Caracteres que caben con seguridad en una columna TEXT de MySQL con utf8mb4 (65.535 bytes). */
     public static final int LONGITUD_TEXTO = 16_000;
+    /** Colecciones hijas que Hibernate carga por lote, para evitar una consulta por cada elemento. */
+    public static final int TAMANO_LOTE_CONSULTA = 50;
 
     private LimitesDsl() {
     }

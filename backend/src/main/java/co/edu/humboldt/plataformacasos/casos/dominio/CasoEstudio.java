@@ -1,6 +1,8 @@
 package co.edu.humboldt.plataformacasos.casos.dominio;
 
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,9 +10,15 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -58,6 +66,11 @@ public class CasoEstudio {
     @Column(name = "fecha_archivado")
     private LocalDateTime fechaArchivado;
 
+    @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orden ASC, id ASC")
+    @BatchSize(size = LimitesDsl.TAMANO_LOTE_CONSULTA)
+    private List<Escenario> escenarios = new ArrayList<>();
+
     /** Requerido por JPA. */
     protected CasoEstudio() {
     }
@@ -91,6 +104,31 @@ public class CasoEstudio {
         this.contextoHistoria = TextoDominio.normalizar(contextoHistoria, LimitesDsl.LONGITUD_TEXTO,
                 "contextoHistoria");
         this.tiempoEstimadoMinutos = tiempoEstimadoMinutos;
+    }
+
+    /** RF-06: el escenario queda al final de la lista del caso. */
+    public Escenario agregarEscenario(String nombre, String contexto) {
+        prepararCambio();
+        int siguienteOrden = escenarios.stream().mapToInt(Escenario::getOrden).max().orElse(0) + 1;
+        Escenario escenario = new Escenario(this, siguienteOrden, nombre, contexto);
+        escenarios.add(escenario);
+        return escenario;
+    }
+
+    public void eliminarEscenario(Long idEscenario) {
+        prepararCambio();
+        escenarios.remove(escenario(idEscenario));
+    }
+
+    /** Busca solo dentro de este caso: una ruta con un id de otro caso responde 404. */
+    public Escenario escenario(Long idEscenario) {
+        return escenarios.stream().filter(e -> idEscenario.equals(e.getId())).findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException("El escenario no existe en este caso."));
+    }
+
+    public Pregunta pregunta(Long idPregunta) {
+        return escenarios.stream().flatMap(e -> e.buscarPregunta(idPregunta).stream()).findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException("La pregunta no existe en este caso."));
     }
 
     /** Punto único de control: rechaza el cambio si el estado no lo permite y registra la fecha. */
@@ -147,5 +185,9 @@ public class CasoEstudio {
 
     public LocalDateTime getFechaArchivado() {
         return fechaArchivado;
+    }
+
+    public List<Escenario> getEscenarios() {
+        return Collections.unmodifiableList(escenarios);
     }
 }

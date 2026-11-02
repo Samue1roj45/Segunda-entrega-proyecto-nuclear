@@ -15,4 +15,16 @@ public class ConfiguracionServiciosCasos {
     GestionCasos gestionCasos(ServicioCasos servicioReal, ServicioAutorizacion autorizacion) {
         return ProxyAcceso.proteger(GestionCasos.class, servicioReal, autorizacion);
     }
+
+    @Bean
+    @Primary
+    GestionEscenarios gestionEscenarios(ServicioEscenarios servicioReal, ServicioAutorizacion autorizacion) {
+        return ProxyAcceso.proteger(GestionEscenarios.class, servicioReal, autorizacion);
+    }
+
+    @Bean
+    @Primary
+    GestionPreguntas gestionPreguntas(ServicioPreguntas servicioReal, ServicioAutorizacion autorizacion) {
+        return ProxyAcceso.proteger(GestionPreguntas.class, servicioReal, autorizacion);
+    }
 }
