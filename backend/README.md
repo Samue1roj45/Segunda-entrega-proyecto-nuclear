@@ -1,13 +1,23 @@
 # Backend — Evaluación y resultados
 
-Módulo Spring Boot del Integrante 4 (RF-12 a RF-27). No incluye autenticación institucional, catálogo académico real ni frontend.
+Módulo Spring Boot del Integrante 4 (RF-12 a RF-27). No incluye autenticación institucional, catálogo académico real ni frontend versionado.
+
+## Pila verificada
+
+- Java 17 (`java.version` en `pom.xml`)
+- Spring Boot 3.4.5 (Web, Validation, Data JPA, Security, Mail)
+- MySQL 8 (`mysql-connector-j`; Docker Compose con `mysql:8.0`)
+- OpenPDF 2.0.3 y Apache POI 5.4.1 para reportes
+- Pruebas: JUnit 5, Spring Security Test, H2 (perfil `test`), Testcontainers MySQL (`*IT`)
+
+No se usa Python, Django ni PostgreSQL. La única mención a PostgreSQL es `MODE=PostgreSQL` en la URL H2 de `src/test/resources/application-test.yml`, que es un modo de compatibilidad de H2 para las pruebas en memoria.
 
 ## Requisitos previos
 
 - JDK 17
 - Maven 3.9+ en el `PATH`, o el Maven portable del repositorio: `tools/apache-maven-3.9.9` (esa carpeta está en `.gitignore`; si no está, usa Maven instalado)
-- Docker Compose, solo si vas a levantar PostgreSQL 16
-- Las pruebas **no** necesitan Docker: usan el perfil `test` con H2 en memoria
+- Docker Desktop, solo para: (a) levantar MySQL con Compose, (b) ejecutar las pruebas de integración MySQL (`mvn verify`)
+- `mvn test` **no** necesita Docker: usa el perfil `test` con H2 en memoria
 
 ## Entorno sin secretos
 
@@ -22,17 +32,22 @@ Copy-Item .env.example .env
 
 Variables que usa el arranque (nombres; los valores viven en tu `.env`):
 
-- `SERVER_PORT` — por defecto `8080` (`application.yml`)
-- `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
-- `POSTGRES_PORT` — puerto **JDBC del host**. En `application.yml` el valor por defecto es `5435`
-- `POSTGRES_HOST_PORT` — puerto publicado por Compose hacia el contenedor (`5435:5432` si no se cambia)
-- `MAIL_*` — SMTP; las pruebas mockean `JavaMailSender` y no envían correo
+| Variable | Uso | Valor por defecto si falta |
+|---|---|---|
+| `SERVER_PORT` | Puerto HTTP del backend | `8080` |
+| `MYSQL_HOST` | Host JDBC | `localhost` |
+| `MYSQL_PORT` | Puerto JDBC **del host** | `5435` |
+| `MYSQL_DB` | Base de datos | `evaluacion_db` |
+| `MYSQL_USER`, `MYSQL_PASSWORD` | Credenciales de la aplicación | existen valores por defecto en `application.yml`; defínelos siempre en `.env` |
+| `MYSQL_ROOT_PASSWORD` | Solo lo usa Compose para inicializar el contenedor | — |
+| `MYSQL_HOST_PORT` | Puerto que Compose publica en el host (`MYSQL_HOST_PORT:3306`) | `5435` |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | SMTP; las pruebas mockean `JavaMailSender` y no envían correo | `localhost`, `1025`, vacío, vacío, `no-reply@simulador.local` |
+| `JWT_SECRET`, `JWT_EXPIRATION_MS` | **Reservadas** para el módulo de usuarios. Hoy ninguna clase del backend las lee (`app.jwt.*` no tiene consumidor) | — |
+| `SPRING_PROFILES_ACTIVE` | Perfil Spring. El perfil `test` solo existe en el classpath de pruebas | — |
 
-`JWT_SECRET` y `JWT_EXPIRATION_MS` aparecen en la plantilla y en `application.yml`, pero **JWT no está integrado**: el actor se resuelve con cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`.
+`MYSQL_PORT` (JDBC) y `MYSQL_HOST_PORT` (Compose) deben coincidir si el backend corre fuera de Docker y la base dentro; por defecto ambos son `5435`.
 
-Aviso de puertos: `.env.example` trae `POSTGRES_PORT=5432` (puerto interno del contenedor). Compose publica `5435` en el host y el JDBC por defecto es `5435`. Para hablar con Docker desde la máquina, alinea `POSTGRES_PORT` con `POSTGRES_HOST_PORT` (típicamente `5435`).
-
-## PostgreSQL (opcional para desarrollo)
+## MySQL 8 con Docker Compose
 
 Desde la raíz del repositorio:
 
@@ -40,9 +55,34 @@ Desde la raíz del repositorio:
 docker compose up -d db
 ```
 
-Imagen: `postgres:16-alpine`. Healthcheck interno: `pg_isready`.
+Servicio `db`: imagen `mysql:8.0`, contenedor `evaluacion_db`, puerto `${MYSQL_HOST_PORT:-5435}:3306`, healthcheck `mysqladmin ping`, volumen `mysql_data`.
 
-Hibernate está en `ddl-auto: none` y **no hay Flyway** en este módulo. El proceso puede arrancar, pero las operaciones JPA fallarán hasta que exista el esquema. Las pruebas no usan esta base.
+### Aplicar el esquema `V1__crear_tablas_evaluacion.sql`
+
+Hibernate está en `ddl-auto: none` y el módulo **no incluye Flyway ni otro mecanismo de migración**. Compose **no aplica el SQL automáticamente**: hay que ejecutarlo una vez sobre una base nueva. El backend arranca sin el esquema, pero toda operación JPA fallará hasta aplicarlo.
+
+Desde la raíz del repositorio, en Windows PowerShell 5.1. No hace falta un cliente `mysql` en el host. `Get-Content -Raw` envía el SQL por stdin y `docker exec -i` lo entrega al cliente dentro de `evaluacion_db`. La contraseña no se lee por ese stdin: el `sh` del contenedor expande `MYSQL_USER`, `MYSQL_PASSWORD` y `MYSQL_DATABASE`, variables que Compose ya inyectó. El token `--%` es necesario en Windows PowerShell 5.1: sin él, PowerShell elimina las comillas internas al invocar a Docker y la contraseña quedaría sin comillar. No imprime el valor de ninguna variable. MySQL puede avisar que la contraseña va en su línea de comandos; el aviso no incluye el valor.
+
+```powershell
+Get-Content -Path backend\src\main\resources\db\mysql\V1__crear_tablas_evaluacion.sql -Raw | docker exec -i evaluacion_db --% sh -c "mysql --user=\"$MYSQL_USER\" --password=\"$MYSQL_PASSWORD\" --database=\"$MYSQL_DATABASE\""
+```
+
+En PowerShell, `<` no redirige un archivo. `mysql -p` sin valor pediría la contraseña por el mismo stdin que el SQL, así que esa variante no sirve.
+
+### Verificar que el esquema quedó creado
+
+```powershell
+docker exec -it evaluacion_db mysql -u evaluacion_user -p evaluacion_db -e "SHOW TABLES;"
+docker exec -it evaluacion_db mysql -u evaluacion_user -p evaluacion_db -e "SELECT TABLE_NAME, CONSTRAINT_NAME, CONSTRAINT_TYPE FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, CONSTRAINT_TYPE;"
+```
+
+Resultado esperado: 6 tablas (`participacion`, `respuesta_seleccionada`, `resultado`, `nota_oficial`, `notificacion`, `retroalimentacion`) y las restricciones `uk_participacion_autorizacion_intento`, `uk_respuesta_participacion_pregunta`, `uk_resultado_participacion`, `uk_nota_oficial_practica_estudiante`, `uk_notificacion_clave`, `uk_retroalimentacion_participacion`, `fk_respuesta_seleccionada_participacion`, `fk_resultado_participacion`, `fk_nota_oficial_participacion`, `fk_retroalimentacion_participacion`.
+
+### Advertencias sobre el volumen `mysql_data`
+
+- La imagen oficial de MySQL solo ejecuta scripts de `docker-entrypoint-initdb.d` **al crear un volumen vacío**. Montar el SQL ahí no afectaría a una base ya inicializada; por eso hoy la aplicación del esquema es manual.
+- **No elimines ni recrees `mysql_data`** (`docker compose down -v`, `docker volume rm`) para "aplicar cambios": destruye los datos locales. Aplica los cambios de esquema con sentencias SQL sobre la base existente.
+- Si el equipo decide automatizar la inicialización (montaje en `initdb.d` o migraciones), debe acordarse por separado.
 
 ## Arranque del backend
 
@@ -68,23 +108,66 @@ Puerto: `http://localhost:8080` salvo que cambies `SERVER_PORT`.
 
 ## Pruebas
 
-Todas las pruebas del módulo (perfil `test`, H2, sin SMTP real):
+### Unitarias y de API (H2, sin Docker)
 
 ```powershell
 mvn -f backend/pom.xml test
 ```
 
-Con el Maven portable:
+Con el Maven portable: `.\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/pom.xml test`. Desde `backend/`: `..\tools\apache-maven-3.9.9\bin\mvn.cmd test`.
+
+Usan `src/test/resources/application-test.yml` (perfil `test`, H2 en memoria, `ddl-auto: create-drop`, SMTP mockeado). Ese archivo está en el classpath de pruebas y **no** se empaqueta en el jar.
+
+### Integración con MySQL real (Testcontainers, requiere Docker)
 
 ```powershell
-.\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/pom.xml test
+mvn -f backend/pom.xml verify
 ```
 
-Desde `backend/`:
+`maven-failsafe-plugin` ejecuta las clases `*IT` en la fase `integration-test`. `ParticipacionMysqlSchemaIT` levanta un contenedor efímero `mysql:8.0`, aplica `V1__crear_tablas_evaluacion.sql` tal cual y comprueba persistencia, claves únicas y foráneas de las seis tablas. No usa la base de Compose ni el volumen `mysql_data`. Para lanzar solo el IT: `mvn -f backend/pom.xml verify -Dtest=NINGUNO -Dsurefire.failIfNoSpecifiedTests=false -Dit.test=ParticipacionMysqlSchemaIT`.
 
-```powershell
-..\tools\apache-maven-3.9.9\bin\mvn.cmd test
-```
+`pom.xml` fija `testcontainers.version` en 1.21.4 (el BOM de Boot 3.4.5 trae 1.20.6) para que Testcontainers hable con Docker Engine API ≥ 1.44 (Docker Desktop reciente).
+
+### Qué cubre cada grupo
+
+- Unitarias: State (`MaquinaEstadoParticipacionTest`), fórmula de rúbrica (`CalculoRubricaTest`), Observer (`PublicadorEventosTest`), generadores PDF/XLSX, los cuatro Proxies, resolución de actor por cabeceras (`ActorHeaderResolverTest`).
+- API (`@SpringBootTest` + MockMvc): RF-12 a RF-27 con permisos por rol, idempotencia de notificaciones, error SMTP sin pérdida de datos, 401 sin principal.
+- Integración MySQL: esquema V1 real.
+
+Las pruebas de API autentican con `SecurityMockMvcRequestPostProcessors.user(...)` y envían las cabeceras `X-*`. Eso no sustituye a una autenticación real (ver siguiente sección).
+
+## Estado de la seguridad y dependencias de integración
+
+### Autenticación: pendiente del módulo de usuarios
+
+`SecurityConfig` exige un usuario autenticado en toda ruta salvo `GET /api/health`, pero **este módulo no incluye ningún autenticador** (ni JWT, ni HTTP Basic, ni filtro propio). Por tanto, fuera de las pruebas, **todos los endpoints de las tablas siguientes responden `401`** hasta que se integre el módulo de usuarios: `/api/participaciones/**`, `/api/resultados/**`, `/api/reportes/**`, `/api/notificaciones/**`, `/api/retroalimentaciones/**`.
+
+El rol de negocio lo resuelve `ActorHeaderResolver` a partir de `X-Rol` (`ESTUDIANTE`, `DOCENTE`, `ADMIN`), `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`. Esas cabeceras son **temporales y manipulables**: no deben usarse como fuente de identidad en producción. Si falta `X-Rol`/`X-Usuario-Id`, el rol es desconocido o un identificador no es numérico, no hay actor y la operación responde `403` con un mensaje genérico (sin detalles internos).
+
+Contrato de integración que necesita este módulo (propuesta para coordinar, no implementada aquí):
+
+1. Un filtro del módulo de usuarios que valide el token (`Authorization: Bearer ...`) y deje en el `SecurityContext` un `Authentication` autenticado.
+2. Una implementación de `com.unihumboldt.nuclear.evaluacion.contrato.ActorActualResolver` que construya `ActorActual(usuarioId, estudianteId, docenteId, rol)` a partir de los claims del token, sustituyendo a `ActorHeaderResolver`.
+3. Retirar las cabeceras `X-*` del frontend y de las pruebas cuando exista lo anterior.
+
+Pruebas que deberán ejecutarse cuando el JWT real esté integrado: `mvn -f backend/pom.xml verify` completo; además, casos nuevos de API con token válido/expirado/sin rol (200/401/403), suplantación de `estudianteId` o `docenteId` por cabecera (debe ignorarse), y una prueba end-to-end desde el frontend para `GET /api/participaciones`.
+
+### CORS: no configurado (coordinación con seguridad)
+
+El backend no define CORS y el frontend Angular (`http://localhost:4200`) no usa proxy de desarrollo, así que el navegador bloquea las llamadas a `http://localhost:8080` aunque exista autenticación. La configuración futura debe acordarse con el responsable de seguridad; lo que este módulo necesita:
+
+- Orígenes: `http://localhost:4200` en desarrollo (configurable por variable para otros entornos).
+- Métodos: `GET`, `POST`, `OPTIONS`.
+- Cabeceras permitidas: `Content-Type`, `Authorization` (y `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id` solo mientras existan).
+- Cabeceras expuestas: `Content-Disposition` (nombre de archivo de los reportes PDF/XLSX).
+
+### Catálogo académico
+
+`CatalogoAcademico` es un puerto hacia prácticas, autorizaciones, estudiantes, preguntas, respuestas y rúbricas. La única implementación es `CatalogoAcademicoEnMemoria`, que arranca vacía y solo la pueblan las pruebas. Sin el adaptador al módulo académico no es posible iniciar participaciones ni calcular notas en un despliegue real.
+
+### Frontend
+
+Existe una aplicación Angular 21 en `frontend/` que **todavía no está versionada** en esta rama. Solo la consulta de participaciones (RF-15) llama al API; el resto de pantallas son estructura visual. Su contrato (`ParticipacionRespuesta` en camelCase y los filtros de `GET /api/participaciones`) coincide con los records de este backend.
 
 ## Estado básico del servicio
 
@@ -94,11 +177,11 @@ Desde `backend/`:
 Invoke-WebRequest -Uri http://localhost:8080/api/health -UseBasicParsing
 ```
 
-Respuesta esperada (cuerpo JSON): `status` = `UP`, `modulo` = `evaluacion-resultados`, y el listado de RF del alcance. Este endpoint no comprueba PostgreSQL, JWT ni el catálogo real.
+Respuesta esperada (cuerpo JSON): `status` = `UP`, `modulo` = `evaluacion-resultados`, y el listado de RF del alcance. Este endpoint no comprueba MySQL, autenticación ni el catálogo real.
 
 ## Endpoints del módulo (código actual)
 
-No existen las rutas Django `backend/apps/participaciones|resultados|reportes`. El API es Spring Boot (`*Controller` en `com.unihumboldt.nuclear.evaluacion`). Spring Security exige usuario autenticado en todas las rutas de abajo (`/api/health` es la única pública). El rol de negocio no va en JWT: se lee de `X-Rol` (`ESTUDIANTE`, `DOCENTE`, `ADMIN`) junto con `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`.
+El API es Spring Boot (`*Controller` en `com.unihumboldt.nuclear.evaluacion`). Spring Security exige usuario autenticado en todas las rutas de abajo (`/api/health` es la única pública). El rol de negocio no va en JWT: se lee de `X-Rol` (`ESTUDIANTE`, `DOCENTE`, `ADMIN`) junto con `X-Usuario-Id`, `X-Estudiante-Id` y `X-Docente-Id`.
 
 La tabla de `docs/10-integrante-4-evaluacion-resultados.md` coincide en método y ruta; aquí se añaden query, body y campos JSON tomados de los records.
 

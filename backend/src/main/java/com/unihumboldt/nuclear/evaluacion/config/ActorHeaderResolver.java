@@ -39,15 +39,21 @@ public class ActorHeaderResolver implements ActorActualResolver {
         } catch (IllegalArgumentException ex) {
             return Optional.empty();
         }
-        Long estudianteId = parse(request.getHeader("X-Estudiante-Id"));
-        Long docenteId = parse(request.getHeader("X-Docente-Id"));
-        return Optional.of(new ActorActual(Long.valueOf(usuario), estudianteId, docenteId, rol));
+        try {
+            Long usuarioId = Long.valueOf(usuario.trim());
+            Long estudianteId = parse(request.getHeader("X-Estudiante-Id"));
+            Long docenteId = parse(request.getHeader("X-Docente-Id"));
+            return Optional.of(new ActorActual(usuarioId, estudianteId, docenteId, rol));
+        } catch (NumberFormatException ex) {
+            // Cabecera numérica inválida: no hay actor resoluble (mismo trato que un X-Rol desconocido).
+            return Optional.empty();
+        }
     }
 
     private Long parse(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
-        return Long.valueOf(value);
+        return Long.valueOf(value.trim());
     }
 }

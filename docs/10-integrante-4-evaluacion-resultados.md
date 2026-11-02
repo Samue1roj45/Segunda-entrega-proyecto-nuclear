@@ -6,12 +6,12 @@ Alcance: RF-12, RF-13, RF-14, RF-15, RF-16, RF-21, RF-24, RF-26, RF-27.
 
 - Java 17
 - Spring Boot 3.4.5
-- PostgreSQL 16 (Docker Compose)
+- MySQL 8 (Docker Compose, imagen `mysql:8.0`; esquema en `backend/src/main/resources/db/mysql/V1__crear_tablas_evaluacion.sql`)
 - Spring Mail (`JavaMailSender`)
 - OpenPDF 2.0.3 (MPL-2.0 / LGPL-2.1+) para PDF
 - Apache POI 5.4.1 (Apache License 2.0) para Excel
 
-No se usa Python ni Django.
+No se usa Python, Django ni PostgreSQL (el `MODE=PostgreSQL` de `backend/src/test/resources/application-test.yml` es un modo de compatibilidad de H2 para las pruebas en memoria).
 
 ## Decisiones funcionales
 
@@ -38,7 +38,7 @@ No se usa Python ni Django.
 | RF-26 | Implementado | Retroalimentación por intento. Facade + `RetroalimentacionProxy`. |
 | RF-27 | Implementado | Aviso de calificaciones vía `NotificacionFacade` (el cálculo sigue en `EvaluacionFacade`) y aviso de feedback. Observer + Facade. |
 
-Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. No están integrados JWT, el catálogo académico real ni un frontend en este repositorio.
+Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. No están integrados JWT ni el catálogo académico real. Existe un frontend Angular 21 en `frontend/` todavía **sin versionar** en esta rama; solo RF-15 (consulta de participaciones) llama al API y el resto son pantallas de estructura.
 
 ## Relación tabla 4.1 y clases reales
 
@@ -120,16 +120,28 @@ Cuando exista JWT, estas cabeceras deben dejar de ser la fuente de identidad.
 
 ## Pruebas
 
+Unitarias y de API (H2, sin Docker):
+
 ```powershell
 cd backend
 ..\tools\apache-maven-3.9.9\bin\mvn.cmd test
 ```
 
+Integración con MySQL 8 real (Testcontainers, requiere Docker; `maven-failsafe-plugin` ejecuta `ParticipacionMysqlSchemaIT` en `verify`):
+
+```powershell
+cd backend
+..\tools\apache-maven-3.9.9\bin\mvn.cmd verify
+```
+
+Detalle de grupos, cobertura y cómo aplicar/verificar el esquema MySQL: `backend/README.md`.
+
 ## Dependencias pendientes de integración
 
 - Módulos de prácticas, casos, preguntas, rúbricas y autorizaciones: hoy `CatalogoAcademicoEnMemoria`.
-- JWT / usuarios: actor por cabeceras `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id`.
-- Persistencia de producción: `ddl-auto` none + PostgreSQL; falta Flyway.
+- JWT / usuarios: el backend no incluye autenticador; fuera de las pruebas todos los endpoints salvo `GET /api/health` responden `401`. El actor se resuelve por cabeceras temporales `X-Rol`, `X-Usuario-Id`, `X-Estudiante-Id`, `X-Docente-Id` (manipulables; no válidas como identidad en producción). Contrato propuesto y pruebas pendientes en `backend/README.md`, sección "Estado de la seguridad".
+- CORS: no configurado; el frontend en `http://localhost:4200` no puede consumir `http://localhost:8080` hasta coordinarlo con seguridad (orígenes, métodos y cabeceras necesarios en `backend/README.md`).
+- Persistencia de producción: `ddl-auto` none + MySQL 8; sin Flyway. `V1__crear_tablas_evaluacion.sql` se aplica manualmente sobre la base (Compose no lo ejecuta). No recrear el volumen `mysql_data` para aplicar cambios.
 - SMTP real / Mailhog: las pruebas usan `JavaMailSender` mockeado; no se envían correos reales.
 - El módulo de prácticas debe invocar los endpoints de convocatoria/cambio; este módulo no crea prácticas.
 - OpenPDF 2.0.3 (MPL-2.0 / LGPL-2.1+): ya estaba en el esqueleto; el equipo no exigió licencia Apache exclusiva. Si eso cambia: PDFBox (Apache 2.0) o HTML+Chrome headless.

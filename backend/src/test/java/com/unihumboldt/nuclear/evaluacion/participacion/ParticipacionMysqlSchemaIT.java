@@ -70,6 +70,9 @@ class ParticipacionMysqlSchemaIT {
     private RetroalimentacionRepository retroalimentaciones;
 
     @Autowired
+    private RespuestaSeleccionadaRepository respuestas;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     @Test
@@ -279,6 +282,173 @@ class ParticipacionMysqlSchemaIT {
         assertTrue(
                 mensajeDeCausas(error).contains("fk_resultado_participacion"),
                 () -> "Se esperaba el rechazo de fk_resultado_participacion: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rf13PersisteRespuestaSeleccionadaYRechazaDuplicadoPorPregunta() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(700L, 1));
+
+        RespuestaSeleccionada seleccion = new RespuestaSeleccionada();
+        seleccion.setParticipacion(participacion);
+        seleccion.setPreguntaId(1000L);
+        seleccion.setRespuestaId(2000L);
+        Long id = respuestas.saveAndFlush(seleccion).getId();
+        assertNotNull(id);
+
+        entityManager.clear();
+
+        RespuestaSeleccionada recargada = respuestas
+                .findByParticipacionIdAndPreguntaId(participacion.getId(), 1000L)
+                .orElseThrow();
+        assertEquals(id, recargada.getId());
+        assertEquals(participacion.getId(), recargada.getParticipacion().getId());
+        assertEquals(1000L, recargada.getPreguntaId());
+        assertEquals(2000L, recargada.getRespuestaId());
+        assertEquals(1, respuestas.findByParticipacionId(participacion.getId()).size());
+
+        RespuestaSeleccionada duplicada = new RespuestaSeleccionada();
+        duplicada.setParticipacion(entityManager.getEntityManager().getReference(Participacion.class, participacion.getId()));
+        duplicada.setPreguntaId(1000L);
+        duplicada.setRespuestaId(2001L);
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> respuestas.saveAndFlush(duplicada));
+        assertTrue(
+                mensajeDeCausas(error).contains("uk_respuesta_participacion_pregunta"),
+                () -> "Se esperaba el rechazo de uk_respuesta_participacion_pregunta: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaRespuestaSeleccionadaConParticipacionInexistente() {
+        RespuestaSeleccionada seleccion = new RespuestaSeleccionada();
+        seleccion.setParticipacion(entityManager.getEntityManager().getReference(Participacion.class, 9_999_998L));
+        seleccion.setPreguntaId(1000L);
+        seleccion.setRespuestaId(2000L);
+
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> respuestas.saveAndFlush(seleccion));
+        assertTrue(
+                mensajeDeCausas(error).contains("fk_respuesta_seleccionada_participacion"),
+                () -> "Se esperaba el rechazo de fk_respuesta_seleccionada_participacion: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaSegundoResultadoParaLaMismaParticipacion() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(800L, 1));
+        assertNotNull(resultados.saveAndFlush(resultado(participacion, "3.50")).getId());
+
+        Resultado duplicado = resultado(participacion, "4.00");
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> resultados.saveAndFlush(duplicado));
+        assertTrue(
+                mensajeDeCausas(error).contains("uk_resultado_participacion"),
+                () -> "Se esperaba el rechazo de uk_resultado_participacion: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaNotaOficialConParticipacionInexistente() {
+        NotaOficial nota = new NotaOficial();
+        nota.setPracticaId(1L);
+        nota.setEstudianteId(10L);
+        nota.setParticipacion(entityManager.getEntityManager().getReference(Participacion.class, 9_999_997L));
+        nota.setDocenteId(50L);
+        nota.setFechaSeleccion(OffsetDateTime.parse("2026-11-01T18:30:00-05:00"));
+
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> notasOficiales.saveAndFlush(nota));
+        assertTrue(
+                mensajeDeCausas(error).contains("fk_nota_oficial_participacion"),
+                () -> "Se esperaba el rechazo de fk_nota_oficial_participacion: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaNotificacionConClaveIdempotenciaDuplicada() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(900L, 1));
+        assertNotNull(notificaciones.saveAndFlush(notificacion(participacion, "CONVOCATORIA:1:10")).getId());
+
+        Notificacion duplicada = notificacion(participacion, "CONVOCATORIA:1:10");
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> notificaciones.saveAndFlush(duplicada));
+        assertTrue(
+                mensajeDeCausas(error).contains("uk_notificacion_clave"),
+                () -> "Se esperaba el rechazo de uk_notificacion_clave: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaSegundaRetroalimentacionParaLaMismaParticipacion() {
+        Participacion participacion = repositorio.saveAndFlush(participacion(1000L, 1));
+        assertNotNull(retroalimentaciones.saveAndFlush(retroalimentacion(participacion, "Primer comentario.")).getId());
+
+        Retroalimentacion duplicada = retroalimentacion(participacion, "Segundo comentario.");
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> retroalimentaciones.saveAndFlush(duplicada));
+        assertTrue(
+                mensajeDeCausas(error).contains("uk_retroalimentacion_participacion"),
+                () -> "Se esperaba el rechazo de uk_retroalimentacion_participacion: " + mensajeDeCausas(error));
+    }
+
+    @Test
+    void rechazaRetroalimentacionConParticipacionInexistente() {
+        Retroalimentacion retro = new Retroalimentacion();
+        retro.setParticipacion(entityManager.getEntityManager().getReference(Participacion.class, 9_999_996L));
+        retro.setEstudianteId(10L);
+        retro.setPracticaId(1L);
+        retro.setDocenteId(50L);
+        retro.setTexto("Sin intento.");
+        retro.setFechaCreacion(OffsetDateTime.parse("2026-11-01T19:00:00-05:00"));
+        retro.setFechaActualizacion(OffsetDateTime.parse("2026-11-01T19:00:00-05:00"));
+
+        DataIntegrityViolationException error = assertThrows(
+                DataIntegrityViolationException.class,
+                () -> retroalimentaciones.saveAndFlush(retro));
+        assertTrue(
+                mensajeDeCausas(error).contains("fk_retroalimentacion_participacion"),
+                () -> "Se esperaba el rechazo de fk_retroalimentacion_participacion: " + mensajeDeCausas(error));
+    }
+
+    private static Resultado resultado(Participacion participacion, String nota) {
+        Resultado resultado = new Resultado();
+        resultado.setParticipacion(participacion);
+        resultado.setCorrectas(1);
+        resultado.setIncorrectas(0);
+        resultado.setNoRespondidas(0);
+        resultado.setPesoObtenido(1);
+        resultado.setPesoTotal(1);
+        resultado.setEscalaMaxima(5);
+        resultado.setNotaFinal(new BigDecimal(nota));
+        resultado.setFechaCalculo(OffsetDateTime.parse("2026-11-01T18:15:00-05:00"));
+        return resultado;
+    }
+
+    private static Notificacion notificacion(Participacion participacion, String clave) {
+        Notificacion notificacion = new Notificacion();
+        notificacion.setTipo(TipoNotificacion.CONVOCATORIA);
+        notificacion.setClaveIdempotencia(clave);
+        notificacion.setPracticaId(participacion.getPracticaId());
+        notificacion.setEstudianteId(participacion.getEstudianteId());
+        notificacion.setDestinatarioCorreo("est1@uni.edu");
+        notificacion.setAsunto("Convocatoria");
+        notificacion.setCuerpo("Fuiste convocado.");
+        notificacion.setEstado(EstadoEnvio.PENDIENTE);
+        notificacion.setFechaCreacion(OffsetDateTime.parse("2026-11-01T18:45:00-05:00"));
+        return notificacion;
+    }
+
+    private static Retroalimentacion retroalimentacion(Participacion participacion, String texto) {
+        Retroalimentacion retro = new Retroalimentacion();
+        retro.setParticipacion(participacion);
+        retro.setEstudianteId(participacion.getEstudianteId());
+        retro.setPracticaId(participacion.getPracticaId());
+        retro.setDocenteId(50L);
+        retro.setTexto(texto);
+        retro.setFechaCreacion(OffsetDateTime.parse("2026-11-01T19:10:00-05:00"));
+        retro.setFechaActualizacion(OffsetDateTime.parse("2026-11-01T19:10:00-05:00"));
+        return retro;
     }
 
     private static String mensajeDeCausas(Throwable error) {
