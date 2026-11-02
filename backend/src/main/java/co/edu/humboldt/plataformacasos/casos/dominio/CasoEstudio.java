@@ -167,6 +167,31 @@ public class CasoEstudio {
         return rubrica;
     }
 
+    /** Rechaza la transición si el ciclo de vida del caso no la admite (RF-09). */
+    public void exigirTransicionA(EstadoCaso destino) {
+        if (!estado.puedeTransitarA(destino)) {
+            throw new ConflictoException("Un caso en estado " + estado + " no puede pasar a " + destino + ".");
+        }
+    }
+
+    /** RF-09: quien llama debe haber validado el caso con el validador DSL-CEPS. */
+    public void publicar() {
+        transitarA(EstadoCaso.PUBLICADO);
+        fechaPublicacion = fechaActualizacion;
+    }
+
+    /** RF-09: sale de las nuevas programaciones; el contenido y los datos históricos se conservan. */
+    public void archivar() {
+        transitarA(EstadoCaso.ARCHIVADO);
+        fechaArchivado = fechaActualizacion;
+    }
+
+    private void transitarA(EstadoCaso destino) {
+        exigirTransicionA(destino);
+        estado = destino;
+        fechaActualizacion = LocalDateTime.now();
+    }
+
     /** Punto único de control: rechaza el cambio si el estado no lo permite y registra la fecha. */
     void prepararCambio() {
         if (!estado.permiteEditarContenido()) {
