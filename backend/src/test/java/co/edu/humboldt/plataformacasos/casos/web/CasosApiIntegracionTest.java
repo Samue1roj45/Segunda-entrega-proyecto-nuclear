@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -552,21 +552,23 @@ class CasosApiIntegracionTest {
         Long pregunta = jdbc.queryForObject("SELECT id_pregunta FROM preguntas LIMIT 1", Long.class);
         Long rubrica = jdbc.queryForObject("SELECT id_rubrica FROM rubricas WHERE id_caso = ?", Long.class, id);
 
+        // Se exige el rechazo de la base: Spring no clasifica igual un CHECK de MySQL (error 3819) y uno de H2.
+
         assertThatThrownBy(() -> jdbc.update("INSERT INTO respuestas (id_pregunta, porcentaje) VALUES (?, 101)", pregunta))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update(
                 "INSERT INTO criterios_evaluacion (id_rubrica, rango_min, rango_max) VALUES (?, 5, 5)", rubrica))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("INSERT INTO rubricas (id_caso) VALUES (?)", id))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("UPDATE casos_estudio SET estado = 'OTRO' WHERE id_caso = ?", id))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("""
                 INSERT INTO casos_estudio (id_docente, estado, fecha_creacion, fecha_actualizacion)
                 VALUES (999999, 'BORRADOR', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"""))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
         assertThatThrownBy(() -> jdbc.update("INSERT INTO preguntas (id_escenario, orden) VALUES (999999, 1)"))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(DataAccessException.class);
 
         // Composición: al borrar el caso desaparecen sus partes.
         jdbc.update("DELETE FROM casos_estudio WHERE id_caso = ?", id);
