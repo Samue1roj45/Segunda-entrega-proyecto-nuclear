@@ -1,6 +1,6 @@
 # Módulo 1 · Frontend (usuarios, autenticación y permisos)
 
-Interfaz en Angular del Módulo 1, dentro del proyecto `frontend/` compartido por el equipo.
+Interfaz en Angular del Módulo 1, dentro del proyecto `modulo-1-2/frontend/` compartido por el equipo.
 Consume el API del backend del módulo (`/api/auth`, `/api/sesion`, `/api/admin/docentes`).
 
 ## Pantallas
@@ -33,7 +33,7 @@ Consume el API del backend del módulo (`/api/auth`, `/api/sesion`, `/api/admin/
 ## Ejecutar
 
 ```bash
-cd frontend
+cd modulo-1-2/frontend
 npm ci
 npm start          # http://localhost:4200, con el backend en http://localhost:8080 (proxy.conf.json)
 npx ng test --watch=false

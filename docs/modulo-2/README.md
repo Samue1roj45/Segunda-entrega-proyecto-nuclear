@@ -17,7 +17,7 @@ Permite que un docente con el permiso `GESTIONAR_CASOS` construya casos de estud
 
 ## Tecnologías
 
-Las mismas del módulo 1, sobre el que se construye: Java 17, Spring Boot 3.3.5, Spring Data JPA, Flyway, Spring Security con JWT, MySQL 8 y H2 para pruebas. El `pom.xml` no se modificó. El frontend usa Angular 21.
+Las mismas del módulo 1, sobre el que se construye: Java 21, Spring Boot 4.1.2 (versión del equipo desde la integración en `main`), Spring Data JPA, Flyway, Spring Security con JWT, MySQL 8 y H2 para pruebas. El frontend usa Angular 21.
 
 ## Componentes
 
@@ -31,7 +31,7 @@ Las mismas del módulo 1, sobre el que se construye: Java 17, Spring Boot 3.3.5,
 | `casos/integracion` | Contratos para los módulos 3 y 4 |
 | `casos/web` | Controladores REST y respuesta 422 |
 | `rubricas/servicio`, `rubricas/web` | RF-17 |
-| `frontend/src/app` | Inicio de sesión, panel de casos y constructor por secciones |
+| `modulo-1-2/frontend/src/app` | Inicio de sesión, panel de casos y constructor por secciones |
 
 ## API
 
@@ -66,7 +66,7 @@ Errores: 400 valor inválido, 401 sin sesión, 403 sin permiso o caso ajeno, 404
 
 ## Modelo de datos
 
-Migraciones `V20` a `V24` en `backend/src/main/resources/db/migration`. La numeración desde V20 evita chocar con otros módulos.
+Migraciones `V20` a `V24` en `modulo-1-2/backend/src/main/resources/db/migration`. La numeración desde V20 evita chocar con otros módulos.
 
 `casos_estudio` 1—N `escenarios` 1—N `preguntas` 1—N `respuestas`; `casos_estudio` 1—0..1 `rubricas` 1—N `criterios_evaluacion`. La base garantiza una rúbrica por caso, el porcentaje entre 0 y 100, `rango_min < rango_max` y los estados válidos.
 
@@ -123,11 +123,11 @@ Requisitos: JDK 17, Maven, Node 22 y MySQL 8.
 
 ```bash
 # Backend: crear la base plataforma_casos y definir DB_URL, DB_USER, DB_PASSWORD y JWT_SECRETO
-cd backend
+cd modulo-1-2/backend
 mvn spring-boot:run -Dspring-boot.run.profiles=pruebas
 
 # Frontend
-cd frontend
+cd modulo-1-2/frontend
 npm install
 npm start    # http://localhost:4200
 ```
@@ -137,8 +137,8 @@ Usuario ficticio con permiso: `carlos.gomez@institucion.edu.co` / `Clave-Docente
 ## Pruebas
 
 ```bash
-cd backend && mvn clean test     # H2; omite la clase de MySQL
-cd frontend && npx ng test --watch=false
+cd modulo-1-2/backend && mvn clean test     # H2; omite la clase de MySQL
+cd modulo-1-2/frontend && npx ng test --watch=false
 ```
 
 Para incluir MySQL real, sobre una base vacía y desechable, se definen `MYSQL_PRUEBAS_URL`, `MYSQL_PRUEBAS_USUARIO` y `MYSQL_PRUEBAS_CLAVE`.

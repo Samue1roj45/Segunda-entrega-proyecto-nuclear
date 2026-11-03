@@ -3,7 +3,7 @@
 Proyecto Nuclear · RF-01, RF-02, RF-03 · Responsable: Samuel Velásquez · Rama `feature/modulo-1`
 
 Backend en **Java 21 / Spring Boot 4.1.2**, base de datos **MySQL** (H2 en memoria para las pruebas),
-migraciones con **Flyway** y seguridad sin estado con **JWT**. Esta entrega es solo backend.
+migraciones con **Flyway** y seguridad sin estado con **JWT**. El frontend del módulo está descrito en [FRONTEND.md](FRONTEND.md).
 
 ## Requisitos y patrones
 
@@ -33,7 +33,7 @@ El token va en el encabezado `Authorization: Bearer <token>`.
 1. MySQL 8: crear la base `plataforma_casos` y un usuario con permisos sobre ella.
 2. Variables de entorno: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRETO` (Base64, mínimo 32 bytes),
    y opcionalmente `DOMINIO_INSTITUCIONAL` y `JWT_MINUTOS`.
-3. Con datos ficticios de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas` (carpeta `backend`).
+3. Con datos ficticios de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas` (carpeta `modulo-1-2/backend`).
 
 Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
 
@@ -49,11 +49,11 @@ Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
 
 `mvn verify` (o `compilar.cmd`) ejecuta 62 pruebas, entre ellas los 18 casos del documento PT-DCP-01
 (`CasosPruebaRf01Test`, `CasosPruebaRf02Test`, `CasosPruebaRf03Test`). Cada caso guarda su solicitud
-y su respuesta reales en `backend/target/evidencias/<caso>.json`.
+y su respuesta reales en `modulo-1-2/backend/target/evidencias/<caso>.json`.
 
 `confirmar.cmd` compila y prueba; solo si todo pasa hace el commit y lo sube.
 
-Documentos en `docs/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecución por parte e informe final).
+Documentos en `docs/modulo-1/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecución por parte e informe final).
 
 ## Antipatrones evitados
 
