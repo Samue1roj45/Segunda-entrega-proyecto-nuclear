@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
  Para qué sirve: punto de entrada único para programar y gestionar sesiones. Oculta al
  controlador los pasos internos: armar la sesión (Builder) -> validarla (Chain) ->
  guardarla (Service/BD) y el ciclo de vida (State). El controlador solo conoce esta clase.
- (Versión tanda 2: agrega consulta de sesiones e inicio/fin.)
  */
 @Component
 public class Facade {
