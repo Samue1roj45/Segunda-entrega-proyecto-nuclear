@@ -21,7 +21,7 @@ No se usa Python, Django ni PostgreSQL. Las pruebas en memoria usan H2 en `MODE=
 
 ## Entorno sin secretos
 
-1. En la **raíz del repositorio** copia la plantilla pública:
+1. En la carpeta **`modulo-5-6`** copia la plantilla pública:
 
 ```powershell
 Copy-Item .env.example .env
@@ -50,7 +50,7 @@ Variables que usa el arranque (nombres; los valores viven en tu `.env`):
 
 ## MySQL 8 con Docker Compose
 
-Desde la raíz del repositorio:
+Desde la carpeta `modulo-5-6`:
 
 ```powershell
 docker compose up -d db
@@ -62,7 +62,7 @@ Servicio `db`: imagen `mysql:8.0`, contenedor `evaluacion_db`, puerto `${MYSQL_H
 
 Hibernate está en `ddl-auto: none` y el módulo **no incluye Flyway ni otro mecanismo de migración**. Compose **no aplica el SQL automáticamente**: hay que ejecutarlo una vez sobre una base nueva. El backend arranca sin el esquema, pero toda operación JPA fallará hasta aplicarlo.
 
-Desde la raíz del repositorio, en Windows PowerShell 5.1. No hace falta un cliente `mysql` en el host. `Get-Content -Raw` envía el SQL por stdin y `docker exec -i` lo entrega al cliente dentro de `evaluacion_db`. La contraseña no se lee por ese stdin: el `sh` del contenedor expande `MYSQL_USER`, `MYSQL_PASSWORD` y `MYSQL_DATABASE`, variables que Compose ya inyectó. El token `--%` es necesario en Windows PowerShell 5.1: sin él, PowerShell elimina las comillas internas al invocar a Docker y la contraseña quedaría sin comillar. No imprime el valor de ninguna variable. MySQL puede avisar que la contraseña va en su línea de comandos; el aviso no incluye el valor.
+Desde la carpeta `modulo-5-6`, en Windows PowerShell 5.1. No hace falta un cliente `mysql` en el host. `Get-Content -Raw` envía el SQL por stdin y `docker exec -i` lo entrega al cliente dentro de `evaluacion_db`. La contraseña no se lee por ese stdin: el `sh` del contenedor expande `MYSQL_USER`, `MYSQL_PASSWORD` y `MYSQL_DATABASE`, variables que Compose ya inyectó. El token `--%` es necesario en Windows PowerShell 5.1: sin él, PowerShell elimina las comillas internas al invocar a Docker y la contraseña quedaría sin comillar. No imprime el valor de ninguna variable. MySQL puede avisar que la contraseña va en su línea de comandos; el aviso no incluye el valor.
 
 ```powershell
 Get-Content -Path backend\src\main\resources\db\mysql\V1__crear_tablas_evaluacion.sql -Raw | docker exec -i evaluacion_db --% sh -c "mysql --user=\"$MYSQL_USER\" --password=\"$MYSQL_PASSWORD\" --database=\"$MYSQL_DATABASE\""
@@ -87,7 +87,7 @@ Resultado esperado: 6 tablas (`participacion`, `respuesta_seleccionada`, `result
 
 ## Arranque del backend
 
-Desde la raíz:
+Desde la carpeta `modulo-5-6`:
 
 ```powershell
 .\tools\apache-maven-3.9.9\bin\mvn.cmd -f backend/pom.xml spring-boot:run

@@ -6,12 +6,12 @@ Alcance: RF-12, RF-13, RF-14, RF-15, RF-16, RF-21, RF-24, RF-26, RF-27.
 
 - Java 17
 - Spring Boot 3.4.5
-- MySQL 8 (Docker Compose, imagen `mysql:8.0`; esquema en `backend/src/main/resources/db/mysql/V1__crear_tablas_evaluacion.sql`)
+- MySQL 8 (Docker Compose, imagen `mysql:8.0`; esquema en `modulo-5-6/backend/src/main/resources/db/mysql/V1__crear_tablas_evaluacion.sql`)
 - Spring Mail (`JavaMailSender`)
 - OpenPDF 2.0.3 (MPL-2.0 / LGPL-2.1+) para PDF
 - Apache POI 5.4.1 (Apache License 2.0) para Excel
 
-No se usa Python, Django ni PostgreSQL. Las pruebas en memoria usan H2 en `MODE=MySQL` (`backend/src/test/resources/application-test.yml`).
+No se usa Python, Django ni PostgreSQL. Las pruebas en memoria usan H2 en `MODE=MySQL` (`modulo-5-6/backend/src/test/resources/application-test.yml`).
 
 ## Decisiones funcionales
 
@@ -123,24 +123,24 @@ Mutaciones de intento (responder, finalizar e iniciar): **solo el estudiante due
 Unitarias y de API (H2, sin Docker):
 
 ```powershell
-cd backend
+cd modulo-5-6/backend
 ..\tools\apache-maven-3.9.9\bin\mvn.cmd test
 ```
 
 Integración con MySQL 8 real (Testcontainers, requiere Docker; `maven-failsafe-plugin` ejecuta `ParticipacionMysqlSchemaIT` en `verify`):
 
 ```powershell
-cd backend
+cd modulo-5-6/backend
 ..\tools\apache-maven-3.9.9\bin\mvn.cmd verify
 ```
 
-Detalle de grupos, cobertura y cómo aplicar/verificar el esquema MySQL: `backend/README.md`.
+Detalle de grupos, cobertura y cómo aplicar/verificar el esquema MySQL: `modulo-5-6/backend/README.md`.
 
 ## Dependencias pendientes de integración
 
 - Módulos de prácticas, casos, preguntas, rúbricas y autorizaciones: hoy `CatalogoAcademicoEnMemoria`.
-- JWT / usuarios: este módulo valida el Bearer HS256 y lee los claims; no emite el token ni crea usuarios. El emisor debe compartir `JWT_SECRET` y los claims `rol`, `usuarioId`, `estudianteId` y `docenteId`. El frontend de esta rama no envía `Authorization`, así que hoy recibe `401` en las rutas protegidas. Detalle en `backend/README.md`, sección "Estado de la seguridad".
-- CORS: no configurado; el frontend en `http://localhost:4200` no puede consumir `http://localhost:8080` hasta coordinarlo con seguridad (orígenes, métodos y cabeceras necesarios en `backend/README.md`).
+- JWT / usuarios: este módulo valida el Bearer HS256 y lee los claims; no emite el token ni crea usuarios. El emisor debe compartir `JWT_SECRET` y los claims `rol`, `usuarioId`, `estudianteId` y `docenteId`. El frontend de esta rama no envía `Authorization`, así que hoy recibe `401` en las rutas protegidas. Detalle en `modulo-5-6/backend/README.md`, sección "Estado de la seguridad".
+- CORS: no configurado; el frontend en `http://localhost:4200` no puede consumir `http://localhost:8080` hasta coordinarlo con seguridad (orígenes, métodos y cabeceras necesarios en `modulo-5-6/backend/README.md`).
 - Persistencia de producción: `ddl-auto` none + MySQL 8; sin Flyway. `V1__crear_tablas_evaluacion.sql` se aplica manualmente sobre la base (Compose no lo ejecuta). No recrear el volumen `mysql_data` para aplicar cambios.
 - SMTP real / Mailhog: las pruebas usan `JavaMailSender` mockeado; no se envían correos reales.
 - El módulo de prácticas debe invocar los endpoints de convocatoria/cambio; este módulo no crea prácticas.
