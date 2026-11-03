@@ -1,23 +1,43 @@
-# Java / Maven
-backend/target/
+# ===== Java / Maven (todos los módulos) =====
+target/
 *.class
-# Angular / Node
-frontend/node_modules/
-frontend/dist/
-frontend/.angular/
-# IDE
-.idea/
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+tools/
+
+# ===== Angular / Node =====
+node_modules/
+dist/
+.angular/
+
+# ===== IDE =====
+.idea/workspace.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dataSources.local.xml
 .vscode/
 *.iml
-# Entorno (credenciales)
+
+# ===== Entorno y credenciales (nunca se suben) =====
 .env
-compilar.log
+.env.local
+*.pem
+*.key
+
+# ===== Python (herramientas locales) =====
+.venv/
+venv/
+
+# ===== Registros y scripts locales =====
+*.log
 revisar_git.*
-subir_a_github.log
-codigo_github.txt
 subir_a_github.*
-confirmar.log
+codigo_github.txt
 .mensaje_commit.txt
 .cola/
-# Registros de los scripts locales
-*.log
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db

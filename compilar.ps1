@@ -1,4 +1,4 @@
-﻿# Abre el proyecto en Cursor y compila/prueba el backend con Maven.
+﻿# Abre el proyecto en Cursor y compila/prueba el backend de los módulos 1 y 2 con Maven.
 # -SinCursor: solo compila (lo usa confirmar.ps1).
 param([switch]$SinCursor)
 # El resultado queda en compilar.log (en esta misma carpeta).
@@ -58,7 +58,7 @@ if (-not $mvn) { Log 'ERROR: no se encontró Maven (mvn.cmd).'; exit 1 }
 Log "Maven: $mvn"
 
 # 4. Compilar y ejecutar las pruebas
-& $mvn -f (Join-Path $root 'backend\pom.xml') -B verify 2>&1 | ForEach-Object { "$_" } | Out-File $log -Append -Encoding utf8
+& $mvn -f (Join-Path $root 'modulo-1-2\backend\pom.xml') -B verify 2>&1 | ForEach-Object { "$_" } | Out-File $log -Append -Encoding utf8
 $codigo = $LASTEXITCODE
 Log "=== Fin (código $codigo) ==="
 exit $codigo

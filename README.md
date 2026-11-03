@@ -1,75 +1,56 @@
-# Módulo 1 · Usuarios, autenticación y permisos (backend)
+# Proyecto Nuclear · SOMA (Simulador académico de casos)
 
-Proyecto Nuclear · RF-01, RF-02, RF-03 · Responsable: Samuel Velásquez · Rama `feature/modulo-1`
+Ingeniería de Software II · Corporación Universitaria Empresarial Alexander von Humboldt · 2026-II
 
-Backend en **Java 21 / Spring Boot 4.1.2**, base de datos **MySQL** (H2 en memoria para las pruebas),
-migraciones con **Flyway** y seguridad sin estado con **JWT**. Esta entrega es solo backend.
+El repositorio está organizado **por módulos**. Cada carpeta es una aplicación que hoy se compila por separado;
+la integración en una sola aplicación se hará sobre esta estructura.
 
-## Requisitos y patrones
+| Carpeta | Módulos | Requisitos | Responsable | Tecnología | Documentación |
+|---|---|---|---|---|---|
+| [`modulo-1-2/`](modulo-1-2) | 1. Usuarios, autenticación y permisos | RF-01, RF-02, RF-03 | Samuel Velásquez Rojas | Java 21, Spring Boot 4.1.2, JPA, Flyway, JWT · Angular 21 | [docs/modulo-1](docs/modulo-1/README.md) |
+| | 2. Creación y validación de casos | RF-05 a RF-09, RF-17 | Alejandro Ospina Rodríguez | (misma aplicación que el módulo 1) | [docs/modulo-2](docs/modulo-2/README.md) |
+| [`modulo-3-4/`](modulo-3-4) | 3. Asociación académica, programación y convocatorias · 4. Participación y control de sesiones | RF-04, RF-18, RF-20 · RF-10, RF-11, RF-12, RF-19, RF-22, RF-23, RF-25, RF-28 | Peter Manolo Carvajal Lugo | Java 21, Spring Boot 4.1.2, JdbcTemplate, MySQL | [docs/modulo-3-4](docs/modulo-3-4/README.md) |
+| [`modulo-5-6/`](modulo-5-6) | 5. Participaciones, evaluación, resultados y reportes · 6. Notificaciones y retroalimentación | RF-12 a RF-16, RF-24 · RF-21, RF-26, RF-27 | Sofía Yuliana Murillo Parra | Java 17, Spring Boot 3.4.5, JPA, MySQL (Docker) | [docs/modulo-5-6](docs/modulo-5-6/README.md) |
 
-| Requisito | Patrón (documento de patrones del equipo) | Implementación |
-|---|---|---|
-| RF-01 Autenticar estudiantes | Chain of Responsibility | `compartido/validacion` (`Validador<T>`, `ValidadorBase<T>`) y `autenticacion/validacion` (4 validadores encadenados en `CadenasAutenticacionConfig`) |
-| RF-02 Controlar acceso por rol | Proxy | `autorizacion/ServicioAutorizacion`, `ProxyAcceso` + `@RequierePermiso` |
-| RF-03 Administrar docentes y permisos | Ninguno directo (capas), protegido por el Proxy de RF-02 | `usuarios/administracion` + `usuarios/web` |
+```
+.
+├── modulo-1-2/
+│   ├── backend/      co.edu.humboldt.plataformacasos (autenticacion, autorizacion, usuarios = módulo 1; casos, rubricas = módulo 2)
+│   └── frontend/     Angular: login, menú por rol, docentes y permisos (módulo 1); casos y constructor (módulo 2)
+├── modulo-3-4/
+│   ├── pom.xml
+│   └── src/          com.example.demo (modulo3, modulo4 y paquetes compartidos)
+├── modulo-5-6/
+│   ├── backend/      com.unihumboldt.nuclear.evaluacion
+│   ├── docker-compose.yml
+│   └── .env.example
+└── docs/
+    ├── modulo-1/     README, FRONTEND, pruebas PT-DCP-01, evidencias y diagramas
+    ├── modulo-2/
+    ├── modulo-3-4/
+    └── modulo-5-6/
+```
 
-## API
+## Compilar y probar
 
-| Método y ruta | Acceso | Respuestas |
-|---|---|---|
-| `POST /api/auth/estudiantes/login` `{correoInstitucional, codigoAutorizacion}` | Público | 200 token · 400 formato · 401 genérico |
-| `POST /api/auth/personal/login` `{correoInstitucional, clave}` | Público | 200 token · 400 · 401 genérico |
-| `GET /api/sesion` | Con sesión | 200 usuario, rol y permisos vigentes · 401 |
-| `GET /api/autorizacion/permisos/{permiso}` | Con sesión | 204 permitido · 403 · 401 · 400 permiso desconocido |
-| `GET /api/admin/docentes` | `ADMINISTRAR_DOCENTES` | 200 · 401 · 403 |
-| `POST /api/admin/docentes` `{nombreCompleto, correoInstitucional}` | `ADMINISTRAR_DOCENTES` | 201 · 400 · 409 correo duplicado · 401 · 403 |
-| `PUT /api/admin/docentes/{id}/permisos` `{permisos: [...]}` | `ADMINISTRAR_DOCENTES` | 200 · 400 · 404 · 401 · 403 |
+| Módulos | Comando |
+|---|---|
+| 1 y 2 · backend | `cd modulo-1-2/backend && mvn verify` |
+| 1 y 2 · frontend | `cd modulo-1-2/frontend && npm ci && npx ng test --watch=false` |
+| 3 y 4 | `cd modulo-3-4 && mvn compile` (ver pendientes en su documentación) |
+| 5 y 6 | `cd modulo-5-6/backend && mvn test` (H2; `mvn verify` usa MySQL con Docker) |
 
-Todos los errores usan el mismo cuerpo: `{fecha, estado, error, mensaje, ruta}`.
-El token va en el encabezado `Authorization: Bearer <token>`.
+## Cómo se trabaja
 
-## Ejecutar
+- `main` es la rama principal y está protegida: solo recibe cambios por **Pull Request**, que aprueba el dueño
+  del repositorio (`.github/CODEOWNERS`).
+- Cada integrante trabaja en su rama, creada desde `main`, y abre su Pull Request hacia `main`.
+- Las credenciales no se suben: cada módulo las lee de variables de entorno (`.env` está en `.gitignore`).
 
-1. MySQL 8: crear la base `plataforma_casos` y un usuario con permisos sobre ella.
-2. Variables de entorno: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRETO` (Base64, mínimo 32 bytes),
-   y opcionalmente `DOMINIO_INSTITUCIONAL` y `JWT_MINUTOS`.
-3. Con datos ficticios de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas` (carpeta `backend`).
+## Pendiente para la integración
 
-Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
-
-| Correo | Rol | Ingreso |
-|---|---|---|
-| admin.plataforma@institucion.edu.co | Administrador | clave `Clave-Admin-01` |
-| carlos.gomez@institucion.edu.co | Docente (GESTIONAR_CASOS) | clave `Clave-Docente-01` |
-| laura.mejia@institucion.edu.co | Docente (sin permisos) | clave `Clave-Docente-02` |
-| ana.perez@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_01` |
-| luis.rios@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_02` |
-
-## Pruebas
-
-`mvn verify` (o `compilar.cmd`) ejecuta 62 pruebas, entre ellas los 18 casos del documento PT-DCP-01
-(`CasosPruebaRf01Test`, `CasosPruebaRf02Test`, `CasosPruebaRf03Test`). Cada caso guarda su solicitud
-y su respuesta reales en `backend/target/evidencias/<caso>.json`.
-
-`confirmar.cmd` compila y prueba; solo si todo pasa hace el commit y lo sube.
-
-Documentos en `docs/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecución por parte e informe final).
-
-## Antipatrones evitados
-
-- **God Object**: cada clase tiene una responsabilidad (validadores, servicio, proxy, controlador).
-- **Código flecha**: las reglas de RF-01 están en eslabones de una cadena, no en `if` anidados.
-- **Golden Hammer**: RF-03 no fuerza un patrón; usa capas y el Proxy de RF-02.
-- **Magic strings**: roles y permisos son `enum`.
-- **Seguridad solo en la interfaz**: toda verificación ocurre en el servidor.
-- **Entidades expuestas**: la API usa DTOs; no se exponen hashes.
-- **Credenciales en el código**: BD y clave JWT por variables de entorno; códigos y contraseñas solo como hash BCrypt.
-- **Modelo anémico**: las reglas de permisos asignables viven en `Usuario`.
-
-## Pendiente para la integración con el equipo
-
-1. Reemplazar `VerificadorCodigoAutorizacionTemporal` (y la tabla `codigo_autorizacion_temporal`)
-   por la implementación de `VerificadorCodigoAutorizacion` del Módulo 3 (RF-20).
-2. Alinear el modelo (`usuario`, `usuario_permiso`) con la base de datos compartida del equipo.
-3. Validar el supuesto del ingreso de docentes y administrador con contraseña (RF-01 solo cubre estudiantes).
-4. Validar el catálogo de permisos y el dominio institucional real.
+- Unificar versiones: los módulos 5 y 6 usan Java 17 y Spring Boot 3.4.5; el resto, Java 21 y Spring Boot 4.1.2.
+- Usar una sola autenticación: el token del módulo 1 en lugar de las cabeceras `X-Docente-Id` / `X-Estudiante-Id`
+  (módulos 3 y 4) y del `JWT_SECRET` propio de los módulos 5 y 6.
+- Una sola base de datos y un solo esquema de usuarios, estudiantes y docentes.
+- Módulos 3 y 4: falta la clase de arranque, la configuración, los scripts SQL y la clase de pruebas `Datos`.

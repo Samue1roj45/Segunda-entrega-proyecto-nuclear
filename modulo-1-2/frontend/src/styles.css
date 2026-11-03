@@ -1,0 +1,107 @@
+/* Sistema visual tomado del prototipo del panel docente (Figura 13 del documento del proyecto). */
+:root {
+  --marino: #17324d;
+  --marino-suave: #2b4a68;
+  --fondo: #f4f6f9;
+  --superficie: #ffffff;
+  --borde: #dde3ea;
+  --texto: #1c2b39;
+  --texto-suave: #5b6b7b;
+  --verde: #0f7a6c;
+  --verde-fondo: #e6f4f1;
+  --ambar: #8a5a00;
+  --ambar-fondo: #fdf3dc;
+  --gris-fondo: #e9edf1;
+  --rojo: #b3261e;
+  --rojo-fondo: #fbeaea;
+  --radio: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+h1 { font-size: 1.55rem; margin: 0; color: var(--marino); }
+h2 { font-size: 1.15rem; margin: 0 0 .75rem; color: var(--marino); }
+h3 { font-size: 1rem; margin: 0; color: var(--marino); }
+p { margin: 0; }
+a { color: var(--marino-suave); }
+
+.suave { color: var(--texto-suave); font-size: .875rem; }
+
+.tarjeta {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+}
+
+.pila { display: flex; flex-direction: column; gap: 1rem; }
+.pila-corta { display: flex; flex-direction: column; gap: .5rem; }
+.fila { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.separada { justify-content: space-between; }
+.fin { justify-content: flex-end; }
+
+label.campo { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; font-weight: 600; color: var(--marino-suave); flex: 1 1 12rem; min-width: 0; }
+
+/* En una columna, la base flexible se aplicaría a la altura y dejaría huecos bajo cada campo. */
+.pila > label.campo, .pila-corta > label.campo { flex: none; }
+
+input, textarea, select {
+  width: 100%;
+  font: inherit;
+  font-weight: 400;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  padding: .45rem .6rem;
+}
+input[type='radio'] { width: auto; }
+textarea { resize: vertical; min-height: 4.5rem; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--verde);
+  outline-offset: 1px;
+}
+input:disabled, textarea:disabled, select:disabled { background: var(--fondo); color: var(--texto-suave); }
+
+button {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 7px;
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+  color: var(--marino);
+  padding: .4rem .85rem;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--fondo); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+button.primario { background: var(--marino); border-color: var(--marino); color: #fff; }
+button.primario:hover:not(:disabled) { background: var(--marino-suave); }
+button.exito { background: var(--verde); border-color: var(--verde); color: #fff; }
+button.exito:hover:not(:disabled) { background: #0c6459; }
+button.peligro { color: var(--rojo); border-color: #e6c3c1; }
+button.peligro:hover:not(:disabled) { background: var(--rojo-fondo); }
+
+.estado { display: inline-block; font-size: .78rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; }
+.estado-BORRADOR { color: var(--ambar); background: var(--ambar-fondo); }
+.estado-PUBLICADO { color: var(--verde); background: var(--verde-fondo); }
+.estado-ARCHIVADO { color: var(--texto-suave); background: var(--gris-fondo); }
+
+.alerta { padding: .6rem .8rem; border-radius: 7px; font-size: .9rem; }
+.alerta-error { color: var(--rojo); background: var(--rojo-fondo); }
+.alerta-exito { color: var(--verde); background: var(--verde-fondo); }
+.alerta-info { color: var(--ambar); background: var(--ambar-fondo); }
+
+.bloque { border: 1px solid var(--borde); border-radius: var(--radio); padding: 1rem; background: var(--superficie); }
+.bloque-interno { border: 1px solid var(--borde); border-radius: 8px; padding: .85rem; background: var(--fondo); }
+.opcion { border-top: 1px solid var(--borde); padding-top: .7rem; }
+.vacio { color: var(--texto-suave); font-style: italic; font-size: .9rem; }
