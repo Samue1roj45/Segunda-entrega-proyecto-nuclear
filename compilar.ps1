@@ -18,13 +18,13 @@ if (-not $cursor) {
 } else { Start-Process $cursor.Source -ArgumentList "`"$root`"" -WindowStyle Hidden; Log "Cursor: abierto ($($cursor.Source))" }
 }
 
-# 2. Buscar un JDK 17 o superior
+# 2. Buscar un JDK 21 o superior
 function VersionJava($exe) {
     $v = & $exe -version 2>&1 | Out-String
     if ($v -match 'version "(\d+)') { return [int]$Matches[1] } return 0
 }
 $java = $null
-if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe") -and (VersionJava "$env:JAVA_HOME\bin\java.exe") -ge 17) { $java = $env:JAVA_HOME }
+if ($env:JAVA_HOME -and (Test-Path "$env:JAVA_HOME\bin\java.exe") -and (VersionJava "$env:JAVA_HOME\bin\java.exe") -ge 21) { $java = $env:JAVA_HOME }
 if (-not $java) {
     $dirs = @()
     foreach ($b in @("$HOME\.jdks", 'C:\Program Files\Java', 'C:\Program Files\Eclipse Adoptium', 'C:\Program Files\Microsoft', 'C:\Program Files\Amazon Corretto')) {
@@ -32,10 +32,10 @@ if (-not $java) {
     }
     foreach ($d in ($dirs | Sort-Object Name -Descending)) {
         $exe = Join-Path $d.FullName 'bin\java.exe'
-        if ((Test-Path $exe) -and (VersionJava $exe) -ge 17) { $java = $d.FullName; break }
+        if ((Test-Path $exe) -and (VersionJava $exe) -ge 21) { $java = $d.FullName; break }
     }
 }
-if (-not $java) { Log 'ERROR: no se encontró un JDK 17 o superior.'; exit 1 }
+if (-not $java) { Log 'ERROR: no se encontró un JDK 21 o superior.'; exit 1 }
 $env:JAVA_HOME = $java
 Log "JDK: $java (Java $(VersionJava "$java\bin\java.exe"))"
 

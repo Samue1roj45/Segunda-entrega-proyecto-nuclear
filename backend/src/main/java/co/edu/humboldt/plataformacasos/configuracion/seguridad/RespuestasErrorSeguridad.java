@@ -3,7 +3,7 @@ package co.edu.humboldt.plataformacasos.configuracion.seguridad;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
 import co.edu.humboldt.plataformacasos.compartido.web.ErrorApi;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;

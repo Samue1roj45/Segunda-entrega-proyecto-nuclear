@@ -4,13 +4,13 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoExcept
 import co.edu.humboldt.plataformacasos.soporte.RegistroEvidencias;
 import co.edu.humboldt.plataformacasos.soporte.Sesiones;
 import co.edu.humboldt.plataformacasos.usuarios.administracion.MensajesAdministracion;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -71,7 +71,7 @@ class CasosPruebaRf03Test {
 
     private long idDocente(MvcResult lista, String correo) throws Exception {
         return StreamSupport.stream(leer(lista).spliterator(), false)
-                .filter(d -> d.get("correoInstitucional").asText().equals(correo))
+                .filter(d -> d.get("correoInstitucional").asString().equals(correo))
                 .findFirst().orElseThrow().get("id").asLong();
     }
 
@@ -109,7 +109,7 @@ class CasosPruebaRf03Test {
         MvcResult r = enviar("POST", DOCENTES, sesiones.token(login), cuerpo);
 
         assertThat(estado(r)).isEqualTo(400);
-        assertThat(leer(r).get("mensaje").asText()).isEqualTo(MensajesAdministracion.NOMBRE_OBLIGATORIO);
+        assertThat(leer(r).get("mensaje").asString()).isEqualTo(MensajesAdministracion.NOMBRE_OBLIGATORIO);
 
         RegistroEvidencias.para("CP-RF03-02", "Crear docente con datos incompletos")
                 .paso("POST", RUTA_LOGIN_PERSONAL, ADMIN, login)
@@ -125,7 +125,7 @@ class CasosPruebaRf03Test {
         MvcResult r = enviar("POST", DOCENTES, sesiones.token(login), cuerpo);
 
         assertThat(estado(r)).isEqualTo(409);
-        assertThat(leer(r).get("mensaje").asText()).isEqualTo(MensajesAdministracion.CORREO_DUPLICADO);
+        assertThat(leer(r).get("mensaje").asString()).isEqualTo(MensajesAdministracion.CORREO_DUPLICADO);
 
         RegistroEvidencias.para("CP-RF03-03", "Crear docente con correo ya registrado")
                 .paso("POST", RUTA_LOGIN_PERSONAL, ADMIN, login)
@@ -195,7 +195,7 @@ class CasosPruebaRf03Test {
         assertThat(estado(r1)).isEqualTo(403);
         assertThat(estado(r2)).isEqualTo(403);
         assertThat(estado(r3)).isEqualTo(403);
-        assertThat(leer(r1).get("mensaje").asText()).isEqualTo(AccesoDenegadoException.MENSAJE);
+        assertThat(leer(r1).get("mensaje").asString()).isEqualTo(AccesoDenegadoException.MENSAJE);
 
         RegistroEvidencias.para("CP-RF03-06", "Usuario no administrador intenta crear un docente")
                 .paso("POST", RUTA_LOGIN_PERSONAL, CARLOS, login)

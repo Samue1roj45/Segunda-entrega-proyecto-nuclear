@@ -4,13 +4,13 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoExcept
 import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
 import co.edu.humboldt.plataformacasos.soporte.RegistroEvidencias;
 import co.edu.humboldt.plataformacasos.soporte.Sesiones;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -70,7 +70,7 @@ class CasosPruebaRf02Test {
         MvcResult participar = getCon(token, PERMISO + "PARTICIPAR_EN_CASOS");
 
         assertThat(estado(sesion)).isEqualTo(200);
-        assertThat(leer(sesion).get("rol").asText()).isEqualTo("ESTUDIANTE");
+        assertThat(leer(sesion).get("rol").asString()).isEqualTo("ESTUDIANTE");
         assertThat(leer(sesion).get("permisos")).extracting(JsonNode::asText)
                 .containsExactlyInAnyOrder("PARTICIPAR_EN_CASOS", "CONSULTAR_RESULTADOS_PROPIOS");
         assertThat(estado(participar)).isEqualTo(204);
@@ -90,7 +90,7 @@ class CasosPruebaRf02Test {
         MvcResult gestionar = getCon(sesiones.token(login), PERMISO + "GESTIONAR_CASOS");
 
         assertThat(estado(gestionar)).isEqualTo(403);
-        assertThat(leer(gestionar).get("mensaje").asText()).isEqualTo(AccesoDenegadoException.MENSAJE);
+        assertThat(leer(gestionar).get("mensaje").asString()).isEqualTo(AccesoDenegadoException.MENSAJE);
 
         RegistroEvidencias.para("CP-RF02-02", "Estudiante intenta usar una función docente")
                 .paso("POST", RUTA_LOGIN_ESTUDIANTE, cuerpo, login)
@@ -155,7 +155,7 @@ class CasosPruebaRf02Test {
 
         assertThat(estado(sesion)).isEqualTo(401);
         assertThat(estado(participar)).isEqualTo(401);
-        assertThat(leer(sesion).get("mensaje").asText()).isEqualTo(NoAutenticadoException.MENSAJE);
+        assertThat(leer(sesion).get("mensaje").asString()).isEqualTo(NoAutenticadoException.MENSAJE);
 
         RegistroEvidencias.para("CP-RF02-06", "Acceso sin sesión iniciada")
                 .paso("GET", SESION, "", sesion)

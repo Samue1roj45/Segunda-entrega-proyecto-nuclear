@@ -3,12 +3,12 @@ package co.edu.humboldt.plataformacasos.autenticacion.web;
 import co.edu.humboldt.plataformacasos.autenticacion.dominio.MensajesAutenticacion;
 import co.edu.humboldt.plataformacasos.autenticacion.token.EmisorToken;
 import co.edu.humboldt.plataformacasos.soporte.RegistroEvidencias;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -66,9 +66,9 @@ class CasosPruebaRf01Test {
         JsonNode cuerpo = leer(r);
 
         assertThat(r.getResponse().getStatus()).isEqualTo(200);
-        assertThat(cuerpo.get("rol").asText()).isEqualTo("ESTUDIANTE");
-        assertThat(cuerpo.get("tipoToken").asText()).isEqualTo("Bearer");
-        Jwt token = jwtDecoder.decode(cuerpo.get("token").asText());
+        assertThat(cuerpo.get("rol").asString()).isEqualTo("ESTUDIANTE");
+        assertThat(cuerpo.get("tipoToken").asString()).isEqualTo("Bearer");
+        Jwt token = jwtDecoder.decode(cuerpo.get("token").asString());
         assertThat(token.getClaimAsString(EmisorToken.RECLAMO_CORREO)).isEqualTo(ANA);
         assertThat(token.getClaimAsStringList(EmisorToken.RECLAMO_PERMISOS))
                 .containsExactlyInAnyOrder("PARTICIPAR_EN_CASOS", "CONSULTAR_RESULTADOS_PROPIOS");
@@ -83,7 +83,7 @@ class CasosPruebaRf01Test {
         MvcResult r = login(solicitud);
 
         assertThat(r.getResponse().getStatus()).isEqualTo(401);
-        assertThat(leer(r).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
+        assertThat(leer(r).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
         assertThat(leer(r).has("token")).isFalse();
 
         RegistroEvidencias.para("CP-RF01-02", "Código de autorización inválido").paso("POST", RUTA, solicitud, r).guardar();
@@ -96,7 +96,7 @@ class CasosPruebaRf01Test {
         MvcResult r = login(solicitud);
 
         assertThat(r.getResponse().getStatus()).isEqualTo(401);
-        assertThat(leer(r).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
+        assertThat(leer(r).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
 
         RegistroEvidencias.para("CP-RF01-03", "Correo institucional no registrado").paso("POST", RUTA, solicitud, r).guardar();
     }
@@ -108,7 +108,7 @@ class CasosPruebaRf01Test {
         MvcResult r = login(solicitud);
 
         assertThat(r.getResponse().getStatus()).isEqualTo(400);
-        assertThat(leer(r).get("mensaje").asText())
+        assertThat(leer(r).get("mensaje").asString())
                 .isEqualTo(MensajesAutenticacion.correoNoInstitucional("institucion.edu.co"));
 
         RegistroEvidencias.para("CP-RF01-04", "Correo que no es institucional").paso("POST", RUTA, solicitud, r).guardar();
@@ -125,11 +125,11 @@ class CasosPruebaRf01Test {
         MvcResult r3 = login(sinNada);
 
         assertThat(r1.getResponse().getStatus()).isEqualTo(400);
-        assertThat(leer(r1).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CORREO_OBLIGATORIO);
+        assertThat(leer(r1).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CORREO_OBLIGATORIO);
         assertThat(r2.getResponse().getStatus()).isEqualTo(400);
-        assertThat(leer(r2).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CODIGO_OBLIGATORIO);
+        assertThat(leer(r2).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CODIGO_OBLIGATORIO);
         assertThat(r3.getResponse().getStatus()).isEqualTo(400);
-        assertThat(leer(r3).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CAMPOS_OBLIGATORIOS);
+        assertThat(leer(r3).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CAMPOS_OBLIGATORIOS);
 
         RegistroEvidencias.para("CP-RF01-05", "Campos obligatorios vacíos")
                 .paso("POST", RUTA, sinCorreo, r1)
@@ -145,7 +145,7 @@ class CasosPruebaRf01Test {
         MvcResult r = login(solicitud);
 
         assertThat(r.getResponse().getStatus()).isEqualTo(401);
-        assertThat(leer(r).get("mensaje").asText()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
+        assertThat(leer(r).get("mensaje").asString()).isEqualTo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);
 
         RegistroEvidencias.para("CP-RF01-06", "Código asociado a otro estudiante").paso("POST", RUTA, solicitud, r).guardar();
     }

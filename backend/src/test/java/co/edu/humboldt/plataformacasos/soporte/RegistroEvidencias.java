@@ -1,10 +1,10 @@
 package co.edu.humboldt.plataformacasos.soporte;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -23,10 +23,9 @@ import java.time.LocalDateTime;
 public final class RegistroEvidencias {
 
     private static final Path CARPETA = Path.of("target", "evidencias");
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final JsonMapper JSON = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .build();
 
     private final ObjectNode evidencia;
     private final ArrayNode pasos;
@@ -69,9 +68,9 @@ public final class RegistroEvidencias {
         }
     }
 
-    private static com.fasterxml.jackson.databind.JsonNode recortarTokens(com.fasterxml.jackson.databind.JsonNode nodo) {
+    private static JsonNode recortarTokens(JsonNode nodo) {
         if (nodo instanceof ObjectNode objeto && objeto.hasNonNull("token")) {
-            String token = objeto.get("token").asText();
+            String token = objeto.get("token").asString();
             objeto.put("token", token.substring(0, Math.min(16, token.length())) + "…(recortado)");
         }
         return nodo;

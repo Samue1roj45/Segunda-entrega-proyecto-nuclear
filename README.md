@@ -2,7 +2,7 @@
 
 Proyecto Nuclear · RF-01, RF-02, RF-03 · Responsable: Samuel Velásquez · Rama `feature/modulo-1`
 
-Backend en **Java 17+ / Spring Boot 3.3**, base de datos **MySQL** (H2 en memoria para las pruebas),
+Backend en **Java 21 / Spring Boot 4.1.2**, base de datos **MySQL** (H2 en memoria para las pruebas),
 migraciones con **Flyway** y seguridad sin estado con **JWT**. Esta entrega es solo backend.
 
 ## Requisitos y patrones
