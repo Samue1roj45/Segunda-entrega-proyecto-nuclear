@@ -4,13 +4,13 @@ import co.edu.humboldt.plataformacasos.casos.integracion.ClaveEvaluacionDTO;
 import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
 import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoParticipacionDTO;
 import co.edu.humboldt.plataformacasos.soporte.Sesiones;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpMethod;
@@ -152,7 +152,7 @@ class CasosApiIntegracionTest {
 
     private static List<String> reglas(JsonNode incumplimientos) {
         List<String> reglas = new ArrayList<>();
-        incumplimientos.forEach(i -> reglas.add(i.get("regla").asText()));
+        incumplimientos.forEach(i -> reglas.add(i.get("regla").asString()));
         return reglas;
     }
 
@@ -163,7 +163,7 @@ class CasosApiIntegracionTest {
 
         Respuesta creado = post(CASOS, token, "{\"nombre\":\"Mi caso\"}");
         assertThat(creado.estado()).isEqualTo(201);
-        assertThat(creado.cuerpo().get("estado").asText()).isEqualTo("BORRADOR");
+        assertThat(creado.cuerpo().get("estado").asString()).isEqualTo("BORRADOR");
         long id = creado.cuerpo().get("id").asLong();
 
         Respuesta editado = put(CASOS + "/" + id, token, """
@@ -171,7 +171,7 @@ class CasosApiIntegracionTest {
         assertThat(editado.estado()).isEqualTo(200);
 
         JsonNode consultado = get(CASOS + "/" + id, token).cuerpo();
-        assertThat(consultado.get("nombre").asText()).isEqualTo("Editado");
+        assertThat(consultado.get("nombre").asString()).isEqualTo("Editado");
         assertThat(consultado.get("tiempoEstimadoMinutos").asInt()).isEqualTo(20);
         assertThat(consultado.get("docenteId").asLong()).isEqualTo(idDe(CARLOS));
 
@@ -193,7 +193,7 @@ class CasosApiIntegracionTest {
         assertThat(rechazo.estado()).isEqualTo(422);
         assertThat(reglas(rechazo.cuerpo().get("incumplimientos")))
                 .containsExactly("OCL-01", "OCL-02", "OCL-03", "OCL-09");
-        assertThat(get(caso, token).cuerpo().get("estado").asText()).isEqualTo("BORRADOR");
+        assertThat(get(caso, token).cuerpo().get("estado").asString()).isEqualTo("BORRADOR");
 
         // RF-05 y RF-06
         put(caso, token, "{\"nombre\":\"Caso\",\"tiempoEstimadoMinutos\":30}");
@@ -223,7 +223,7 @@ class CasosApiIntegracionTest {
         put(caso + "/respuestas/" + idA + "/justificacion", token, "{\"justificacion\":\"Porque sí\"}");
         put(caso + "/respuestas/" + idB + "/justificacion", token, "{\"justificacion\":\"Porque no\"}");
         JsonNode justificacion = get(caso + "/respuestas/" + idB + "/justificacion", token).cuerpo();
-        assertThat(justificacion.get("justificacion").asText()).isEqualTo("Porque no");
+        assertThat(justificacion.get("justificacion").asString()).isEqualTo("Porque no");
         assertThat(reglas(get(caso + "/validacion", token).cuerpo().get("incumplimientos")))
                 .containsExactly("OCL-09");
 
@@ -244,13 +244,13 @@ class CasosApiIntegracionTest {
         assertThat(informe.get("valido").asBoolean()).isTrue();
         Respuesta publicado = post(caso + "/publicacion", token, null);
         assertThat(publicado.estado()).isEqualTo(200);
-        assertThat(publicado.cuerpo().get("estado").asText()).isEqualTo("PUBLICADO");
+        assertThat(publicado.cuerpo().get("estado").asString()).isEqualTo("PUBLICADO");
 
         // Lo publicado es lo que quedó en la base, con todas sus relaciones.
         JsonNode persistido = get(caso, token).cuerpo();
         JsonNode pregunta = persistido.get("escenarios").get(0).get("preguntas").get(0);
         assertThat(pregunta.get("respuestas")).hasSize(2);
-        assertThat(pregunta.get("respuestas").get(0).get("justificacion").asText()).isEqualTo("Porque sí");
+        assertThat(pregunta.get("respuestas").get(0).get("justificacion").asString()).isEqualTo("Porque sí");
         assertThat(persistido.get("rubrica").get("criteriosEvaluacion").get(0).get("rango").get("max").asInt())
                 .isEqualTo(5);
         assertThat(persistido.get("fechaPublicacion").isNull()).isFalse();
@@ -327,7 +327,7 @@ class CasosApiIntegracionTest {
 
         Respuesta archivado = post(CASOS + "/" + id + "/archivo", token, null);
         assertThat(archivado.estado()).isEqualTo(200);
-        assertThat(archivado.cuerpo().get("estado").asText()).isEqualTo("ARCHIVADO");
+        assertThat(archivado.cuerpo().get("estado").asString()).isEqualTo("ARCHIVADO");
         assertThat(archivado.cuerpo().get("fechaArchivado").isNull()).isFalse();
         assertThat(archivado.cuerpo().get("escenarios")).hasSize(1);
         assertThat(post(CASOS + "/" + id + "/publicacion", token, null).estado()).isEqualTo(409);
@@ -348,7 +348,7 @@ class CasosApiIntegracionTest {
                 "{\"codigo\":\"ABC\"}").estado()).isEqualTo(400);
         Respuesta rango = post(caso + "/rubrica/criterios", token, "{\"rango\":{\"min\":5,\"max\":5}}");
         assertThat(rango.estado()).isEqualTo(400);
-        assertThat(rango.cuerpo().get("mensaje").asText()).contains("menor que el máximo");
+        assertThat(rango.cuerpo().get("mensaje").asString()).contains("menor que el máximo");
         assertThat(post(caso + "/rubrica/criterios", token,
                 "{\"criterio\":\"" + "x".repeat(151) + "\"}").estado()).isEqualTo(400);
         assertThat(post(CASOS, token, "{\"nombre\":\"" + "x".repeat(151) + "\"}").estado()).isEqualTo(400);
@@ -415,16 +415,16 @@ class CasosApiIntegracionTest {
         Respuesta exportado = get(CASOS + "/" + id + "/dsl", token);
 
         assertThat(exportado.estado()).isEqualTo(200);
-        assertThat(exportado.cuerpo().get("dsl").asText()).isEqualTo("DSL-CEPS");
-        assertThat(exportado.cuerpo().get("version").asText()).isEqualTo("1.1");
+        assertThat(exportado.cuerpo().get("dsl").asString()).isEqualTo("DSL-CEPS");
+        assertThat(exportado.cuerpo().get("version").asString()).isEqualTo("1.1");
         assertThat(exportado.texto()).doesNotContain("estado").doesNotContain("PUBLICADO");
         JsonNode respuesta = exportado.cuerpo().get("caso").get("escenarios").get(0).get("preguntas").get(0)
                 .get("respuestas").get(0);
-        assertThat(respuesta.get("id").asText()).isEqualTo("A");
+        assertThat(respuesta.get("id").asString()).isEqualTo("A");
 
         Respuesta copia = post(CASOS + "/importacion-dsl", token, exportado.texto());
         assertThat(copia.estado()).isEqualTo(201);
-        assertThat(copia.cuerpo().get("caso").get("estado").asText()).isEqualTo("BORRADOR");
+        assertThat(copia.cuerpo().get("caso").get("estado").asString()).isEqualTo("BORRADOR");
         assertThat(get(CASOS + "/" + copia.cuerpo().get("caso").get("id").asLong() + "/validacion", token)
                 .cuerpo().get("valido").asBoolean()).isTrue();
     }
@@ -442,7 +442,7 @@ class CasosApiIntegracionTest {
         Respuesta conHerramientas = post(CASOS + "/importacion-dsl", token,
                 "{\"dsl\":\"DSL-CEPS\",\"version\":\"1.1\",\"caso\":{\"herramientas\":[{\"nombre\":\"Protocolo\"}]}}");
         assertThat(conHerramientas.estado()).isEqualTo(201);
-        assertThat(conHerramientas.cuerpo().get("advertencias").get(0).asText()).contains("RF-28");
+        assertThat(conHerramientas.cuerpo().get("advertencias").get(0).asString()).contains("RF-28");
     }
 
     @Test
@@ -497,7 +497,7 @@ class CasosApiIntegracionTest {
 
         Respuesta rubrica = get(ruta + archivado + "/rubrica", token);
         assertThat(rubrica.estado()).isEqualTo(200);
-        assertThat(rubrica.cuerpo().get("criteriosEvaluacion").get(0).get("criterio").asText())
+        assertThat(rubrica.cuerpo().get("criteriosEvaluacion").get(0).get("criterio").asString())
                 .isEqualTo("Toma de decisiones");
         assertThat(get(ruta + borrador + "/rubrica", token).estado()).isEqualTo(404);
     }
