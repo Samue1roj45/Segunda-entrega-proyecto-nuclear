@@ -19,3 +19,5 @@ subir_a_github.*
 confirmar.log
 .mensaje_commit.txt
 .cola/
+# Registros de los scripts locales
+*.log
