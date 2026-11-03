@@ -1,0 +1,68 @@
+{
+  "caso" : "CP-RF03-01",
+  "descripcion" : "Crear docente con datos completos",
+  "ejecutado" : "2026-11-01T21:01:17",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"admin.plataforma@institucion.edu.co\",\"clave\":\"Clave-Admin-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:17.461846500Z",
+        "correoInstitucional" : "admin.plataforma@institucion.edu.co",
+        "nombreCompleto" : "Administrador de la Plataforma",
+        "rol" : "ADMINISTRADOR",
+        "permisos" : [ "ADMINISTRAR_DOCENTES" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : "{\"nombreCompleto\":\"Marta Ruiz Ocampo\",\"correoInstitucional\":\"nuevo.docente@institucion.edu.co\"}"
+    },
+    "respuesta" : {
+      "estado" : 201,
+      "cuerpo" : {
+        "id" : 6,
+        "correoInstitucional" : "nuevo.docente@institucion.edu.co",
+        "nombreCompleto" : "Marta Ruiz Ocampo",
+        "activo" : true,
+        "permisos" : [ ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : [ {
+        "id" : 2,
+        "correoInstitucional" : "carlos.gomez@institucion.edu.co",
+        "nombreCompleto" : "Carlos Gómez",
+        "activo" : true,
+        "permisos" : [ "GESTIONAR_CASOS" ]
+      }, {
+        "id" : 3,
+        "correoInstitucional" : "laura.mejia@institucion.edu.co",
+        "nombreCompleto" : "Laura Mejía",
+        "activo" : true,
+        "permisos" : [ ]
+      }, {
+        "id" : 6,
+        "correoInstitucional" : "nuevo.docente@institucion.edu.co",
+        "nombreCompleto" : "Marta Ruiz Ocampo",
+        "activo" : true,
+        "permisos" : [ ]
+      } ]
+    }
+  } ]
+}

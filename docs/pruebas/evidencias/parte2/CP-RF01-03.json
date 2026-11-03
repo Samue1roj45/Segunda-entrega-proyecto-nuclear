@@ -1,0 +1,22 @@
+{
+  "caso" : "CP-RF01-03",
+  "descripcion" : "Correo institucional no registrado",
+  "ejecutado" : "2026-11-01T18:17:23",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"no.registrado@institucion.edu.co\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 401,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:17:23.1672594",
+        "estado" : 401,
+        "error" : "Unauthorized",
+        "mensaje" : "Correo o código de autorización inválidos.",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  } ]
+}

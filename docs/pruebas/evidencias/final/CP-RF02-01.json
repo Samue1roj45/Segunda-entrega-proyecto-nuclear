@@ -1,0 +1,50 @@
+{
+  "caso" : "CP-RF02-01",
+  "descripcion" : "Estudiante accede a sus funciones",
+  "ejecutado" : "2026-11-01T21:01:16",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@institucion.edu.co\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:16.788372500Z",
+        "correoInstitucional" : "ana.perez@institucion.edu.co",
+        "nombreCompleto" : "Ana Pérez",
+        "rol" : "ESTUDIANTE",
+        "permisos" : [ "CONSULTAR_RESULTADOS_PROPIOS", "PARTICIPAR_EN_CASOS" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/sesion",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "id" : 4,
+        "correoInstitucional" : "ana.perez@institucion.edu.co",
+        "nombreCompleto" : "Ana Pérez",
+        "rol" : "ESTUDIANTE",
+        "permisos" : [ "PARTICIPAR_EN_CASOS", "CONSULTAR_RESULTADOS_PROPIOS" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/PARTICIPAR_EN_CASOS",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 204,
+      "cuerpo" : null
+    }
+  } ]
+}

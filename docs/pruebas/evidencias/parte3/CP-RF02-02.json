@@ -1,0 +1,40 @@
+{
+  "caso" : "CP-RF02-02",
+  "descripcion" : "Estudiante intenta usar una función docente",
+  "ejecutado" : "2026-11-01T18:29:32",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@institucion.edu.co\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T00:29:32.402855100Z",
+        "correoInstitucional" : "ana.perez@institucion.edu.co",
+        "nombreCompleto" : "Ana Pérez",
+        "rol" : "ESTUDIANTE",
+        "permisos" : [ "CONSULTAR_RESULTADOS_PROPIOS", "PARTICIPAR_EN_CASOS" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/GESTIONAR_CASOS",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:29:32.411625",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/autorizacion/permisos/GESTIONAR_CASOS"
+      }
+    }
+  } ]
+}

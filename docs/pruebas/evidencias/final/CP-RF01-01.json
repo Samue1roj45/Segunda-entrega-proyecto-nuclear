@@ -1,0 +1,24 @@
+{
+  "caso" : "CP-RF01-01",
+  "descripcion" : "Autenticación correcta",
+  "ejecutado" : "2026-11-01T21:01:15",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@institucion.edu.co\",\"codigoAutorizacion\":\"CODIGO_VALIDO_01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:15.879951500Z",
+        "correoInstitucional" : "ana.perez@institucion.edu.co",
+        "nombreCompleto" : "Ana Pérez",
+        "rol" : "ESTUDIANTE",
+        "permisos" : [ "CONSULTAR_RESULTADOS_PROPIOS", "PARTICIPAR_EN_CASOS" ]
+      }
+    }
+  } ]
+}

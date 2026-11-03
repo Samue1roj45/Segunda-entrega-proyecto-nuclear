@@ -1,0 +1,38 @@
+{
+  "caso" : "CP-RF02-06",
+  "descripcion" : "Acceso sin sesión iniciada",
+  "ejecutado" : "2026-11-01T18:29:32",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/sesion",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 401,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:29:32.334448",
+        "estado" : 401,
+        "error" : "Unauthorized",
+        "mensaje" : "Debe iniciar sesión para acceder a este recurso.",
+        "ruta" : "/api/sesion"
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/PARTICIPAR_EN_CASOS",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 401,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:29:32.3376297",
+        "estado" : 401,
+        "error" : "Unauthorized",
+        "mensaje" : "Debe iniciar sesión para acceder a este recurso.",
+        "ruta" : "/api/autorizacion/permisos/PARTICIPAR_EN_CASOS"
+      }
+    }
+  } ]
+}

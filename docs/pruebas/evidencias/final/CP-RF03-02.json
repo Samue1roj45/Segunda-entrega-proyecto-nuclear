@@ -1,0 +1,40 @@
+{
+  "caso" : "CP-RF03-02",
+  "descripcion" : "Crear docente con datos incompletos",
+  "ejecutado" : "2026-11-01T21:01:17",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"admin.plataforma@institucion.edu.co\",\"clave\":\"Clave-Admin-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T03:01:17.570920600Z",
+        "correoInstitucional" : "admin.plataforma@institucion.edu.co",
+        "nombreCompleto" : "Administrador de la Plataforma",
+        "rol" : "ADMINISTRADOR",
+        "permisos" : [ "ADMINISTRAR_DOCENTES" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/admin/docentes",
+      "cuerpo" : "{\"nombreCompleto\":\"\",\"correoInstitucional\":\"otro.docente@institucion.edu.co\"}"
+    },
+    "respuesta" : {
+      "estado" : 400,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:17.5785879",
+        "estado" : 400,
+        "error" : "Bad Request",
+        "mensaje" : "El nombre completo es obligatorio.",
+        "ruta" : "/api/admin/docentes"
+      }
+    }
+  } ]
+}

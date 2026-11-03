@@ -1,0 +1,40 @@
+{
+  "caso" : "CP-RF02-05",
+  "descripcion" : "Docente intenta usar una función de administrador",
+  "ejecutado" : "2026-11-01T18:29:32",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"carlos.gomez@institucion.edu.co\",\"clave\":\"Clave-Docente-01\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T00:29:32.634391200Z",
+        "correoInstitucional" : "carlos.gomez@institucion.edu.co",
+        "nombreCompleto" : "Carlos Gómez",
+        "rol" : "DOCENTE",
+        "permisos" : [ "GESTIONAR_CASOS" ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/ADMINISTRAR_DOCENTES",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:29:32.6408851",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/autorizacion/permisos/ADMINISTRAR_DOCENTES"
+      }
+    }
+  } ]
+}

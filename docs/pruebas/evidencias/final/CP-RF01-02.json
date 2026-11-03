@@ -1,0 +1,22 @@
+{
+  "caso" : "CP-RF01-02",
+  "descripcion" : "Código de autorización inválido",
+  "ejecutado" : "2026-11-01T21:01:16",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/estudiantes/login",
+      "cuerpo" : "{\"correoInstitucional\":\"ana.perez@institucion.edu.co\",\"codigoAutorizacion\":\"CODIGO_INVALIDO_99\"}"
+    },
+    "respuesta" : {
+      "estado" : 401,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T21:01:16.1439629",
+        "estado" : 401,
+        "error" : "Unauthorized",
+        "mensaje" : "Correo o código de autorización inválidos.",
+        "ruta" : "/api/auth/estudiantes/login"
+      }
+    }
+  } ]
+}

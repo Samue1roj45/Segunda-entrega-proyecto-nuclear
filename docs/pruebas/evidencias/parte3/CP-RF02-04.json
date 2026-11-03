@@ -1,0 +1,56 @@
+{
+  "caso" : "CP-RF02-04",
+  "descripcion" : "Docente sin el permiso requerido",
+  "ejecutado" : "2026-11-01T18:29:32",
+  "pasos" : [ {
+    "solicitud" : {
+      "metodo" : "POST",
+      "ruta" : "/api/auth/personal/login",
+      "cuerpo" : "{\"correoInstitucional\":\"laura.mejia@institucion.edu.co\",\"clave\":\"Clave-Docente-02\"}"
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "token" : "eyJhbGciOiJIUzI1…(recortado)",
+        "tipoToken" : "Bearer",
+        "expiraEn" : "2026-11-02T00:29:32.288572200Z",
+        "correoInstitucional" : "laura.mejia@institucion.edu.co",
+        "nombreCompleto" : "Laura Mejía",
+        "rol" : "DOCENTE",
+        "permisos" : [ ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/sesion",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 200,
+      "cuerpo" : {
+        "id" : 3,
+        "correoInstitucional" : "laura.mejia@institucion.edu.co",
+        "nombreCompleto" : "Laura Mejía",
+        "rol" : "DOCENTE",
+        "permisos" : [ ]
+      }
+    }
+  }, {
+    "solicitud" : {
+      "metodo" : "GET",
+      "ruta" : "/api/autorizacion/permisos/DESCARGAR_REPORTES",
+      "cuerpo" : ""
+    },
+    "respuesta" : {
+      "estado" : 403,
+      "cuerpo" : {
+        "fecha" : "2026-11-01T18:29:32.3240332",
+        "estado" : 403,
+        "error" : "Forbidden",
+        "mensaje" : "No tiene permiso para realizar esta operación.",
+        "ruta" : "/api/autorizacion/permisos/DESCARGAR_REPORTES"
+      }
+    }
+  } ]
+}
