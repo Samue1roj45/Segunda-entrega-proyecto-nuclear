@@ -41,6 +41,7 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 ├── docs/                   documentación por módulo, PATRONES.md y ANTIPATRONES.md
 ├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
 ├── docker-compose.yml      backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
+├── levantar-soma.bat       Windows: reinicia todo en Docker con un doble clic
 ├── .env.example            variables de entorno de toda la aplicación
 └── .gitignore
 ```
@@ -89,6 +90,9 @@ docker compose up -d --build      # backend en http://localhost:8080, MySQL en :
 docker compose logs -f app        # ver el arranque
 docker compose down -v            # apagar y borrar la base (la próxima vez arranca con datos semilla limpios)
 ```
+
+En Windows basta con dar doble clic a `levantar-soma.bat`: baja los contenedores, borra la base, reconstruye y
+espera a que el backend responda (deja MySQL en el puerto 3307 para no chocar con un MySQL local).
 
 El contenedor `app` arranca con el perfil `pruebas` (datos semilla). Con un `.env` (copiado de `.env.example`) se
 cambian claves, puerto o perfil. Luego se importa `postman/SOMA.postman_collection.json` y
