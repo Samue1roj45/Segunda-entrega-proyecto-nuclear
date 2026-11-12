@@ -1,0 +1,36 @@
+# Servicios de apoyo del backend único: la base MySQL 8 de los seis módulos y un servidor de correo de
+# pruebas (Mailpit) para ver las convocatorias, cambios, calificaciones y retroalimentaciones (RF-21, RF-27).
+#   docker compose up -d        → MySQL en localhost:3306 y bandeja de correo en http://localhost:8025
+# El backend se ejecuta aparte (ver README).
+services:
+  db:
+    image: mysql:8.0
+    container_name: plataforma_casos_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-plataforma_casos}
+      MYSQL_USER: ${MYSQL_USER:-plataforma}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-cambiar-esta-clave}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cambiar-esta-clave-root}
+      TZ: America/Bogota
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "${MYSQL_HOST_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-cambiar-esta-clave-root}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  correo:
+    image: axllent/mailpit:latest
+    container_name: plataforma_casos_correo
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  mysql_data:

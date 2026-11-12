@@ -8,4 +8,9 @@ public class AccesoDenegadoException extends RuntimeException {
     public AccesoDenegadoException() {
         super(MENSAJE);
     }
+
+    /** Con un motivo concreto (por ejemplo, el recurso pertenece a otro usuario). */
+    public AccesoDenegadoException(String mensaje) {
+        super(mensaje);
+    }
 }

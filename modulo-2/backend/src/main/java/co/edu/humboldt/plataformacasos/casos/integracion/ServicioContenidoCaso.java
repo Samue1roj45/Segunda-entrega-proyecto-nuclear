@@ -1,16 +1,22 @@
 package co.edu.humboldt.plataformacasos.casos.integracion;
 
+import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEstudioRepositorio;
+import co.edu.humboldt.plataformacasos.casos.repositorio.CasoProgramable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
 public class ServicioContenidoCaso implements ContenidoCasoInterno {
 
     private final CasosYaPublicados publicados;
+    private final CasoEstudioRepositorio casos;
 
-    public ServicioContenidoCaso(CasosYaPublicados publicados) {
+    public ServicioContenidoCaso(CasosYaPublicados publicados, CasoEstudioRepositorio casos) {
         this.publicados = publicados;
+        this.casos = casos;
     }
 
     @Override
@@ -21,5 +27,15 @@ public class ServicioContenidoCaso implements ContenidoCasoInterno {
     @Override
     public ClaveEvaluacionDTO claveDeEvaluacion(Long idCaso) {
         return ClaveEvaluacionDTO.de(publicados.exigir(idCaso));
+    }
+
+    @Override
+    public CasoProgramable resumen(Long idCaso) {
+        return CasoProgramable.de(publicados.exigir(idCaso));
+    }
+
+    @Override
+    public Optional<Long> casoDeRespuesta(Long idRespuesta) {
+        return casos.casoDeRespuesta(idRespuesta);
     }
 }

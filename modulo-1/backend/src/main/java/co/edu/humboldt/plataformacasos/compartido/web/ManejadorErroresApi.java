@@ -5,6 +5,7 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoExcept
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.NoAutenticadoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.SolicitudInvalidaException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -14,11 +15,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-/** Traduce las excepciones de la aplicación a respuestas HTTP con el cuerpo ErrorApi. */
+import java.util.stream.Collectors;
+
+/** Traduce las excepciones de toda la aplicación (módulos 1 a 6) a respuestas HTTP con el cuerpo ErrorApi. */
 @RestControllerAdvice
 public class ManejadorErroresApi {
 
@@ -27,6 +31,19 @@ public class ManejadorErroresApi {
     @ExceptionHandler(SolicitudInvalidaException.class)
     ResponseEntity<ErrorApi> solicitudInvalida(SolicitudInvalidaException e, HttpServletRequest solicitud) {
         return responder(HttpStatus.BAD_REQUEST, e.getMessage(), solicitud);
+    }
+
+    @ExceptionHandler(ReglaNegocioException.class)
+    ResponseEntity<ErrorApi> reglaNegocio(ReglaNegocioException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.BAD_REQUEST, e.getMessage(), solicitud);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<ErrorApi> camposInvalidos(MethodArgumentNotValidException e, HttpServletRequest solicitud) {
+        String detalle = e.getBindingResult().getFieldErrors().stream()
+                .map(campo -> campo.getField() + ": " + campo.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return responder(HttpStatus.BAD_REQUEST, detalle.isBlank() ? "Solicitud inválida." : detalle, solicitud);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

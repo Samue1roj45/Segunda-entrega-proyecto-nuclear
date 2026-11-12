@@ -8,4 +8,9 @@ public class NoAutenticadoException extends RuntimeException {
     public NoAutenticadoException() {
         super(MENSAJE);
     }
+
+    /** Con un motivo concreto (por ejemplo, el recurso pertenece a otro usuario). */
+    public NoAutenticadoException(String mensaje) {
+        super(mensaje);
+    }
 }
