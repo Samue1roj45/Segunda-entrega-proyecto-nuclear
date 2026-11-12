@@ -1,7 +1,7 @@
 # SOMA · Patrones de diseño implementados
 
 Cada clase listada lleva en el código un comentario `Patrón …` que explica su papel. Las rutas son relativas a
-`<módulo>/backend/src/main/java/co/edu/humboldt/plataformacasos/` (o `aplicacion/src/main/java/...` para `integracion`).
+`backend/src/main/java/co/edu/humboldt/plataformacasos/`.
 
 ## Chain of Responsibility
 
@@ -65,7 +65,7 @@ una jerarquía de clases no aportaría nada (está explicado en la propia clase)
 |---|---|---|---|
 | M3-4 | RF-11, RF-18, RF-19 | Eventos `sesiones/evento/EstudianteConvocadoEvento`, `SesionModificadaEvento`, `SesionFinalizadaEvento`, `RespuestaRegistradaEvento`; observador `ObservadorRegistroProgreso` | Avisos de sesión publicados con el bus de eventos de Spring |
 | M5-6 | RF-21, RF-27 | Sujeto `evaluacion/notificacion/PublicadorEventos`; observadores `ObservadorAcademico`, `ObservadorCorreo` | Correos de convocatoria, cambios y calificaciones |
-| Integración | RF-21, RF-24 | `aplicacion/.../integracion/ObservadorSesiones` | Escucha los eventos de M3 y dispara correos y cierres en M5 |
+| Integración | RF-21, RF-24 | `integracion/ObservadorSesiones` | Escucha los eventos de M3 y dispara correos y cierres en M5 |
 
 ## Puertos y adaptadores (comunicación entre módulos)
 

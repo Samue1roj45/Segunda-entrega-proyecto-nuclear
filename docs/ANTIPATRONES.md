@@ -1,6 +1,6 @@
 # SOMA · Revisión de antipatrones del backend
 
-Revisión hecha sobre el backend único (`aplicacion` + `modulo-1`, `modulo-2`, `modulo-3-4`, `modulo-5-6`) con
+Revisión hecha sobre el backend único (`backend/`, paquetes de los seis módulos) con
 274 pruebas automáticas en verde (H2) y 18 pruebas contra MySQL 8 en verde.
 
 | Antipatrón | Estado | Evidencia |
@@ -9,7 +9,7 @@ Revisión hecha sobre el backend único (`aplicacion` + `modulo-1`, `modulo-2`, 
 | Código duplicado entre módulos | Corregido | M2 traía una copia completa de M1 y M3-4 traía su propio verificador temporal y migraciones V2/V2_1 de usuarios: se eliminaron. Hay una sola autenticación, un solo `ProxyAcceso` y un solo `ManejadorErroresApi`. |
 | Magic strings para estados | Corregido | Los estados de sesión y autorización usan las constantes `Practica.SIN_INICIAR/EN_CURSO/FINALIZADO` y `Autorizacion.ACTIVA/RETIRADA`; los de intento usan el enum `EstadoParticipacion`. |
 | Dependencias circulares | Corregido | Había un ciclo de beans `CatalogoAcademicoIntegrado → ServicioConsultaSesiones → RepeticionRepositorio → ServicioRegistroParticipaciones → CatalogoAcademico`. Se rompió moviendo el conteo a `AutorizacionRepositorio`. Los módulos se hablan sólo por puertos (ver `PATRONES.md`). |
-| Acoplamiento directo entre módulos | Evitado | M5 no importa clases de M3: depende de sus puertos `contrato/*`, y los adaptadores viven en `aplicacion/integracion`. M1 no conoce a M3: define `VerificadorCodigoAutorizacion`. |
+| Acoplamiento directo entre módulos | Evitado | M5 no importa clases de M3: depende de sus puertos `contrato/*`, y los adaptadores viven en el paquete `integracion`. M1 no conoce a M3: define `VerificadorCodigoAutorizacion`. |
 | Credenciales en el código | Evitado | Contraseñas de BD, correo y el secreto JWT salen de variables de entorno (`DB_PASSWORD`, `MAIL_PASSWORD`, `JWT_SECRETO`); `.env.example` sólo trae valores de ejemplo. Los códigos de acceso se guardan con BCrypt. |
 | Entidades expuestas en la API | Evitado | Ningún `@RestController` devuelve entidades JPA; todos responden DTO/records (`*Respuesta`, `*DTO`). |
 | Inyección por campo / Service Locator | Evitado | Toda la inyección es por constructor. No hay `@Autowired` en campos. |

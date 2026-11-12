@@ -2,17 +2,18 @@
 
 Ingeniería de Software II · Corporación Universitaria Empresarial Alexander von Humboldt · 2026-II
 
-El backend es **una sola aplicación** Spring Boot (monolito modular): cada módulo conserva su carpeta, su código, sus
-pruebas y su documentación, y el `pom.xml` de la raíz los compila juntos. Así los seis módulos usan la misma base de
-datos, el mismo token de seguridad y se comunican por interfaces (puertos) y eventos dentro del mismo proceso.
+Todo el backend está en la carpeta [`backend/`](backend): **una sola aplicación** Spring Boot (monolito modular) con
+un solo `pom.xml`. Cada módulo es un paquete Java dentro de `backend/src/main/java/co/edu/humboldt/plataformacasos`;
+los seis módulos usan la misma base de datos, el mismo token de seguridad y se comunican por interfaces (puertos) y
+eventos dentro del mismo proceso.
 
-| Carpeta | Módulo | Requisitos | Responsable | Paquete | Documentación |
-|---|---|---|---|---|---|
-| [`modulo-1/`](modulo-1) | 1. Usuarios, autenticación y permisos | RF-01, RF-02, RF-03 | Samuel Velásquez Rojas | `autenticacion`, `autorizacion`, `usuarios`, `compartido`, `configuracion` | [modulo-1/docs](modulo-1/docs/README.md) |
-| [`modulo-2/`](modulo-2) | 2. Creación y validación de casos | RF-05 a RF-09, RF-17 | Alejandro Ospina Rodríguez | `casos`, `rubricas` | [modulo-2/docs](modulo-2/docs/README.md) |
-| [`modulo-3-4/`](modulo-3-4) | 3. Programación y convocatorias · 4. Participación y control de sesiones | RF-04, RF-18, RF-19, RF-20 · RF-10, RF-11, RF-22, RF-23, RF-25, RF-28 | Peter Manolo Carvajal Lugo | `sesiones` | [modulo-3-4/docs](modulo-3-4/docs/README.md) |
-| [`modulo-5-6/`](modulo-5-6) | 5. Evaluación, resultados y reportes · 6. Notificaciones y retroalimentación | RF-12 a RF-16, RF-24 · RF-21, RF-26, RF-27 | Sofía Yuliana Murillo Parra | `evaluacion` | [modulo-5-6/docs](modulo-5-6/docs/README.md) |
-| [`aplicacion/`](aplicacion) | Arranque, configuración y adaptadores entre módulos | — | Integración | `integracion`, `configuracion`, `web` | este README |
+| Módulo | Requisitos | Responsable | Paquete | Documentación |
+|---|---|---|---|---|
+| 1. Usuarios, autenticación y permisos | RF-01, RF-02, RF-03 | Samuel Velásquez Rojas | `autenticacion`, `autorizacion`, `usuarios`, `compartido`, `configuracion` | [docs/modulo-1-usuarios-permisos.md](docs/modulo-1-usuarios-permisos.md) |
+| 2. Creación y validación de casos | RF-05 a RF-09, RF-17 | Alejandro Ospina Rodríguez | `casos`, `rubricas` | [docs/modulo-2-casos.md](docs/modulo-2-casos.md) |
+| 3. Programación y convocatorias · 4. Participación y control de sesiones | RF-04, RF-18, RF-19, RF-20 · RF-10, RF-11, RF-22, RF-23, RF-25, RF-28 | Peter Manolo Carvajal Lugo | `sesiones` | [docs/modulos-3-4-sesiones.md](docs/modulos-3-4-sesiones.md) |
+| 5. Evaluación, resultados y reportes · 6. Notificaciones y retroalimentación | RF-12 a RF-16, RF-24 · RF-21, RF-26, RF-27 | Sofía Yuliana Murillo Parra | `evaluacion` | [docs/modulos-5-6-evaluacion.md](docs/modulos-5-6-evaluacion.md) |
+| Arranque, configuración y adaptadores entre módulos | — | Integración | `integracion`, `configuracion`, `web` | este README |
 
 Todos los paquetes cuelgan de `co.edu.humboldt.plataformacasos`.
 
@@ -22,27 +23,26 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 
 ```
 .
-├── pom.xml                 backend único (Java 21, Spring Boot 4.1.2)
-├── Dockerfile              imagen del backend único (Maven + Java 21 → JRE 21)
+├── backend/                backend único (Java 21, Spring Boot 4.1.2)
+│   ├── pom.xml
+│   ├── Dockerfile          imagen del backend (Maven + Java 21 → JRE 21)
+│   └── src/
+│       ├── main/java/co/edu/humboldt/plataformacasos/
+│       │   ├── PlataformaCasosApplication.java, configuracion/, web/, integracion/   arranque y adaptadores
+│       │   ├── autenticacion/ autorizacion/ usuarios/ compartido/                   módulo 1
+│       │   ├── casos/ rubricas/                                                     módulo 2
+│       │   ├── sesiones/                                                            módulos 3 y 4
+│       │   └── evaluacion/                                                          módulos 5 y 6
+│       ├── main/resources/  application.yml · db/migration (V1-V9 M1, V20-V29 M2, V30-V39 M3-4, V40-V49 M5-6) · db/semilla
+│       └── test/            274 pruebas
+├── frontend/
+│   ├── usuarios-y-permisos/  Angular: login, menú por rol, docentes y permisos
+│   └── casos/                Angular: panel de casos y constructor
+├── docs/                   documentación por módulo, PATRONES.md y ANTIPATRONES.md
+├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
 ├── docker-compose.yml      backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
 ├── .env.example            variables de entorno de toda la aplicación
-├── aplicacion/             PlataformaCasosApplication, application.yml, adaptadores entre módulos y prueba de punta a punta
-├── modulo-1/
-│   ├── backend/            autenticacion, autorizacion, usuarios, compartido, configuracion/seguridad · migraciones V1-V9
-│   ├── frontend/           Angular: login, menú por rol, docentes y permisos
-│   └── docs/
-├── modulo-2/
-│   ├── backend/            casos, rubricas · migraciones V20-V29
-│   ├── frontend/           Angular: panel de casos y constructor
-│   └── docs/
-├── modulo-3-4/
-│   ├── backend/            sesiones · migraciones V30-V39
-│   └── docs/
-├── modulo-5-6/
-│   ├── backend/            evaluacion (participacion, resultado, reporte, notificacion) · migración V40
-│   └── docs/
-├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
-└── docs/                   PATRONES.md (patrón → clases → RF) y ANTIPATRONES.md (revisión)
+└── .gitignore
 ```
 
 ## Cómo se comunican los módulos
@@ -62,7 +62,7 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 | Módulo 5 | Módulos 1, 2, 3 y 4 | Puertos `ActorActualResolver`, `CatalogoAcademico`, `PoliticaInicioIntento` | Actor, sesiones, autorizaciones, clave de evaluación, rúbrica y regla de ingreso |
 | Módulos 5 y 6 | Módulo 3 | Eventos `EstudianteConvocadoEvento`, `SesionModificadaEvento`, `SesionFinalizadaEvento` | Correo con el código (RF-20/21), aviso de cambios (RF-21), evaluar pendientes al cerrar (RF-24) |
 
-Los puertos del módulo 5 se conectan en `aplicacion/src/main/java/co/edu/humboldt/plataformacasos/integracion`
+Los puertos del módulo 5 se conectan en `backend/src/main/java/co/edu/humboldt/plataformacasos/integracion`
 (`ActorDesdeSesion`, `CatalogoAcademicoIntegrado`, `PoliticaInicioDesdeSesiones`, `ObservadorSesiones`), así ningún
 módulo conoce las clases internas de otro.
 
@@ -102,20 +102,20 @@ Requisitos: JDK 21, Maven 3.9+, Docker (opcional, para MySQL y el correo de prue
 cp .env.example .env              # completar claves; JWT_SECRETO: openssl rand -base64 32
 docker compose up -d db correo     # sólo MySQL 8 en :3306 y Mailpit en http://localhost:8025
 export $(grep -v '^#' .env | xargs)
-mvn spring-boot:run -Dspring-boot.run.profiles=pruebas    # http://localhost:8080
+cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=pruebas    # http://localhost:8080
 ```
 
 El perfil `pruebas` carga datos ficticios: administrador, docentes Carlos y Laura, estudiantes Ana y Luis, un caso
 publicado y una sesión SIN_INICIAR con Ana y Luis convocados (códigos `CODIGO_VALIDO_01` y `CODIGO_VALIDO_02`).
-Usuarios y claves en [modulo-1/docs](modulo-1/docs/README.md#ejecutar). Flyway crea todas las tablas al arrancar; si
+Usuarios y claves en [docs/modulo-1-usuarios-permisos.md](docs/modulo-1-usuarios-permisos.md#ejecutar). Flyway crea todas las tablas al arrancar; si
 la base tenía un esquema anterior a la integración, créela de nuevo (vacía).
 
-Frontends (en otra terminal): `cd modulo-1/frontend && npm ci && npm start` (o `modulo-2/frontend`). El servidor de
+Frontends (en otra terminal): `cd frontend/usuarios-y-permisos && npm ci && npm start` (o `frontend/casos`). El servidor de
 desarrollo envía `/api` a `localhost:8080`.
 
 ## Compilar y probar
 
-| Qué | Comando (desde la raíz) | Pruebas |
+| Qué | Comando (desde `backend/`) | Pruebas |
 |---|---|---|
 | Todo el backend | `mvn verify` | 274 |
 | Módulo 1 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.autenticacion.**.*Test,co.edu.humboldt.plataformacasos.autorizacion.**.*Test,co.edu.humboldt.plataformacasos.usuarios.**.*Test,co.edu.humboldt.plataformacasos.configuracion.**.*Test,co.edu.humboldt.plataformacasos.compartido.**.*Test'` | 62 |
@@ -123,7 +123,7 @@ desarrollo envía `/api` a `localhost:8080`.
 | Módulos 3 y 4 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.sesiones.**.*Test'` | 60 |
 | Módulos 5 y 6 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.evaluacion.**.*Test'` | 61 |
 | Punta a punta | `mvn test -Dtest='FlujoCompleto*Test,SaludControladorTest'` | 3 (1 solo con MySQL) |
-| Frontends | `cd modulo-1/frontend && npm ci && npx ng test --watch=false` (igual en `modulo-2/frontend`) | 20 y 4 |
+| Frontends | `cd frontend/usuarios-y-permisos && npm ci && npx ng test --watch=false` (igual en `frontend/casos`) | 20 y 4 |
 
 Las pruebas usan H2 en memoria. Para repetirlas sobre MySQL 8 real, con bases vacías y desechables:
 
@@ -131,7 +131,7 @@ Las pruebas usan H2 en memoria. Para repetirlas sobre MySQL 8 real, con bases va
 export MYSQL_PRUEBAS_USUARIO=plataforma MYSQL_PRUEBAS_CLAVE=... \
        MYSQL_PRUEBAS_URL=jdbc:mysql://localhost:3306/plataforma_pruebas \
        MYSQL_FLUJO_URL=jdbc:mysql://localhost:3306/plataforma_flujo
-mvn verify
+cd backend && mvn verify
 ```
 
 `FlujoCompletoTest` recorre los seis módulos sin dobles de prueba: permisos, caso publicado, sesión, convocatoria
