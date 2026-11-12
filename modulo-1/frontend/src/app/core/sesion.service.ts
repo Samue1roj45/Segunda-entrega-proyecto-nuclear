@@ -5,7 +5,7 @@ import { Permiso } from './modelos/permiso';
 import { Rol } from './modelos/rol';
 import { SesionUsuario } from './modelos/sesion-usuario';
 
-const CLAVE_ALMACEN = 'simulapsi.sesion';
+const CLAVE_ALMACEN = 'soma.sesion';
 
 /**
  * Sesión del usuario (Módulo 1). Consume los inicios de sesión del backend; no autentica por su cuenta:

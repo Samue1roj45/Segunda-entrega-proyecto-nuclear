@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.casos.dominio.CasoEstudio;
 import co.edu.humboldt.plataformacasos.compartido.validacion.Validador;
 import org.springframework.stereotype.Component;
 
+// Patrón Chain of Responsibility: recorre la lista de ReglaOcl y detiene la publicación en la primera violación.
 /**
  * Validador DSL-CEPS de la Figura 7 (RF-09). Arma la cadena con las reglas OCL del contenido del
  * caso y entrega el informe completo. Agregar una regla es agregar un eslabón aquí.

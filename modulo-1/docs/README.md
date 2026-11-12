@@ -30,10 +30,13 @@ El token va en el encabezado `Authorization: Bearer <token>`.
 
 ## Ejecutar
 
-1. MySQL 8: crear la base `plataforma_casos` y un usuario con permisos sobre ella.
-2. Variables de entorno: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRETO` (Base64, mínimo 32 bytes),
-   y opcionalmente `DOMINIO_INSTITUCIONAL` y `JWT_MINUTOS`.
-3. Con datos ficticios de prueba: `mvn spring-boot:run -Dspring-boot.run.profiles=pruebas` (carpeta `modulo-1/backend`).
+El módulo 1 ya no se ejecuta solo: forma parte del **backend único** (ver el [README de la raíz](../../README.md)).
+Desde la raíz del repositorio, con MySQL y las variables de `.env.example` (`DB_URL`, `DB_USER`, `DB_PASSWORD`,
+`JWT_SECRETO`...):
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=pruebas
+```
 
 Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
 
@@ -45,11 +48,15 @@ Usuarios ficticios del perfil `pruebas` (no son credenciales reales):
 | ana.perez@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_01` |
 | luis.rios@institucion.edu.co | Estudiante | código `CODIGO_VALIDO_02` |
 
+Los códigos de Ana y Luis pertenecen a la sesión de prueba que crea la semilla del módulo 3
+(`V35_1__Sesion_prueba`): el código de acceso es de una sesión programada (RF-20), no del usuario.
+
 ## Pruebas
 
-`mvn verify` ejecuta 62 pruebas, entre ellas los 18 casos del documento PT-DCP-01
+Desde la raíz: `mvn test -Dtest='co.edu.humboldt.plataformacasos.autenticacion.**.*Test,co.edu.humboldt.plataformacasos.autorizacion.**.*Test,co.edu.humboldt.plataformacasos.usuarios.**.*Test,co.edu.humboldt.plataformacasos.configuracion.**.*Test,co.edu.humboldt.plataformacasos.compartido.**.*Test'`
+ejecuta las 62 pruebas del módulo, entre ellas los 18 casos del documento PT-DCP-01
 (`CasosPruebaRf01Test`, `CasosPruebaRf02Test`, `CasosPruebaRf03Test`). Cada caso guarda su solicitud
-y su respuesta reales en `modulo-1/backend/target/evidencias/<caso>.json`.
+y su respuesta reales en `target/evidencias/<caso>.json`.
 
 Documentos en `modulo-1/docs/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecución por parte e informe final).
 
@@ -64,10 +71,22 @@ Documentos en `modulo-1/docs/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecuci�
 - **Credenciales en el código**: BD y clave JWT por variables de entorno; códigos y contraseñas solo como hash BCrypt.
 - **Modelo anémico**: las reglas de permisos asignables viven en `Usuario`.
 
-## Pendiente para la integración con el equipo
+## Integración con los demás módulos
 
-1. Reemplazar `VerificadorCodigoAutorizacionTemporal` (y la tabla `codigo_autorizacion_temporal`)
-   por la implementación de `VerificadorCodigoAutorizacion` del Módulo 3 (RF-20).
-2. Alinear el modelo (`usuario`, `usuario_permiso`) con la base de datos compartida del equipo.
-3. Validar el supuesto del ingreso de docentes y administrador con contraseña (RF-01 solo cubre estudiantes).
-4. Validar el catálogo de permisos y el dominio institucional real.
+- **Token único:** el JWT que emite este módulo es el único de la aplicación. Los módulos 2 a 6 identifican al
+  usuario con `ServicioAutorizacion` (el módulo 5 lo recibe por su puerto `ActorActualResolver`) y exigen los
+  permisos de `Permiso`: `GESTIONAR_CASOS` (módulo 2 y herramientas de RF-28), `PROGRAMAR_SESIONES` (RF-04, RF-18,
+  RF-19, RF-21), `AUTORIZAR_REPETICION` (RF-25), `CONSULTAR_PARTICIPACIONES` (RF-13 a RF-15, RF-24),
+  `DESCARGAR_REPORTES` (RF-16), `REGISTRAR_RETROALIMENTACION` (RF-26); el estudiante usa `PARTICIPAR_EN_CASOS` y
+  `CONSULTAR_RESULTADOS_PROPIOS`.
+- **RF-20:** `VerificadorCodigoAutorizacion` lo implementa el módulo 3 (`VerificadorCodigoAcceso`). Se eliminaron
+  `VerificadorCodigoAutorizacionTemporal`, la migración `V2` y la tabla `codigo_autorizacion_temporal`.
+- **Compartido:** `ManejadorErroresApi` y `ErrorApi` son el formato de error de toda la API; se agregó
+  `ReglaNegocioException` (400) para los módulos 3 a 6. La configuración de seguridad también habilita CORS
+  para los frontends (`CORS_ORIGENES`).
+- La clase de arranque y `application.yml` se movieron a `aplicacion/` (raíz del repositorio).
+
+## Pendiente
+
+1. Validar el supuesto del ingreso de docentes y administrador con contraseña (RF-01 solo cubre estudiantes).
+2. Validar el catálogo de permisos y el dominio institucional real.

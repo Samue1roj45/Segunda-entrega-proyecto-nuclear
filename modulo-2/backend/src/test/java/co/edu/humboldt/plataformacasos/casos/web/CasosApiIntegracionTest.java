@@ -3,7 +3,9 @@ package co.edu.humboldt.plataformacasos.casos.web;
 import co.edu.humboldt.plataformacasos.casos.integracion.ClaveEvaluacionDTO;
 import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
 import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoParticipacionDTO;
+import co.edu.humboldt.plataformacasos.autenticacion.token.EmisorToken;
 import co.edu.humboldt.plataformacasos.soporte.Sesiones;
+import co.edu.humboldt.plataformacasos.usuarios.repositorio.UsuarioRepositorio;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
@@ -34,7 +36,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * No son transaccionales a propósito: cada petición confirma su propia transacción, de modo que lo
  * leído después viene de la base y no de la caché de Hibernate.
  */
-@SpringBootTest
+// Contexto (y base H2) propio: estas pruebas borran casos y permisos antes de cada caso de prueba, y no deben
+// afectar a las de otros módulos que usan los datos ficticios compartidos.
+@SpringBootTest(properties = "pruebas.contexto=modulo-2")
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class CasosApiIntegracionTest {
@@ -66,9 +70,15 @@ class CasosApiIntegracionTest {
     private JdbcTemplate jdbc;
     @Autowired
     private ContenidoCasoInterno contenidoInterno;
+    @Autowired
+    private EmisorToken emisorToken;
+    @Autowired
+    private UsuarioRepositorio usuarios;
 
     @AfterEach
     void limpiar() {
+        // La sesión de prueba del módulo 3 apunta al caso de prueba: se borra primero (sus autorizaciones caen en cascada).
+        jdbc.update("DELETE FROM practicas");
         jdbc.update("DELETE FROM casos_estudio");
         jdbc.update("DELETE FROM usuario_permiso WHERE permiso <> 'GESTIONAR_CASOS' OR usuario_id = " + idDe(LAURA));
     }
@@ -94,10 +104,13 @@ class CasosApiIntegracionTest {
         return sesionPersonal(LAURA, "Clave-Docente-02");
     }
 
-    private String estudiante() throws Exception {
-        Sesiones sesiones = new Sesiones(mockMvc, json);
-        return sesiones.token(sesiones.login(Sesiones.RUTA_LOGIN_ESTUDIANTE,
-                Sesiones.cuerpoEstudiante("ana.perez@institucion.edu.co", "CODIGO_VALIDO_01")));
+    /**
+     * Token de Ana emitido por el módulo 1. No se usa el login con código (RF-01/RF-20) porque la limpieza de
+     * estas pruebas borra la sesión de prueba del módulo 3, que es la que guarda los códigos.
+     */
+    private String estudiante() {
+        return emisorToken.emitir(usuarios.findByCorreoInstitucional("ana.perez@institucion.edu.co").orElseThrow())
+                .token();
     }
 
     private record Respuesta(int estado, JsonNode cuerpo, String texto) {

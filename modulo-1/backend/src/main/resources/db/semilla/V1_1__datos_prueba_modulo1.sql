@@ -1,5 +1,6 @@
 -- Datos FICTICIOS para ejecutar los casos de prueba del Módulo 1 (perfil "pruebas").
--- No son credenciales reales. Los códigos de autorización los genera el Módulo 3 (RF-20).
+-- No son credenciales reales. Los códigos de acceso de Ana y Luis los crea la semilla del módulo 3
+-- (V35_1__Sesion_prueba), porque pertenecen a una sesión programada (RF-20).
 
 INSERT INTO usuario (correo_institucional, nombre_completo, rol) VALUES
     ('admin.plataforma@institucion.edu.co', 'Administrador de la Plataforma', 'ADMINISTRADOR'),

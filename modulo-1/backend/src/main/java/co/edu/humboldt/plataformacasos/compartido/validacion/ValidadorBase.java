@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.compartido.validacion;
 
 import java.util.Objects;
 
+// Patrón Chain of Responsibility: clase base de los eslabones; guarda el siguiente y encadena la ejecución.
 /**
  * Implementación base de la cadena. Cada subclase solo implementa su condición
  * en {@link #validarCondicion(Object)}; el recorrido de la cadena queda aquí

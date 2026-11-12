@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+// Patrón Chain of Responsibility: eslabón que exige el dominio institucional del correo.
 /** Eslabón 2 (RF-01): el correo pertenece al dominio institucional configurado. */
 public class ValidadorDominioInstitucional extends ValidadorBase<SolicitudAutenticacion> {
 

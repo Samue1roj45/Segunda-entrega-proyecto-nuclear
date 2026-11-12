@@ -1,0 +1,11 @@
+**/target
+**/node_modules
+**/.angular
+**/dist
+**/frontend
+.git
+.idea
+.vscode
+.env
+postman
+docs

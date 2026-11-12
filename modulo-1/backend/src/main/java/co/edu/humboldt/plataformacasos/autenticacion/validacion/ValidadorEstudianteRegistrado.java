@@ -6,6 +6,7 @@ import co.edu.humboldt.plataformacasos.compartido.validacion.ResultadoValidacion
 import co.edu.humboldt.plataformacasos.compartido.validacion.ValidadorBase;
 import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 
+// Patrón Chain of Responsibility: eslabón que comprueba que el estudiante exista.
 /** Eslabón 3 (RF-01): el correo corresponde a un estudiante registrado y activo. */
 public class ValidadorEstudianteRegistrado extends ValidadorBase<IntentoAutenticacion> {
 

@@ -41,4 +41,8 @@ public interface CasoEstudioRepositorio extends JpaRepository<CasoEstudio, Long>
             order by c.fechaPublicacion desc, c.id desc
             """)
     List<CasoProgramable> listarPorEstado(@Param("estado") EstadoCaso estado);
+
+    /** Para los módulos 4 y 5: a qué caso pertenece una opción de respuesta. */
+    @Query("select e.caso.id from Respuesta r join r.pregunta p join p.escenario e where r.id = :idRespuesta")
+    Optional<Long> casoDeRespuesta(@Param("idRespuesta") Long idRespuesta);
 }

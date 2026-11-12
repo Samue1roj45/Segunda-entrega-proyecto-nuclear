@@ -7,11 +7,11 @@ import { ListaCasos } from './paginas/lista-casos/lista-casos';
 import { Login } from './paginas/login/login';
 
 export const routes: Routes = [
-  { path: 'login', component: Login, title: 'Iniciar sesión · SimulaPsi' },
-  { path: 'inicio', component: Inicio, canActivate: [guardiaSesion], title: 'Inicio · SimulaPsi' },
-  { path: 'acceso-denegado', component: AccesoDenegado, title: 'Acceso denegado · SimulaPsi' },
-  { path: 'docente/casos', component: ListaCasos, canActivate: [guardiaDocente], title: 'Casos de estudio · SimulaPsi' },
-  { path: 'docente/casos/:id', component: ConstructorCaso, canActivate: [guardiaDocente], title: 'Constructor de caso · SimulaPsi' },
+  { path: 'login', component: Login, title: 'Iniciar sesión · SOMA' },
+  { path: 'inicio', component: Inicio, canActivate: [guardiaSesion], title: 'Inicio · SOMA' },
+  { path: 'acceso-denegado', component: AccesoDenegado, title: 'Acceso denegado · SOMA' },
+  { path: 'docente/casos', component: ListaCasos, canActivate: [guardiaDocente], title: 'Casos de estudio · SOMA' },
+  { path: 'docente/casos/:id', component: ConstructorCaso, canActivate: [guardiaDocente], title: 'Constructor de caso · SOMA' },
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   { path: '**', redirectTo: 'inicio' },
 ];

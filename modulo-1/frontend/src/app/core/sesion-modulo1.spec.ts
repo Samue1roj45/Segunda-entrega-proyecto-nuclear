@@ -92,7 +92,7 @@ describe('Módulo 1: sesión, permisos y guardias', () => {
   });
 
   it('descarta una sesión guardada cuyo token ya venció', () => {
-    sessionStorage.setItem('simulapsi.sesion', JSON.stringify({ ...ADMIN, expiraEn: '2000-01-01T00:00:00Z' }));
+    sessionStorage.setItem('soma.sesion', JSON.stringify({ ...ADMIN, expiraEn: '2000-01-01T00:00:00Z' }));
     configurar();
     expect(sesiones.autenticado()).toBe(false);
   });

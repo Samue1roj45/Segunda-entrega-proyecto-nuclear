@@ -1,0 +1,3680 @@
+{
+  "info": {
+    "_postman_id": "4d92ed28-3e96-57bb-9152-1199ae19d563",
+    "name": "SOMA · Backend único (módulos 1 a 6)",
+    "description": "Pruebas en orden del backend único. Ejecutar de arriba abajo sobre una base nueva con el perfil pruebas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 · Módulo 1 · Usuarios, autenticación y permisos",
+      "item": [
+        {
+          "name": "0.1 Estado del backend",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/salud",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "salud"
+              ]
+            },
+            "description": "Sin token. Confirma que el backend único está arriba y lista los seis módulos.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('0.1 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('0.1 contenido esperado', () => { pm.expect(j.estado).to.eql('UP'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.1 RF-01 Login del administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/personal/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "personal",
+                "login"
+              ]
+            },
+            "description": "Ingreso del personal con correo institucional y contraseña. Guarda token_admin.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"admin.plataforma@institucion.edu.co\",\n  \"clave\": \"Clave-Admin-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.1 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_admin', j.token);",
+                  "pm.test('1.1 contenido esperado', () => { pm.expect(j.rol).to.eql('ADMINISTRADOR'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 RF-01 Login con contraseña incorrecta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/personal/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "personal",
+                "login"
+              ]
+            },
+            "description": "Credenciales inválidas: responde 401 con un mensaje genérico (no dice qué dato falló).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"admin.plataforma@institucion.edu.co\",\n  \"clave\": \"clave-equivocada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.2 responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 RF-01 Login del docente Carlos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/personal/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "personal",
+                "login"
+              ]
+            },
+            "description": "Guarda token_docente. Carlos solo tiene GESTIONAR_CASOS hasta la prueba 1.10.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"carlos.gomez@institucion.edu.co\",\n  \"clave\": \"Clave-Docente-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.3 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_docente', j.token);",
+                  "pm.test('1.3 contenido esperado', () => { pm.expect(j.permisos).to.include('GESTIONAR_CASOS'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 RF-01 Login de la docente Laura (sin permisos)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/personal/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "personal",
+                "login"
+              ]
+            },
+            "description": "Guarda token_laura para las pruebas de acceso denegado.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"laura.mejia@institucion.edu.co\",\n  \"clave\": \"Clave-Docente-02\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.4 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_laura', j.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 RF-01 + RF-20 Login de la estudiante Ana con su código",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/estudiantes/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "estudiantes",
+                "login"
+              ]
+            },
+            "description": "El estudiante entra con su correo y el código de acceso de su convocatoria (lo valida el módulo 3). Guarda token_estudiante.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"ana.perez@institucion.edu.co\",\n  \"codigoAutorizacion\": \"CODIGO_VALIDO_01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.5 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('token_estudiante', j.token);",
+                  "pm.test('1.5 contenido esperado', () => { pm.expect(j.rol).to.eql('ESTUDIANTE'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.6 RF-01 Login de estudiante con correo de otro dominio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/estudiantes/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "estudiantes",
+                "login"
+              ]
+            },
+            "description": "El correo debe ser institucional: responde 400.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"ana.perez@gmail.com\",\n  \"codigoAutorizacion\": \"CODIGO_VALIDO_01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.6 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.7 RF-02 Consultar mi sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesion"
+              ]
+            },
+            "description": "Devuelve el usuario del token con su rol y sus permisos vigentes.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.7 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.8 RF-03 Listar docentes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/docentes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "docentes"
+              ]
+            },
+            "description": "Solo el administrador (ADMINISTRAR_DOCENTES). Guarda docente_id con el id de Carlos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.8 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('docente_id', j.find(d => d.correoInstitucional === 'carlos.gomez@institucion.edu.co').id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.9 RF-03 Crear un docente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/docentes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "docentes"
+              ]
+            },
+            "description": "El administrador registra un docente nuevo (queda sin permisos).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreCompleto\": \"Marta Ruiz\",\n  \"correoInstitucional\": \"marta.ruiz@institucion.edu.co\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.9 responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.10 RF-03 Asignar permisos a Carlos",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/docentes/{{docente_id}}/permisos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "docentes",
+                "{{docente_id}}",
+                "permisos"
+              ]
+            },
+            "description": "El administrador le da a Carlos todos los permisos de docente. Los permisos se leen de la base en cada petición: el token de Carlos ya los tiene.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permisos\": [\n    \"GESTIONAR_CASOS\",\n    \"PROGRAMAR_SESIONES\",\n    \"CONSULTAR_PARTICIPACIONES\",\n    \"DESCARGAR_REPORTES\",\n    \"REGISTRAR_RETROALIMENTACION\",\n    \"AUTORIZAR_REPETICION\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.10 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.11 RF-02 Verificar un permiso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/autorizacion/permisos/PROGRAMAR_SESIONES",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizacion",
+                "permisos",
+                "PROGRAMAR_SESIONES"
+              ]
+            },
+            "description": "204 si el usuario del token tiene el permiso indicado.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('1.11 responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 · Módulo 2 · Casos y rúbricas",
+      "item": [
+        {
+          "name": "2.1 RF-05 Crear el borrador del caso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos"
+              ]
+            },
+            "description": "Carlos (GESTIONAR_CASOS) crea un caso en BORRADOR. Guarda caso_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Difusión de responsabilidad en una emergencia\",\n  \"desarrolloSituacional\": \"Un estudiante se desmaya en la cafetería llena y nadie llama a enfermería.\",\n  \"contextoHistoria\": \"Es hora de almuerzo y hay más de cuarenta personas alrededor.\",\n  \"tiempoEstimadoMinutos\": 90\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.1 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('caso_id', j.id);",
+                  "pm.test('2.1 contenido esperado', () => { pm.expect(j.estado).to.eql('BORRADOR'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 RF-06 Agregar un escenario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/escenarios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "escenarios"
+              ]
+            },
+            "description": "Escenario con su contexto situacional. Guarda escenario_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"En la cafetería\",\n  \"contexto\": \"Varias personas miran, pero cada una espera que otra actúe.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.2 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('escenario_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 RF-06 Agregar una pregunta al escenario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/escenarios/{{escenario_id}}/preguntas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "escenarios",
+                "{{escenario_id}}",
+                "preguntas"
+              ]
+            },
+            "description": "Guarda pregunta_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enunciado\": \"¿Qué fenómeno explica que nadie ayude?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.3 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('pregunta_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 RF-07 Agregar la opción A (correcta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/preguntas/{{pregunta_id}}/respuestas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "preguntas",
+                "{{pregunta_id}}",
+                "respuestas"
+              ]
+            },
+            "description": "Opción con código, texto, si es correcta, porcentaje y justificación (RF-08). Guarda respuesta_a_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"A\",\n  \"texto\": \"Difusión de la responsabilidad\",\n  \"esCorrecta\": true,\n  \"porcentaje\": 100,\n  \"justificacion\": \"Cuantos más testigos, menos responsable se siente cada uno.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.4 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('respuesta_a_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.5 RF-07 Agregar la opción B (incorrecta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/preguntas/{{pregunta_id}}/respuestas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "preguntas",
+                "{{pregunta_id}}",
+                "respuestas"
+              ]
+            },
+            "description": "Guarda respuesta_b_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"B\",\n  \"texto\": \"Obediencia a la autoridad\",\n  \"esCorrecta\": false,\n  \"porcentaje\": 0,\n  \"justificacion\": \"No hay una figura de autoridad dando órdenes.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.5 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('respuesta_b_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.6 RF-08 Registrar la justificación de una opción",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/respuestas/{{respuesta_b_id}}/justificacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "respuestas",
+                "{{respuesta_b_id}}",
+                "justificacion"
+              ]
+            },
+            "description": "Cambia la justificación de la opción B.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"justificacion\": \"La obediencia exige una orden explícita; aquí nadie da órdenes.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.6 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.7 RF-07 Marcar la opción correcta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/preguntas/{{pregunta_id}}/respuesta-correcta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "preguntas",
+                "{{pregunta_id}}",
+                "respuesta-correcta"
+              ]
+            },
+            "description": "Deja una sola opción correcta en la pregunta.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idRespuesta\": {{respuesta_a_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.7 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.8 RF-17 Asociar la rúbrica",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/rubrica",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "rubrica"
+              ]
+            },
+            "description": "Crea o actualiza la rúbrica del caso.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Rúbrica de análisis\",\n  \"descripcion\": \"Identificación del fenómeno y de la intervención.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.8 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.9 RF-17 Agregar un criterio a la rúbrica",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/rubrica/criterios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "rubrica",
+                "criterios"
+              ]
+            },
+            "description": "Criterio con parámetros y rango 0 a 5 (la nota del caso queda sobre 5).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"criterio\": \"Identifica el fenómeno\",\n  \"parametros\": [\n    \"Nombra el fenómeno\",\n    \"Lo explica con el caso\"\n  ],\n  \"rango\": {\n    \"min\": 0,\n    \"max\": 5\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.9 responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.10 RF-09 Validar la estructura del caso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/validacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "validacion"
+              ]
+            },
+            "description": "Informe de las reglas OCL sin cambiar el estado.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.10 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.11 RF-09 Publicar el caso",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}/publicacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}",
+                "publicacion"
+              ]
+            },
+            "description": "Solo se publica si cumple todas las reglas; queda PUBLICADO y de solo lectura.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.11 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('2.11 contenido esperado', () => { pm.expect(j.estado).to.eql('PUBLICADO'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.12 RF-05 Consultar el caso completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_id}}"
+              ]
+            },
+            "description": "Caso con escenarios, preguntas, opciones y rúbrica.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.12 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.13 Contrato con el módulo 3: casos publicados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/integracion/casos/publicados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "integracion",
+                "casos",
+                "publicados"
+              ]
+            },
+            "description": "Lo que el docente puede programar (PROGRAMAR_SESIONES); no muestra la clave.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.13 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 · Módulo 3 · Sesiones y convocatoria",
+      "item": [
+        {
+          "name": "3.1 RF-28 Registrar una herramienta en el caso de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos/1/herramientas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "1",
+                "herramientas"
+              ]
+            },
+            "description": "El docente creador del caso de prueba (id 1) registra una tabla de apoyo que verá el estudiante.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Escala de conformidad\",\n  \"tipo\": \"TABLA\",\n  \"descripcion\": \"Valores de referencia\",\n  \"contenido\": \"{\\\"filas\\\":[[\\\"Baja\\\",\\\"0-3\\\"],[\\\"Alta\\\",\\\"4-5\\\"]]}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.1 responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 RF-04 + RF-18 Agendar una sesión y convocar estudiantes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "Programa el caso publicado en 2.11 y convoca a Ana (id 4) y Luis (id 5). Cada uno recibe por correo su código de acceso (ver Mailpit en http://localhost:8025). Guarda sesion_id. Las fechas las pone el script de la colección (inicio dentro de 5 minutos, fin en 3 horas).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": {{caso_id}},\n  \"espacioAcademico\": \"Psicología Social I\",\n  \"fechaInicio\": \"{{fecha_inicio}}\",\n  \"fechaFin\": \"{{fecha_fin}}\",\n  \"tiempoMaximoMinutos\": 60,\n  \"lugar\": \"Aula 204\",\n  \"mensajePersonalizado\": \"Traer audífonos.\",\n  \"idsEstudiantes\": [\n    4,\n    5\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.2 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('sesion_id', j.idPractica);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const hoy = new Date(Date.now() - 5 * 3600 * 1000);   // hora de Bogotá (UTC-5)",
+                  "const fmt = d => d.toISOString().slice(0, 16) + ':00';",
+                  "pm.environment.set('fecha_inicio', fmt(new Date(hoy.getTime() + 5 * 60 * 1000)));",
+                  "pm.environment.set('fecha_fin', fmt(new Date(hoy.getTime() + 3 * 3600 * 1000)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 RF-18 Listar mis sesiones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "Sesiones del docente con su estado y las acciones permitidas (INICIAR / FINALIZAR).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.3 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4 RF-18 Consultar la sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/{{sesion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "{{sesion_id}}"
+              ]
+            },
+            "description": "Detalle con condiciones y estado SIN_INICIAR.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.4 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('3.4 contenido esperado', () => { pm.expect(j.estado).to.eql('SIN_INICIAR'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.5 RF-18 + RF-21 Cambiar las condiciones de la sesión",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/{{sesion_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "{{sesion_id}}"
+              ]
+            },
+            "description": "Cambia el lugar y el mensaje. Los convocados reciben el aviso de cambio.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"espacioAcademico\": \"Psicología Social I\",\n  \"fechaInicio\": \"{{fecha_inicio}}\",\n  \"fechaFin\": \"{{fecha_fin}}\",\n  \"tiempoMaximoMinutos\": 60,\n  \"lugar\": \"Laboratorio 2\",\n  \"mensajePersonalizado\": \"Cambió el salón.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.5 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const hoy = new Date(Date.now() - 5 * 3600 * 1000);   // hora de Bogotá (UTC-5)",
+                  "const fmt = d => d.toISOString().slice(0, 16) + ':00';",
+                  "pm.environment.set('fecha_inicio', fmt(new Date(hoy.getTime() + 5 * 60 * 1000)));",
+                  "pm.environment.set('fecha_fin', fmt(new Date(hoy.getTime() + 3 * 3600 * 1000)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.6 RF-04 Ver los estudiantes convocados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/{{sesion_id}}/estudiantes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "{{sesion_id}}",
+                "estudiantes"
+              ]
+            },
+            "description": "Lista los convocados con su estado (ACTIVA/RETIRADA). Nunca muestra el código.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.6 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.7 RF-04 Retirar a un estudiante",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/{{sesion_id}}/estudiantes/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "{{sesion_id}}",
+                "estudiantes",
+                "5"
+              ]
+            },
+            "description": "Retira a Luis; su autorización queda RETIRADA (se conserva el historial).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.7 responde 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.8 RF-04 Volver a convocar a un estudiante",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/{{sesion_id}}/estudiantes/5",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "{{sesion_id}}",
+                "estudiantes",
+                "5"
+              ]
+            },
+            "description": "Luis vuelve a quedar ACTIVO con un código nuevo.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.8 responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.9 RF-19 Iniciar la sesión de prueba",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/1/iniciar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "1",
+                "iniciar"
+              ]
+            },
+            "description": "La sesión de prueba (id 1, con Ana y Luis) pasa de SIN_INICIAR a EN_CURSO.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.9 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('3.9 contenido esperado', () => { pm.expect(j.estado).to.eql('EN_CURSO'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.10 RF-20 Mis convocatorias (estudiante)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/autorizaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizaciones"
+              ]
+            },
+            "description": "Ana ve las sesiones a las que está convocada. Guarda autorizacion_id de la sesión de prueba.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('3.10 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('autorizacion_id', j.find(a => a.idPractica === 1).idAutorizacion);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4 · Módulo 4 · Participación del estudiante",
+      "item": [
+        {
+          "name": "4.0 RF-22 ¿Puedo ingresar?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/autorizaciones/{{autorizacion_id}}/ingreso",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizaciones",
+                "{{autorizacion_id}}",
+                "ingreso"
+              ]
+            },
+            "description": "Ingreso permitido mientras no pase la mitad del tiempo máximo desde el inicio de la sesión.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.0 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('4.0 contenido esperado', () => { pm.expect(j.permitido).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.1 RF-12 Iniciar el intento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/iniciar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "iniciar"
+              ]
+            },
+            "description": "Registra la hora de inicio del intento. Guarda participacion_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autorizacionId\": {{autorizacion_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.1 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('participacion_id', j.id);",
+                  "pm.test('4.1 contenido esperado', () => { pm.expect(j.estado).to.eql('EN_CURSO'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 RF-10 Ver el caso (contexto y preguntas)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/contexto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "contexto"
+              ]
+            },
+            "description": "Escenarios, preguntas y opciones SIN la respuesta correcta ni la justificación. Guarda los ids de la primera pregunta (p1, opciones p1_a y p1_b) y de la segunda (p2, p2_a).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.2 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('p1', j.escenarios[0].preguntas[0].idPregunta);",
+                  "pm.environment.set('p1_a', j.escenarios[0].preguntas[0].opciones.find(o => o.codigo === 'A').idRespuesta);",
+                  "pm.environment.set('p1_b', j.escenarios[0].preguntas[0].opciones.find(o => o.codigo === 'B').idRespuesta);",
+                  "pm.environment.set('p2', j.escenarios[0].preguntas[1].idPregunta);",
+                  "pm.environment.set('p2_a', j.escenarios[0].preguntas[1].opciones.find(o => o.codigo === 'A').idRespuesta);",
+                  "pm.test('4.2 contenido esperado', () => { pm.expect(JSON.stringify(j)).to.not.include('esCorrecta'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 RF-10 + RF-11 Responder la pregunta 1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/preguntas/{{p1}}/respuesta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "preguntas",
+                "{{p1}}",
+                "respuesta"
+              ]
+            },
+            "description": "Elige la opción B; devuelve el progreso (1 de 2 = 50 %).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idRespuesta\": {{p1_b}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.3 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('4.3 contenido esperado', () => { pm.expect(j.porcentajeProgreso).to.eql(50); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.4 RF-10 Cambiar la respuesta de la pregunta 1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/preguntas/{{p1}}/respuesta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "preguntas",
+                "{{p1}}",
+                "respuesta"
+              ]
+            },
+            "description": "Cambia a la opción A; el progreso sigue en 50 %.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idRespuesta\": {{p1_a}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.4 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.5 RF-10 Responder con una opción de otra pregunta",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/preguntas/{{p2}}/respuesta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "preguntas",
+                "{{p2}}",
+                "respuesta"
+              ]
+            },
+            "description": "La opción no pertenece a la pregunta: 400.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idRespuesta\": {{p1_a}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.5 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.6 RF-10 + RF-11 Responder la pregunta 2",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/preguntas/{{p2}}/respuesta",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "preguntas",
+                "{{p2}}",
+                "respuesta"
+              ]
+            },
+            "description": "Elige la opción A; progreso 100 %.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idRespuesta\": {{p2_a}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.6 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('4.6 contenido esperado', () => { pm.expect(j.porcentajeProgreso).to.eql(100); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.7 RF-11 Consultar el progreso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/progreso",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "progreso"
+              ]
+            },
+            "description": "Preguntas respondidas, total y porcentaje.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.7 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.8 RF-23 Consultar el tiempo restante",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/tiempo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "tiempo"
+              ]
+            },
+            "description": "Cronómetro del intento: inicio + tiempo máximo (60 min).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.8 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('4.8 contenido esperado', () => { pm.expect(j.expirada).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.9 RF-28 Consultar las herramientas del caso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/herramientas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "herramientas"
+              ]
+            },
+            "description": "Solo mientras el intento está en curso.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('4.9 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('4.9 contenido esperado', () => { pm.expect(j.length).to.eql(1); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5 · Módulos 5 y 6 · Evaluación, reportes y avisos",
+      "item": [
+        {
+          "name": "5.1 RF-12 Finalizar el intento",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/{{participacion_id}}/finalizar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "{{participacion_id}}",
+                "finalizar"
+              ]
+            },
+            "description": "Registra la hora de fin y calcula la nota con la rúbrica (RF-13).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.1 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('5.1 contenido esperado', () => { pm.expect(j.estado).to.eql('FINALIZADA'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 RF-13 + RF-14 Consultar mi resultado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/resultados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "resultados"
+              ]
+            },
+            "description": "Ana ve su nota: 2 de 2 correctas sobre una escala de 5 → 5.00.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.2 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('5.2 contenido esperado', () => { pm.expect(j[0].notaFinal).to.eql(5); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 RF-15 Consultar participaciones de la sesión",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones?practica=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones"
+              ],
+              "query": [
+                {
+                  "key": "practica",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "El docente (CONSULTAR_PARTICIPACIONES) ve los intentos de su sesión con inicio, fin y tiempo usado.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.3 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.4 RF-25 Autorizar una repetición excepcional",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/autorizaciones/{{autorizacion_id}}/repeticiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizaciones",
+                "{{autorizacion_id}}",
+                "repeticiones"
+              ]
+            },
+            "description": "El docente creador del caso concede un segundo intento a Ana.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Falla de conexión durante el intento\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.4 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.test('5.4 contenido esperado', () => { pm.expect(j.intentosPermitidos).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.5 RF-25 Consultar intentos usados y permitidos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/autorizaciones/{{autorizacion_id}}/intentos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizaciones",
+                "{{autorizacion_id}}",
+                "intentos"
+              ]
+            },
+            "description": "1 usado de 2 permitidos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.5 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.6 RF-12 Iniciar el segundo intento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/iniciar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "iniciar"
+              ]
+            },
+            "description": "Ana abre el intento 2 (no lo termina). Guarda participacion2_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autorizacionId\": {{autorizacion_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.6 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('participacion2_id', j.id);",
+                  "pm.test('5.6 contenido esperado', () => { pm.expect(j.numeroIntento).to.eql(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.7 RF-19 + RF-24 Finalizar la sesión",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones/1/finalizar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones",
+                "1",
+                "finalizar"
+              ]
+            },
+            "description": "Al cerrar la sesión, el intento abierto de Ana queda INCOMPLETA y Luis, que no se presentó, queda como ausencia con nota 0.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.7 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('5.7 contenido esperado', () => { pm.expect(j.estado).to.eql('FINALIZADO'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.8 RF-24 Ver incompletas y ausencias",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones?practica=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones"
+              ],
+              "query": [
+                {
+                  "key": "practica",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Intento 1 de Ana FINALIZADA, intento 2 INCOMPLETA y Luis NO_INICIADA.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.8 responde 200', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "pm.test('5.8 contenido esperado', () => { pm.expect(j.length).to.eql(3); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.9 RF-14 Elegir la nota oficial",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/resultados/nota-oficial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "resultados",
+                "nota-oficial"
+              ]
+            },
+            "description": "El docente elige el intento 1 de Ana como nota oficial (no cambia la nota de ningún intento).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"practicaId\": 1,\n  \"estudianteId\": 4,\n  \"participacionId\": {{participacion_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.9 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.10 RF-14 Consultar notas oficiales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/resultados/notas-oficiales?practica=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "resultados",
+                "notas-oficiales"
+              ],
+              "query": [
+                {
+                  "key": "practica",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Nota oficial elegida por el docente.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.10 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.11 RF-26 Registrar retroalimentación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/retroalimentaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "retroalimentaciones"
+              ]
+            },
+            "description": "El docente deja un comentario sobre el intento; Ana recibe el aviso (RF-27).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participacionId\": {{participacion_id}},\n  \"texto\": \"Buen análisis: identificaste el fenómeno y la intervención.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.11 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.12 RF-26 Consultar retroalimentaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/retroalimentaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "retroalimentaciones"
+              ]
+            },
+            "description": "Ana ve la retroalimentación de su intento.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.12 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.13 RF-27 Publicar calificaciones",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/resultados/practica/1/publicar-calificaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "resultados",
+                "practica",
+                "1",
+                "publicar-calificaciones"
+              ]
+            },
+            "description": "Avisa a cada estudiante su nota por correo, sin duplicar avisos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.13 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.14 RF-21 + RF-27 Mis notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notificaciones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "description": "Ana ve sus avisos: convocatoria, cambio, calificación y retroalimentación.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.14 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.15 RF-16 Descargar reporte PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/evaluacion.pdf?practica=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "evaluacion.pdf"
+              ],
+              "query": [
+                {
+                  "key": "practica",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Reporte de la sesión (DESCARGAR_REPORTES). En Postman: Send and Download.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.15 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.16 RF-16 Descargar reporte Excel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reportes/evaluacion.xlsx?practica=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "evaluacion.xlsx"
+              ],
+              "query": [
+                {
+                  "key": "practica",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Una fila por intento.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.16 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.17 RF-21 Reenviar la convocatoria",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notificaciones/practica/{{sesion_id}}/convocatoria",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones",
+                "practica",
+                "{{sesion_id}}",
+                "convocatoria"
+              ]
+            },
+            "description": "El docente reenvía la convocatoria de la sesión agendada en 3.2 (no duplica lo ya enviado).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.17 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.18 RF-24 Evaluar pendientes a mano",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/resultados/practica/1/evaluar-pendientes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "resultados",
+                "practica",
+                "1",
+                "evaluar-pendientes"
+              ]
+            },
+            "description": "Ya se evaluaron al finalizar: todo sale como omitido (no se duplica).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('5.18 responde 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6 · Pruebas negativas",
+      "item": [
+        {
+          "name": "6.1 RF-02 Sin token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "Ruta protegida sin Authorization: 401.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.1 responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.2 RF-02 Estudiante usa una función de docente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "Ana intenta listar sesiones: 403.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.2 responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.3 RF-02 Docente sin permiso",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "Laura no tiene PROGRAMAR_SESIONES: 403.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_laura}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.3 responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.4 RF-03 Docente con correo repetido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/docentes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "docentes"
+              ]
+            },
+            "description": "El correo ya existe: 409.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreCompleto\": \"Marta Ruiz\",\n  \"correoInstitucional\": \"marta.ruiz@institucion.edu.co\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.4 responde 409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.5 RF-18 Fechas incoherentes",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "La fecha de fin es anterior a la de inicio: 400.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": {{caso_id}},\n  \"espacioAcademico\": \"Psicología Social I\",\n  \"fechaInicio\": \"{{fecha_fin}}\",\n  \"fechaFin\": \"{{fecha_inicio}}\",\n  \"tiempoMaximoMinutos\": 60,\n  \"idsEstudiantes\": [\n    4\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.5 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const hoy = new Date(Date.now() - 5 * 3600 * 1000);   // hora de Bogotá (UTC-5)",
+                  "const fmt = d => d.toISOString().slice(0, 16) + ':00';",
+                  "pm.environment.set('fecha_inicio', fmt(new Date(hoy.getTime() + 5 * 60 * 1000)));",
+                  "pm.environment.set('fecha_fin', fmt(new Date(hoy.getTime() + 3 * 3600 * 1000)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.6 RF-18 Tiempo máximo mayor al estimado del caso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/sesiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "sesiones"
+              ]
+            },
+            "description": "120 minutos supera los 90 estimados: 400.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCaso\": {{caso_id}},\n  \"espacioAcademico\": \"Psicología Social I\",\n  \"fechaInicio\": \"{{fecha_inicio}}\",\n  \"fechaFin\": \"{{fecha_fin}}\",\n  \"tiempoMaximoMinutos\": 120,\n  \"idsEstudiantes\": [\n    4\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.6 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const hoy = new Date(Date.now() - 5 * 3600 * 1000);   // hora de Bogotá (UTC-5)",
+                  "const fmt = d => d.toISOString().slice(0, 16) + ':00';",
+                  "pm.environment.set('fecha_inicio', fmt(new Date(hoy.getTime() + 5 * 60 * 1000)));",
+                  "pm.environment.set('fecha_fin', fmt(new Date(hoy.getTime() + 3 * 3600 * 1000)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.7 RF-09 Publicar un caso incompleto (crear)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/casos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos"
+              ]
+            },
+            "description": "Crea un borrador vacío. Guarda caso_incompleto_id.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Caso sin terminar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.7 responde 201', () => pm.response.to.have.status(201));",
+                  "const j = pm.response.json();",
+                  "pm.environment.set('caso_incompleto_id', j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.8 RF-09 Publicar un caso incompleto",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/casos/{{caso_incompleto_id}}/publicacion",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "{{caso_incompleto_id}}",
+                "publicacion"
+              ]
+            },
+            "description": "No cumple las reglas OCL: 422 con la lista de incumplimientos.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.8 responde 422', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.9 RF-12 Iniciar en una sesión finalizada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/iniciar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "iniciar"
+              ]
+            },
+            "description": "La sesión de prueba ya finalizó: 400.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_estudiante}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"autorizacionId\": {{autorizacion_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.9 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.10 RF-20 Código de una sesión finalizada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/estudiantes/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "estudiantes",
+                "login"
+              ]
+            },
+            "description": "El código de la sesión de prueba ya no sirve: 401.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correoInstitucional\": \"ana.perez@institucion.edu.co\",\n  \"codigoAutorizacion\": \"CODIGO_VALIDO_01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.10 responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.11 RF-25 Segunda repetición",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/autorizaciones/{{autorizacion_id}}/repeticiones",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "autorizaciones",
+                "{{autorizacion_id}}",
+                "repeticiones"
+              ]
+            },
+            "description": "No se concede otra repetición: la sesión ya finalizó (y Ana ya tuvo una). Responde 400 con el motivo.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Otra vez\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.11 responde 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.12 RF-15 Participación que no existe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/participaciones/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "participaciones",
+                "999999"
+              ]
+            },
+            "description": "404.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('6.12 responde 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

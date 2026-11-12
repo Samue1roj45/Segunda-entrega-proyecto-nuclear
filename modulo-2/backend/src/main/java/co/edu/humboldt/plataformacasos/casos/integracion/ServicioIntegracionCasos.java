@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+// Patrón Adapter (Ports & Adapters): implementa el contrato ConsultaCasosProgramables que usa M3; la llamada pasa por ProxyAcceso de M1 (permiso PROGRAMAR_SESIONES).
 @Service
 @Transactional(readOnly = true)
 public class ServicioIntegracionCasos implements ConsultaCasosProgramables, ConsultaRubricasEvaluacion {
