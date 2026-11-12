@@ -1,6 +1,6 @@
-package com.example.demo.service.validacion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.validacion;
 
-import com.example.demo.model.SesionProgramada;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 /*
  #REQUISITO RF-04 || RF-18
  Patrón: CHAIN OF RESPONSIBILITY (eslabón base)

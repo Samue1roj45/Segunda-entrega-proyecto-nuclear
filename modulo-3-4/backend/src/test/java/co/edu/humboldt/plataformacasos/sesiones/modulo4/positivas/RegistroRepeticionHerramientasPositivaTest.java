@@ -1,66 +1,38 @@
-package com.example.demo.modulo4.positivas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo4.positivas;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demo.dto.IntentosDto;
-import com.example.demo.dto.RegistroTiempoDto;
-import com.example.demo.model.SolicitudRepeticion;
-import com.example.demo.test.Datos;
-import com.example.demo.repository.HerramientasRepository;
-import com.example.demo.repository.ParticipacionRepository;
-import com.example.demo.repository.RegistroTiempoRepository;
-import com.example.demo.repository.RepeticionRepository;
-import com.example.demo.service.HerramientasService;
-import com.example.demo.service.RegistroTiempoService;
-import com.example.demo.service.RepeticionService;
-import com.example.demo.service.repeticion.CadenaValidacionRepeticion;
-import java.time.LocalDateTime;
+import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Herramienta;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.TipoHerramienta;
+import co.edu.humboldt.plataformacasos.sesiones.dto.HerramientaDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.IntentosDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.RegistrarHerramientaRequest;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.HerramientasRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.RepeticionRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioHerramientas;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion.CadenaValidacionRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.soporte.Datos;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 /*
- MÓDULO 4 · ESCENARIOS POSITIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
- Patrón probado: Chain of Responsibility (validación de la repetición).
+ MÓDULO 4 · ESCENARIOS POSITIVOS · RF-25 (repetición excepcional) y RF-28 (herramientas profesionales) 6
+ (El registro de inicio y fin, RF-12, es de los módulos 5 y 6 y se prueba allí.)
  */
 class RegistroRepeticionHerramientasPositivaTest {
 
-    private static final LocalDateTime T0 = Datos.AHORA;
-    private static final String RUTA = "$.herramientas";
-
-    private final RegistroTiempoDto registro = new RegistroTiempoDto(7L, 1L, 3L, "Estudiante Uno", "FINALIZADA",
-            T0, T0.plusMinutes(20), 1200L, T0.minusMinutes(5), null, null);
-
-    // ---------- RF-12 ----------
-    @Test
-    @DisplayName("CP-RF12-01 El estudiante consulta el inicio y fin de su participación")
-    void CP_RF12_01_estudianteConsultaSuRegistro() {
-        RegistroTiempoRepository repoRegistro = mock(RegistroTiempoRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
-        when(participaciones.participacionDeEstudiante(7L, 3L)).thenReturn(true);
-        when(repoRegistro.porParticipacion(7L)).thenReturn(Optional.of(registro));
-
-        RegistroTiempoDto r = new RegistroTiempoService(repoRegistro, participaciones).consultarPropio(3L, 7L);
-
-        assertThat(r.duracionSegundos()).isEqualTo(1200L);
-        assertThat(r.horaFin()).isEqualTo(T0.plusMinutes(20));
-    }
-
-    @Test
-    @DisplayName("CP-RF12-03 El docente consulta los registros de su sesión")
-    void CP_RF12_03_docenteConsultaLosRegistrosDeSuSesion() {
-        RegistroTiempoRepository repoRegistro = mock(RegistroTiempoRepository.class);
-        when(repoRegistro.porSesion(1L, 2L)).thenReturn(List.of(registro));
-
-        List<RegistroTiempoDto> r = new RegistroTiempoService(repoRegistro,
-                mock(ParticipacionRepository.class)).listarSesion(1L, 2L);
-
-        assertThat(r).containsExactly(registro);
-    }
+    private static final Herramienta CALCULADORA = new Herramienta(1L, 1L, "Calculadora de puntajes",
+            TipoHerramienta.CALCULADORA, "Suma los puntajes del test", "{\"operaciones\":[\"+\"]}", 1);
 
     // ---------- RF-25 ----------
     @Test
@@ -75,45 +47,74 @@ class RegistroRepeticionHerramientasPositivaTest {
     @Test
     @DisplayName("CP-RF25-03 Autorizar la repetición concede un intento adicional")
     void CP_RF25_03_autorizaUnIntentoAdicional() {
-        RepeticionRepository repo = mock(RepeticionRepository.class);
+        RepeticionRepositorio repo = mock(RepeticionRepositorio.class);
         when(repo.cargar(5L)).thenReturn(
                 Optional.of(Datos.datosRepeticion("ACTIVA", 2L, 2L, "EN_CURSO", 1, 0)),
                 Optional.of(Datos.datosRepeticion("ACTIVA", 2L, 2L, "EN_CURSO", 1, 1)));
 
-        IntentosDto r = new RepeticionService(repo, new CadenaValidacionRepeticion())
+        IntentosDto r = new ServicioRepeticion(repo, new CadenaValidacionRepeticion())
                 .autorizar(5L, 2L, "Falla de conexión");
 
         assertThat(r.intentosPermitidos()).isEqualTo(2);
         verify(repo).autorizar(5L, 2L, "Falla de conexión");
     }
 
+    @Test
+    @DisplayName("CP-RF25-05 El docente de la sesión consulta los intentos usados y permitidos")
+    void CP_RF25_05_consultaLosIntentos() {
+        RepeticionRepositorio repo = mock(RepeticionRepositorio.class);
+        when(repo.cargar(5L)).thenReturn(Optional.of(Datos.datosRepeticion("ACTIVA", 2L, 8L, "EN_CURSO", 1, 1)));
+
+        IntentosDto r = new ServicioRepeticion(repo, new CadenaValidacionRepeticion()).consultar(5L, 8L);
+
+        assertThat(r.intentosUsados()).isEqualTo(1);
+        assertThat(r.intentosPermitidos()).isEqualTo(2);
+    }
+
     // ---------- RF-28 ----------
     @Test
     @DisplayName("CP-RF28-01 El estudiante en curso consulta las herramientas definidas para el caso")
     void CP_RF28_01_consultaLasHerramientasDelCaso() {
-        HerramientasRepository repoHerramientas = mock(HerramientasRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ParticipacionEstudianteRepositorio participaciones = mock(ParticipacionEstudianteRepositorio.class);
         when(participaciones.participacionDeEstudiante(7L, 3L)).thenReturn(true);
-        when(repoHerramientas.estadoParticipacion(7L)).thenReturn("EN_CURSO");
-        when(repoHerramientas.herramientasDelCaso(7L, RUTA))
-                .thenReturn(Optional.of("[{\"id\":\"calculadora\"}]"));
+        when(participaciones.estadoParticipacion(7L)).thenReturn("EN_CURSO");
+        when(participaciones.idCasoDeParticipacion(7L)).thenReturn(1L);
+        when(repoHerramientas.delCaso(1L)).thenReturn(List.of(CALCULADORA));
 
-        String json = new HerramientasService(repoHerramientas, participaciones, RUTA).consultar(3L, 7L);
+        List<HerramientaDto> r = new ServicioHerramientas(repoHerramientas, participaciones,
+                mock(ContenidoCasoInterno.class)).consultar(3L, 7L);
 
-        assertThat(json).contains("calculadora");
+        assertThat(r).extracting(HerramientaDto::nombre).containsExactly("Calculadora de puntajes");
     }
 
     @Test
     @DisplayName("CP-RF28-03 Un caso sin herramientas definidas devuelve una lista vacía")
     void CP_RF28_03_casoSinHerramientasDevuelveListaVacia() {
-        HerramientasRepository repoHerramientas = mock(HerramientasRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ParticipacionEstudianteRepositorio participaciones = mock(ParticipacionEstudianteRepositorio.class);
         when(participaciones.participacionDeEstudiante(7L, 3L)).thenReturn(true);
-        when(repoHerramientas.estadoParticipacion(7L)).thenReturn("EN_CURSO");
-        when(repoHerramientas.herramientasDelCaso(7L, RUTA)).thenReturn(Optional.empty());
+        when(participaciones.estadoParticipacion(7L)).thenReturn("EN_CURSO");
+        when(participaciones.idCasoDeParticipacion(7L)).thenReturn(1L);
+        when(repoHerramientas.delCaso(1L)).thenReturn(List.of());
 
-        String json = new HerramientasService(repoHerramientas, participaciones, RUTA).consultar(3L, 7L);
+        assertThat(new ServicioHerramientas(repoHerramientas, participaciones, mock(ContenidoCasoInterno.class))
+                .consultar(3L, 7L)).isEmpty();
+    }
 
-        assertThat(json).isEqualTo("[]");
+    @Test
+    @DisplayName("CP-RF28-05 El docente creador del caso registra una herramienta")
+    void CP_RF28_05_creadorRegistraHerramienta() {
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ContenidoCasoInterno casos = mock(ContenidoCasoInterno.class);
+        when(casos.resumen(1L)).thenReturn(Datos.casoPublicado(2L));
+        when(repoHerramientas.registrar(any(Herramienta.class))).thenReturn(9L);
+
+        HerramientaDto r = new ServicioHerramientas(repoHerramientas, mock(ParticipacionEstudianteRepositorio.class),
+                casos).registrar(2L, 1L, new RegistrarHerramientaRequest("Tabla de baremos", TipoHerramienta.TABLA,
+                null, "{\"filas\":[]}", null));
+
+        assertThat(r.idHerramienta()).isEqualTo(9L);
+        assertThat(r.orden()).isEqualTo(1);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package co.edu.humboldt.plataformacasos.sesiones.dto;
 /*
  #REQUISITO RF-04
  Para qué sirve: un estudiante autorizado en una sesión. NO expone el código de

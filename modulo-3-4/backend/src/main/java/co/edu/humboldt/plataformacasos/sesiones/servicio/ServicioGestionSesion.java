@@ -1,29 +1,41 @@
-package com.example.demo.service;
+package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
-import com.example.demo.dto.SesionDto;
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.repository.SesionRepository;
-import com.example.demo.state.EstadoSesion;
-import com.example.demo.state.EstadosSesion;
+import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Practica;
+import co.edu.humboldt.plataformacasos.sesiones.dto.SesionDto;
+import co.edu.humboldt.plataformacasos.sesiones.estado.EstadoSesion;
+import co.edu.humboldt.plataformacasos.sesiones.estado.EstadosSesion;
+import co.edu.humboldt.plataformacasos.sesiones.evento.SesionFinalizadaEvento;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.SesionRepositorio;
 import java.util.List;
 import java.util.Set;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 /*
  #REQUISITO RF-18 || RF-19
  Patrón: STATE (contexto)
  Para qué sirve: consulta las sesiones del docente y gobierna su ciclo de vida
- SIN_INICIAR -> EN_CURSO -> FINALIZADO delegando en el objeto de estado actual.
+ SIN_INICIAR -> EN_CURSO -> FINALIZADO delegando en el objeto de estado actual. Al finalizar
+ (manual o automáticamente) publica SesionFinalizadaEvento: el módulo 5 cierra los intentos
+ abiertos, registra ausencias y califica (RF-24) en la misma transacción.
  */
 @Service
-public class GestionSesionService {
+public class ServicioGestionSesion {
 
     private static final Set<String> ESTADOS = Set.of("SIN_INICIAR", "EN_CURSO", "FINALIZADO");
 
-    private final SesionRepository repo;
+    private final SesionRepositorio repo;
+    private final ContenidoCasoInterno casos;
+    private final ApplicationEventPublisher eventos;
 
-    public GestionSesionService(SesionRepository repo) {
+    public ServicioGestionSesion(SesionRepositorio repo, ContenidoCasoInterno casos,
+                                 ApplicationEventPublisher eventos) {
         this.repo = repo;
+        this.casos = casos;
+        this.eventos = eventos;
     }
 
     @Transactional(readOnly = true)
@@ -35,12 +47,12 @@ public class GestionSesionService {
                 throw new ReglaNegocioException("Estado inválido. Use SIN_INICIAR, EN_CURSO o FINALIZADO");
             }
         }
-        return repo.listarPorDocente(idDocente, filtro).stream().map(this::conAcciones).toList();
+        return repo.listarPorDocente(idDocente, filtro).stream().map(this::aDto).toList();
     }
 
     @Transactional(readOnly = true)
     public SesionDto obtener(Long idPractica, Long idDocente) {
-        return cargar(idPractica, idDocente);
+        return aDto(cargar(idPractica, idDocente));
     }
 
     /** RF-19: inicia la sesión si su estado actual lo permite. */
@@ -48,7 +60,7 @@ public class GestionSesionService {
     public SesionDto iniciar(Long idPractica, Long idDocente) {
         EstadoSesion estado = EstadosSesion.de(cargar(idPractica, idDocente).estado());
         estado.iniciar(repo, idPractica, idDocente);
-        return cargar(idPractica, idDocente);
+        return obtener(idPractica, idDocente);
     }
 
     /** RF-19: finaliza manualmente la sesión si su estado actual lo permite. */
@@ -56,17 +68,32 @@ public class GestionSesionService {
     public SesionDto finalizar(Long idPractica, Long idDocente) {
         EstadoSesion estado = EstadosSesion.de(cargar(idPractica, idDocente).estado());
         estado.finalizar(repo, idPractica, idDocente);
-        return cargar(idPractica, idDocente);
+        eventos.publishEvent(new SesionFinalizadaEvento(idPractica, "MANUAL"));
+        return obtener(idPractica, idDocente);
     }
 
-    private SesionDto cargar(Long idPractica, Long idDocente) {
+    /** RF-19: cierre AUTOMÁTICO de las sesiones EN_CURSO cuyo plazo terminó. Devuelve cuántas cerró. */
+    @Transactional
+    public int cerrarVencidas() {
+        int cerradas = 0;
+        for (Practica vencida : repo.vencidasEnCurso()) {
+            if (repo.cerrarAutomaticamente(vencida.id())) {
+                eventos.publishEvent(new SesionFinalizadaEvento(vencida.id(), "AUTOMATICO"));
+                cerradas++;
+            }
+        }
+        return cerradas;
+    }
+
+    private Practica cargar(Long idPractica, Long idDocente) {
         return repo.buscar(idPractica, idDocente)
-                .map(this::conAcciones)
-                .orElseThrow(() -> new ReglaNegocioException(
-                        "La sesión no existe o no pertenece al docente"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("La sesión no existe o no pertenece al docente"));
     }
 
-    private SesionDto conAcciones(SesionDto s) {
-        return s.conAcciones(EstadosSesion.de(s.estado()).accionesPermitidas());
+    private SesionDto aDto(Practica p) {
+        return new SesionDto(p.id(), p.idCaso(), casos.resumen(p.idCaso()).nombre(), p.espacioAcademico(),
+                p.fechaInicio(), p.fechaFin(), p.tiempoMaximoMinutos(), p.lugar(), p.mensajePersonalizado(),
+                p.urlAcceso(), p.estado(), p.fechaInicioReal(), p.fechaCierreReal(), p.tipoCierre(),
+                EstadosSesion.de(p.estado()).accionesPermitidas());
     }
 }

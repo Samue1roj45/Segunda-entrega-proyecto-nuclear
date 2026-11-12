@@ -1,6 +1,6 @@
-package com.example.demo.service.repeticion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion;
 
-import com.example.demo.model.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
 /*
  #REQUISITO RF-25
  Patrón: CHAIN OF RESPONSIBILITY (eslabón base)

@@ -1,72 +1,73 @@
-package com.example.demo.modulo3.controller;
+package co.edu.humboldt.plataformacasos.sesiones.web;
 
-import com.example.demo.dto.ContextoDto;
-import com.example.demo.dto.EstadoIngresoDto;
-import com.example.demo.dto.FinalizacionDto;
-import com.example.demo.dto.ProgresoDto;
-import com.example.demo.dto.ResponderRequest;
-import com.example.demo.dto.TiempoRestanteDto;
-import com.example.demo.service.ParticipacionService;
+import co.edu.humboldt.plataformacasos.autorizacion.ServicioAutorizacion;
+import co.edu.humboldt.plataformacasos.sesiones.dto.AutorizacionEstudianteDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ContextoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.EstadoIngresoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ProgresoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ResponderRequest;
+import co.edu.humboldt.plataformacasos.sesiones.dto.TiempoRestanteDto;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioParticipacionEstudiante;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioSesiones;
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 import jakarta.validation.Valid;
-import java.util.Map;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 /*
- #REQUISITO RF-10 || RF-11 || RF-22 || RF-23
- Para qué sirve: API REST del ESTUDIANTE durante su participación: ver si puede ingresar,
- iniciar, ver contextos y preguntas, responder/cambiar respuestas, ver progreso y tiempo
- restante, y finalizar su intento. Recibe la interfaz ParticipacionService; Spring inyecta
- el Proxy (@Primary).
+ #REQUISITO RF-10 || RF-11 || RF-20 || RF-22 || RF-23
+ Para qué sirve: API REST del ESTUDIANTE: ver las sesiones a las que está convocado, saber si puede
+ ingresar, ver contextos y preguntas, responder/cambiar respuestas y ver su progreso y tiempo restante.
+ El estudiante es el usuario del token del módulo 1 (inició sesión con su correo y su código, RF-01/RF-20).
+ Iniciar y finalizar el intento: POST /api/participaciones/iniciar y /{id}/finalizar (módulo 5, RF-12).
+ Recibe la interfaz ServicioParticipacionEstudiante; Spring inyecta el Proxy (@Primary).
  */
 @RestController
 @RequestMapping("/api")
-public class ParticipacionController {
+public class ParticipacionEstudianteControlador {
 
-    private static final String ESTUDIANTE = "X-Estudiante-Id";
-    private final ParticipacionService service;
+    private final ServicioParticipacionEstudiante service;
+    private final ServicioSesiones sesiones;
+    private final ServicioAutorizacion autorizacion;
 
-    public ParticipacionController(ParticipacionService service) {
+    public ParticipacionEstudianteControlador(ServicioParticipacionEstudiante service, ServicioSesiones sesiones,
+                                              ServicioAutorizacion autorizacion) {
         this.service = service;
+        this.sesiones = sesiones;
+        this.autorizacion = autorizacion;
+    }
+
+    @GetMapping("/autorizaciones")                                  // RF-20: mis convocatorias
+    public List<AutorizacionEstudianteDto> misAutorizaciones() {
+        return sesiones.autorizacionesDeEstudiante(estudiante());
     }
 
     @GetMapping("/autorizaciones/{idAutorizacion}/ingreso")         // RF-22
-    public EstadoIngresoDto ingreso(@PathVariable Long idAutorizacion,
-                                    @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        return service.consultarIngreso(idEstudiante, idAutorizacion);
-    }
-
-    @PostMapping("/autorizaciones/{idAutorizacion}/participaciones")   // RF-10 / RF-22 / RF-25
-    public ResponseEntity<Map<String, Long>> iniciar(@PathVariable Long idAutorizacion,
-                                                     @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        Long id = service.iniciar(idEstudiante, idAutorizacion);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("idParticipacion", id));
+    public EstadoIngresoDto ingreso(@PathVariable Long idAutorizacion) {
+        return service.consultarIngreso(estudiante(), idAutorizacion);
     }
 
     @GetMapping("/participaciones/{id}/contexto")                   // RF-10
-    public ContextoDto contexto(@PathVariable Long id, @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        return service.consultarContexto(idEstudiante, id);
+    public ContextoDto contexto(@PathVariable Long id) {
+        return service.consultarContexto(estudiante(), id);
     }
 
     @PutMapping("/participaciones/{id}/preguntas/{idPregunta}/respuesta")   // RF-10 + RF-11
     public ProgresoDto responder(@PathVariable Long id, @PathVariable Long idPregunta,
-                                 @RequestHeader(ESTUDIANTE) Long idEstudiante,
                                  @Valid @RequestBody ResponderRequest req) {
-        return service.responder(idEstudiante, id, idPregunta, req.idRespuesta());
+        return service.responder(estudiante(), id, idPregunta, req.idRespuesta());
     }
 
     @GetMapping("/participaciones/{id}/progreso")                   // RF-11
-    public ProgresoDto progreso(@PathVariable Long id, @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        return service.consultarProgreso(idEstudiante, id);
+    public ProgresoDto progreso(@PathVariable Long id) {
+        return service.consultarProgreso(estudiante(), id);
     }
 
     @GetMapping("/participaciones/{id}/tiempo")                     // RF-23
-    public TiempoRestanteDto tiempo(@PathVariable Long id, @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        return service.consultarTiempo(idEstudiante, id);
+    public TiempoRestanteDto tiempo(@PathVariable Long id) {
+        return service.consultarTiempo(estudiante(), id);
     }
 
-    @PostMapping("/participaciones/{id}/finalizar")                 // RF-23 / RF-25
-    public FinalizacionDto finalizar(@PathVariable Long id, @RequestHeader(ESTUDIANTE) Long idEstudiante) {
-        return service.finalizar(idEstudiante, id);
+    private Long estudiante() {
+        return autorizacion.exigirPermiso(Permiso.PARTICIPAR_EN_CASOS).id();
     }
 }

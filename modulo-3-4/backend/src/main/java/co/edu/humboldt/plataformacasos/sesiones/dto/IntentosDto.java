@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package co.edu.humboldt.plataformacasos.sesiones.dto;
 /*
  #REQUISITO RF-25
  Para qué sirve: intentos que el estudiante ha usado y cuántos tiene permitidos

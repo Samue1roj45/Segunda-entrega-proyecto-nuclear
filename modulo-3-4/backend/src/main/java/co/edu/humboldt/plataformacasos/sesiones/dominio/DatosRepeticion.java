@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package co.edu.humboldt.plataformacasos.sesiones.dominio;
 /*
  #REQUISITO RF-25
  Para qué sirve: lo que se necesita saber de una autorización para decidir si se puede
@@ -7,6 +7,9 @@ package com.example.demo.model;
  */
 public record DatosRepeticion(String estadoAutorizacion, Long idDocenteCreador, Long idDocenteSesion,
                               String estadoSesion, int intentosUsados, int repeticionesAutorizadas) {
+
+    /** Máximo de repeticiones excepcionales: un estudiante tiene como mucho dos intentos (decisión del equipo). */
+    public static final int MAX_REPETICIONES = 1;
 
     /** RF-25: 1 intento + 1 por cada repetición autorizada. */
     public int intentosPermitidos() {

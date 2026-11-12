@@ -1,40 +1,58 @@
-package com.example.demo.repository;
+package co.edu.humboldt.plataformacasos.sesiones.repositorio;
 
-import java.util.Optional;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Herramienta;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.TipoHerramienta;
+import java.sql.PreparedStatement;
+import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 /*
  #REQUISITO RF-28
- Para qué sirve: lee las herramientas profesionales definidas para el caso dentro del documento
- DSL (versiones_dsl_caso.documento_json). Toma la versión VÁLIDA más reciente del caso y extrae
- solo el nodo de herramientas con JSON_EXTRACT (la ruta es configurable).
+ Para qué sirve: acceso a `herramientas_caso`, las herramientas profesionales que el docente creador
+ definió para cada caso.
  */
 @Repository
-public class HerramientasRepository {
+public class HerramientasRepositorio {
+
+    private static final RowMapper<Herramienta> MAPA = (rs, n) -> new Herramienta(
+            rs.getLong("id_herramienta"), rs.getLong("id_caso"), rs.getString("nombre"),
+            TipoHerramienta.valueOf(rs.getString("tipo")), rs.getString("descripcion"),
+            rs.getString("contenido"), rs.getInt("orden"));
 
     private final JdbcTemplate jdbc;
 
-    public HerramientasRepository(JdbcTemplate jdbc) {
+    public HerramientasRepositorio(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
     }
 
-    public Optional<String> herramientasDelCaso(Long idParticipacion, String rutaJson) {
-        return jdbc.query("""
-                SELECT COALESCE(JSON_EXTRACT(v.documento_json, ?), JSON_ARRAY()) AS herramientas
-                  FROM participaciones pa
-                  JOIN autorizaciones a ON a.id_autorizacion = pa.id_autorizacion
-                  JOIN practicas pr ON pr.id_practica = a.id_practica
-                  JOIN versiones_dsl_caso v ON v.id_caso = pr.id_caso AND v.estado_validacion = 'VALIDO'
-                 WHERE pa.id_participacion = ?
-                 ORDER BY v.fecha_creacion DESC, v.id_version_dsl DESC
-                 LIMIT 1
-                """,
-                (rs, n) -> rs.getString("herramientas"), rutaJson, idParticipacion)
-                .stream().findFirst();
+    public List<Herramienta> delCaso(Long idCaso) {
+        return jdbc.query("SELECT * FROM herramientas_caso WHERE id_caso = ? ORDER BY orden, id_herramienta",
+                MAPA, idCaso);
     }
 
-    public String estadoParticipacion(Long idParticipacion) {
-        return jdbc.queryForObject("SELECT estado_participacion FROM participaciones WHERE id_participacion = ?",
-                String.class, idParticipacion);
+    public Long registrar(Herramienta h) {
+        KeyHolder llave = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement("""
+                    INSERT INTO herramientas_caso (id_caso, nombre, tipo, descripcion, contenido, orden)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """, new String[] {"id_herramienta"});
+            ps.setLong(1, h.idCaso());
+            ps.setString(2, h.nombre());
+            ps.setString(3, h.tipo().name());
+            ps.setString(4, h.descripcion());
+            ps.setString(5, h.contenido());
+            ps.setInt(6, h.orden());
+            return ps;
+        }, llave);
+        return llave.getKey().longValue();
+    }
+
+    public boolean eliminar(Long idCaso, Long idHerramienta) {
+        return jdbc.update("DELETE FROM herramientas_caso WHERE id_caso = ? AND id_herramienta = ?",
+                idCaso, idHerramienta) > 0;
     }
 }

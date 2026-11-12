@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package co.edu.humboldt.plataformacasos.sesiones.dto;
 
 import java.time.LocalDateTime;
 /*

@@ -1,7 +1,7 @@
-package com.example.demo.service.repeticion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion;
 
-import com.example.demo.exception.AccesoDenegadoException;
-import com.example.demo.model.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
 /*
  #REQUISITO RF-25
  Para qué sirve: solo el docente CREADOR del caso puede autorizar una repetición.

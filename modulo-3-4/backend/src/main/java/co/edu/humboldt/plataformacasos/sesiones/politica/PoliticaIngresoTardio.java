@@ -1,6 +1,6 @@
-package com.example.demo.politica;
+package co.edu.humboldt.plataformacasos.sesiones.politica;
 
-import com.example.demo.model.DatosTiempoSesion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.DatosTiempoSesion;
 import java.time.LocalDateTime;
 /*
  #REQUISITO RF-22

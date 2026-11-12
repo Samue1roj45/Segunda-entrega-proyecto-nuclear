@@ -1,13 +1,13 @@
-package com.example.demo.modulo3.negativas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo3.negativas;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.SesionProgramada;
-import com.example.demo.test.Datos;
-import com.example.demo.service.validacion.ValidadorEspacioAcademico;
-import com.example.demo.service.validacion.ValidadorEstudiantes;
-import com.example.demo.service.validacion.ValidadorFechas;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
+import co.edu.humboldt.plataformacasos.sesiones.soporte.Datos;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.validacion.ValidadorEspacioAcademico;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.validacion.ValidadorEstudiantes;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.validacion.ValidadorFechas;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

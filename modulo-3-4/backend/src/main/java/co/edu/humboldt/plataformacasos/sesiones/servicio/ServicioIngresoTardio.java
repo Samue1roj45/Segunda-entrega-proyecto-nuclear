@@ -1,26 +1,27 @@
-package com.example.demo.service;
+package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
-import com.example.demo.dto.EstadoIngresoDto;
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.DatosTiempoSesion;
-import com.example.demo.politica.PoliticaIngresoTardio;
-import com.example.demo.repository.ParticipacionRepository;
+import co.edu.humboldt.plataformacasos.sesiones.dto.EstadoIngresoDto;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.DatosTiempoSesion;
+import co.edu.humboldt.plataformacasos.sesiones.politica.PoliticaIngresoTardio;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
 import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 /*
  #REQUISITO RF-22
  Para qué sirve: decide si un estudiante puede iniciar su participación ahora, usando la
- estrategia de ingreso tardío. La BD (trigger trg_participaciones_bi) sigue siendo la
- última barrera; esto da el mensaje claro y el límite de ingreso para el frontend.
+ estrategia de ingreso tardío. Lo usan el endpoint de consulta (para el frontend) y el módulo 5
+ antes de registrar el inicio de un intento nuevo (RF-12), así la regla vive en un solo lugar.
  */
 @Service
-public class IngresoTardioService {
+public class ServicioIngresoTardio {
 
-    private final ParticipacionRepository repo;
+    private final ParticipacionEstudianteRepositorio repo;
     private final PoliticaIngresoTardio politica;
 
-    public IngresoTardioService(ParticipacionRepository repo, PoliticaIngresoTardio politica) {
+    public ServicioIngresoTardio(ParticipacionEstudianteRepositorio repo, PoliticaIngresoTardio politica) {
         this.repo = repo;
         this.politica = politica;
     }
@@ -28,7 +29,7 @@ public class IngresoTardioService {
     @Transactional(readOnly = true)
     public EstadoIngresoDto consultar(Long idAutorizacion) {
         DatosTiempoSesion d = repo.datosTiempo(idAutorizacion)
-                .orElseThrow(() -> new ReglaNegocioException("La autorización no existe"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("La autorización no existe"));
         LocalDateTime limite = politica.limiteIngreso(d);
 
         String motivo = null;

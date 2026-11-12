@@ -1,12 +1,12 @@
-package com.example.demo.service.validacion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.validacion;
 
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.SesionProgramada;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 import java.util.HashSet;
 /*
  #REQUISITO RF-04
  Para qué sirve: debe haber uno o varios estudiantes y sin repetidos.
- (Que cada id sea realmente un ESTUDIANTE activo lo valida el trigger de la BD.)
+ (Que cada id sea realmente un ESTUDIANTE activo lo valida ServicioSesiones con el módulo 1.)
  */
 public class ValidadorEstudiantes extends ValidadorAgenda {
     @Override

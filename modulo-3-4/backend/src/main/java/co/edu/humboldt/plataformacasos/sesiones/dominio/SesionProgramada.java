@@ -1,4 +1,4 @@
-package com.example.demo.model;
+package co.edu.humboldt.plataformacasos.sesiones.dominio;
 
 import java.time.LocalDateTime;
 import java.util.List;

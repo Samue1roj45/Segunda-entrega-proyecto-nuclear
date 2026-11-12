@@ -1,11 +1,12 @@
-package com.example.demo.state;
+package co.edu.humboldt.plataformacasos.sesiones.estado;
 
-import com.example.demo.exception.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import java.util.List;
 /*
  #REQUISITO RF-19
  Patrón: STATE (estado concreto). EN_CURSO -> solo se puede FINALIZAR.
- Al finalizar, la BD cierra los intentos abiertos, marca ausentes y califica.
+ Al finalizar se publica SesionFinalizadaEvento: el módulo 5 cierra los intentos abiertos,
+ marca ausentes y califica.
  */
 public final class SesionEnCurso implements EstadoSesion {
 

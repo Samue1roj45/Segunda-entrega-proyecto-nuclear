@@ -1,4 +1,4 @@
-package com.example.demo.state;
+package co.edu.humboldt.plataformacasos.sesiones.estado;
 
 import java.util.List;
 /*
@@ -6,8 +6,7 @@ import java.util.List;
  Patrón: STATE (interfaz del estado)
  Para qué sirve: cada estado de la sesión (SIN_INICIAR, EN_CURSO, FINALIZADO) decide
  qué acciones permite y cuáles rechaza. Reemplaza los if/else por estado dispersos.
- La BD (trigger trg_practicas_bu) sigue siendo la última barrera; este patrón da el
- mensaje claro y la lista de acciones permitidas para el frontend.
+ Además entrega la lista de acciones permitidas para que el frontend sepa qué botones mostrar.
  */
 public interface EstadoSesion {
     String nombre();

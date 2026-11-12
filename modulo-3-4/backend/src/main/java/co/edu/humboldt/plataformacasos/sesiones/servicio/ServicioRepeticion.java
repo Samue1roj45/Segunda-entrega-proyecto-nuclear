@@ -1,12 +1,12 @@
-package com.example.demo.service;
+package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
-import com.example.demo.dto.IntentosDto;
-import com.example.demo.exception.AccesoDenegadoException;
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.DatosRepeticion;
-import com.example.demo.model.SolicitudRepeticion;
-import com.example.demo.repository.RepeticionRepository;
-import com.example.demo.service.repeticion.CadenaValidacionRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dto.IntentosDto;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.DatosRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.RepeticionRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion.CadenaValidacionRepeticion;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 /*
@@ -15,12 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
  y consulta cuántos intentos lleva y cuántos tiene permitidos.
  */
 @Service
-public class RepeticionService {
+public class ServicioRepeticion {
 
-    private final RepeticionRepository repo;
+    private final RepeticionRepositorio repo;
     private final CadenaValidacionRepeticion cadena;
 
-    public RepeticionService(RepeticionRepository repo, CadenaValidacionRepeticion cadena) {
+    public ServicioRepeticion(RepeticionRepositorio repo, CadenaValidacionRepeticion cadena) {
         this.repo = repo;
         this.cadena = cadena;
     }
@@ -45,6 +45,6 @@ public class RepeticionService {
 
     private DatosRepeticion cargar(Long idAutorizacion) {
         return repo.cargar(idAutorizacion)
-                .orElseThrow(() -> new ReglaNegocioException("La autorización no existe"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("La autorización no existe"));
     }
 }

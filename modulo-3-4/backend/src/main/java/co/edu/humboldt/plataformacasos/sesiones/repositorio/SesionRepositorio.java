@@ -1,119 +1,151 @@
-package com.example.demo.repository;
+package co.edu.humboldt.plataformacasos.sesiones.repositorio;
 
-import com.example.demo.dto.ConvocadoDto;
-import com.example.demo.dto.SesionDto;
-import com.example.demo.model.SesionProgramada;
-import com.example.demo.state.AccionesSesion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Practica;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
+import co.edu.humboldt.plataformacasos.sesiones.estado.AccionesSesion;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 /*
  #REQUISITO RF-04 || RF-18 || RF-19
- Para qué sirve: acceso a la BD para programar sesiones, asociar estudiantes, consultar
- sesiones y cambiar su estado. Cada método llama a un procedimiento almacenado; aquí NO
- hay reglas de negocio (viven en la BD: triggers y sp_*).
+ Para qué sirve: acceso a la tabla `practicas` (las sesiones): agendar, consultar, cambiar condiciones
+ y cambiar de estado. Aquí NO hay reglas de negocio: viven en la cadena de validación (Chain), los
+ estados (State) y los servicios. Implementa AccionesSesion para que los estados no conozcan JDBC.
  */
 @Repository
-public class SesionRepository implements AccionesSesion {
+public class SesionRepositorio implements AccionesSesion {
 
-    private static final String SELECT_SESION = """
-            SELECT pr.id_practica, pr.id_caso, c.nombre_caso, pr.espacio_academico,
-                   pr.fecha_inicio, pr.fecha_fin, pr.tiempo_maximo_minutos, pr.lugar,
-                   pr.mensaje_personalizado, pr.url_acceso, pr.estado_practica,
-                   pr.fecha_inicio_real, pr.fecha_cierre_real, pr.tipo_cierre
-              FROM practicas pr
-              JOIN casos_estudio c ON c.id_caso = pr.id_caso
+    private static final String SELECT = """
+            SELECT id_practica, id_caso, id_docente, espacio_academico, fecha_inicio, fecha_fin,
+                   tiempo_maximo_minutos, porcentaje_limite_ingreso_tardio, lugar, mensaje_personalizado,
+                   url_acceso, estado_practica, fecha_inicio_real, fecha_cierre_real, tipo_cierre
+              FROM practicas
             """;
 
-    private static final RowMapper<SesionDto> MAPA_SESION = (rs, n) -> new SesionDto(
-            rs.getLong("id_practica"), rs.getLong("id_caso"), rs.getString("nombre_caso"),
+    private static final RowMapper<Practica> MAPA = (rs, n) -> new Practica(
+            rs.getLong("id_practica"), rs.getLong("id_caso"), rs.getLong("id_docente"),
             rs.getString("espacio_academico"),
             rs.getObject("fecha_inicio", LocalDateTime.class),
             rs.getObject("fecha_fin", LocalDateTime.class),
-            rs.getInt("tiempo_maximo_minutos"), rs.getString("lugar"),
-            rs.getString("mensaje_personalizado"), rs.getString("url_acceso"),
+            rs.getInt("tiempo_maximo_minutos"), rs.getBigDecimal("porcentaje_limite_ingreso_tardio"),
+            rs.getString("lugar"), rs.getString("mensaje_personalizado"), rs.getString("url_acceso"),
             rs.getString("estado_practica"),
             rs.getObject("fecha_inicio_real", LocalDateTime.class),
             rs.getObject("fecha_cierre_real", LocalDateTime.class),
-            rs.getString("tipo_cierre"), List.of());
+            rs.getString("tipo_cierre"));
 
     private final JdbcTemplate jdbc;
+    private final Clock reloj;
 
-    public SesionRepository(JdbcTemplate jdbc) {
+    public SesionRepositorio(JdbcTemplate jdbc, Clock reloj) {
         this.jdbc = jdbc;
+        this.reloj = reloj;
     }
 
-    // ---------- RF-04 / RF-18: agendar y estudiantes ----------
+    // ---------- RF-04 / RF-18: agendar y condiciones ----------
 
-    /** sp_agendar_practica: crea la sesión y devuelve su id. */
+    /** Crea la sesión en estado SIN_INICIAR y devuelve su id. */
     public Long agendar(SesionProgramada s) {
-        return jdbc.queryForObject("CALL sp_agendar_practica(?,?,?,?,?,?,?,?,?)", Long.class,
-                s.idCaso(), s.idDocente(), s.espacioAcademico(), s.fechaInicio(), s.fechaFin(),
-                s.tiempoMaximoMinutos(), s.lugar(), s.mensajePersonalizado(), s.urlAcceso());
+        KeyHolder llave = new GeneratedKeyHolder();
+        jdbc.update(con -> {
+            PreparedStatement ps = con.prepareStatement("""
+                    INSERT INTO practicas (id_caso, id_docente, espacio_academico, fecha_inicio, fecha_fin,
+                                           tiempo_maximo_minutos, lugar, mensaje_personalizado, url_acceso,
+                                           estado_practica, fecha_creacion)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'SIN_INICIAR', ?)
+                    """, new String[] {"id_practica"});
+            ps.setLong(1, s.idCaso());
+            ps.setLong(2, s.idDocente());
+            ps.setString(3, s.espacioAcademico().trim());
+            ps.setTimestamp(4, Timestamp.valueOf(s.fechaInicio()));
+            ps.setTimestamp(5, Timestamp.valueOf(s.fechaFin()));
+            ps.setInt(6, s.tiempoMaximoMinutos());
+            ps.setString(7, s.lugar());
+            ps.setString(8, s.mensajePersonalizado());
+            ps.setString(9, s.urlAcceso());
+            ps.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now(reloj)));
+            return ps;
+        }, llave);
+        return llave.getKey().longValue();
     }
 
-    /** sp_agregar_estudiante: crea la autorización con su código y encola la notificación. */
-    public Long agregarEstudiante(Long idPractica, Long idDocente, Long idEstudiante) {
-        return jdbc.queryForObject("CALL sp_agregar_estudiante(?,?,?)", Long.class,
-                idPractica, idDocente, idEstudiante);
-    }
-
-    /** sp_retirar_estudiante: marca la autorización como RETIRADA (conserva historial). */
-    public void retirarEstudiante(Long idPractica, Long idDocente, Long idEstudiante) {
-        jdbc.update("CALL sp_retirar_estudiante(?,?,?)", idPractica, idDocente, idEstudiante);
-    }
-
-    /** Lista los estudiantes convocados a una sesión del docente. */
-    public List<ConvocadoDto> listarConvocados(Long idPractica, Long idDocente) {
-        return jdbc.query("""
-                SELECT a.id_autorizacion, a.id_estudiante, u.nombre_usuario,
-                       u.correoIns_usuario, a.estado
-                  FROM autorizaciones a
-                  JOIN practicas pr ON pr.id_practica = a.id_practica
-                  JOIN usuarios u ON u.id_usuario = a.id_estudiante
-                 WHERE a.id_practica = ? AND pr.id_docente = ?
-                 ORDER BY u.nombre_usuario
-                """,
-                (rs, n) -> new ConvocadoDto(rs.getLong("id_autorizacion"),
-                        rs.getLong("id_estudiante"), rs.getString("nombre_usuario"),
-                        rs.getString("correoIns_usuario"), rs.getString("estado")),
-                idPractica, idDocente);
+    /** Cambia las condiciones (RF-18) de una sesión del docente que aún no ha finalizado. */
+    public boolean actualizarCondiciones(Long idPractica, SesionProgramada s) {
+        return jdbc.update("""
+                UPDATE practicas
+                   SET espacio_academico = ?, fecha_inicio = ?, fecha_fin = ?, tiempo_maximo_minutos = ?,
+                       lugar = ?, mensaje_personalizado = ?, url_acceso = ?
+                 WHERE id_practica = ? AND id_docente = ? AND estado_practica <> 'FINALIZADO'
+                """, s.espacioAcademico().trim(), Timestamp.valueOf(s.fechaInicio()),
+                Timestamp.valueOf(s.fechaFin()), s.tiempoMaximoMinutos(), s.lugar(), s.mensajePersonalizado(),
+                s.urlAcceso(), idPractica, s.idDocente()) > 0;
     }
 
     // ---------- RF-18: consultar sesiones ----------
 
-    /** Sesiones del docente, de la más reciente a la más antigua; estado opcional. */
-    public List<SesionDto> listarPorDocente(Long idDocente, String estado) {
-        return jdbc.query(SELECT_SESION
-                        + " WHERE pr.id_docente = ? AND (? IS NULL OR pr.estado_practica = ?)"
-                        + " ORDER BY pr.fecha_inicio DESC",
-                MAPA_SESION, idDocente, estado, estado);
+    public Optional<Practica> buscar(Long idPractica) {
+        return jdbc.query(SELECT + " WHERE id_practica = ?", MAPA, idPractica).stream().findFirst();
     }
 
-    public Optional<SesionDto> buscar(Long idPractica, Long idDocente) {
-        return jdbc.query(SELECT_SESION + " WHERE pr.id_practica = ? AND pr.id_docente = ?",
-                MAPA_SESION, idPractica, idDocente).stream().findFirst();
+    /** La sesión solo existe para el docente que la programó. */
+    public Optional<Practica> buscar(Long idPractica, Long idDocente) {
+        return jdbc.query(SELECT + " WHERE id_practica = ? AND id_docente = ?", MAPA, idPractica, idDocente)
+                .stream().findFirst();
+    }
+
+    /** Sesiones del docente, de la más reciente a la más antigua; estado opcional. */
+    public List<Practica> listarPorDocente(Long idDocente, String estado) {
+        if (estado == null) {
+            return jdbc.query(SELECT + " WHERE id_docente = ? ORDER BY fecha_inicio DESC, id_practica DESC",
+                    MAPA, idDocente);
+        }
+        return jdbc.query(SELECT + " WHERE id_docente = ? AND estado_practica = ?"
+                + " ORDER BY fecha_inicio DESC, id_practica DESC", MAPA, idDocente, estado);
+    }
+
+    /** RF-19: sesiones EN_CURSO cuyo plazo ya terminó (para el cierre automático). */
+    public List<Practica> vencidasEnCurso() {
+        return jdbc.query(SELECT + " WHERE estado_practica = 'EN_CURSO' AND fecha_fin < ?", MAPA,
+                Timestamp.valueOf(LocalDateTime.now(reloj)));
     }
 
     // ---------- RF-19: estados (los invocan los objetos State) ----------
 
-    /** sp_iniciar_practica: SIN_INICIAR -> EN_CURSO. */
+    /** SIN_INICIAR -> EN_CURSO, guardando el inicio real. */
     @Override
     public void iniciarEnBd(Long idPractica, Long idDocente) {
-        jdbc.update("CALL sp_iniciar_practica(?,?)", idPractica, idDocente);
+        jdbc.update("""
+                UPDATE practicas SET estado_practica = 'EN_CURSO', fecha_inicio_real = ?
+                 WHERE id_practica = ? AND id_docente = ? AND estado_practica = 'SIN_INICIAR'
+                """, Timestamp.valueOf(LocalDateTime.now(reloj)), idPractica, idDocente);
     }
 
-    /** sp_finalizar_practica: EN_CURSO -> FINALIZADO (cierra intentos, ausentes, califica). */
+    /** EN_CURSO -> FINALIZADO por decisión del docente (cierre MANUAL). */
     @Override
     public void finalizarEnBd(Long idPractica, Long idDocente) {
-        jdbc.update("CALL sp_finalizar_practica(?,?)", idPractica, idDocente);
+        cerrar(idPractica, idDocente, "MANUAL");
     }
 
-    /** sp_cerrar_practicas_vencidas: cierra automáticamente las EN_CURSO vencidas (RF-19). */
-    public void cerrarVencidas() {
-        jdbc.update("CALL sp_cerrar_practicas_vencidas()");
+    /** EN_CURSO -> FINALIZADO porque terminó su plazo (cierre AUTOMATICO, RF-19). */
+    public boolean cerrarAutomaticamente(Long idPractica) {
+        return jdbc.update("""
+                UPDATE practicas SET estado_practica = 'FINALIZADO', fecha_cierre_real = ?, tipo_cierre = 'AUTOMATICO'
+                 WHERE id_practica = ? AND estado_practica = 'EN_CURSO'
+                """, Timestamp.valueOf(LocalDateTime.now(reloj)), idPractica) > 0;
+    }
+
+    private void cerrar(Long idPractica, Long idDocente, String tipo) {
+        jdbc.update("""
+                UPDATE practicas SET estado_practica = 'FINALIZADO', fecha_cierre_real = ?, tipo_cierre = ?
+                 WHERE id_practica = ? AND id_docente = ? AND estado_practica = 'EN_CURSO'
+                """, Timestamp.valueOf(LocalDateTime.now(reloj)), tipo, idPractica, idDocente);
     }
 }

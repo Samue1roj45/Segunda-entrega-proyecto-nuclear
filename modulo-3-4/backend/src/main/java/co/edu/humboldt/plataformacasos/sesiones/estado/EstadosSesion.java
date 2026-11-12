@@ -1,8 +1,8 @@
-package com.example.demo.state;
+package co.edu.humboldt.plataformacasos.sesiones.estado;
 /*
  #REQUISITO RF-19
  Patrón: STATE (fábrica)
- Para qué sirve: traduce el texto del estado guardado en BD al objeto de estado
+ Para qué sirve: traduce el texto del estado guardado en la base al objeto de estado
  correspondiente. Los estados no guardan datos, así que se reutilizan (una sola instancia).
  */
 public final class EstadosSesion {

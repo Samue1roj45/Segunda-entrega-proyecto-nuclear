@@ -1,31 +1,34 @@
-package com.example.demo.scheduler;
+package co.edu.humboldt.plataformacasos.sesiones.tareas;
 
-import com.example.demo.repository.SesionRepository;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioGestionSesion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
 /*
  #REQUISITO RF-19
- Para qué sirve: cierre AUTOMÁTICO de sesiones. Cada minuto llama a
- sp_cerrar_practicas_vencidas, que finaliza las sesiones EN_CURSO cuyo plazo
- ya pasó: cierra intentos, marca ausentes y califica.
+ Para qué sirve: cierre AUTOMÁTICO de sesiones. Cada minuto finaliza las sesiones EN_CURSO cuyo
+ plazo ya pasó; al finalizar, el módulo 5 cierra los intentos abiertos, marca ausentes y califica.
  */
 @Component
-public class CierreAutomaticoScheduler {
+public class TareaCierreAutomatico {
 
-    private static final Logger log = LoggerFactory.getLogger(CierreAutomaticoScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(TareaCierreAutomatico.class);
 
-    private final SesionRepository repo;
+    private final ServicioGestionSesion gestion;
 
-    public CierreAutomaticoScheduler(SesionRepository repo) {
-        this.repo = repo;
+    public TareaCierreAutomatico(ServicioGestionSesion gestion) {
+        this.gestion = gestion;
     }
 
-    @Scheduled(fixedDelayString = "${soma.cierre.intervalo-ms:60000}")
+    @Scheduled(fixedDelayString = "${app.sesiones.intervalo-cierre-ms:60000}")
     public void cerrarVencidas() {
         try {
-            repo.cerrarVencidas();
+            int cerradas = gestion.cerrarVencidas();
+            if (cerradas > 0) {
+                log.info("Cierre automático: {} sesión(es) finalizada(s)", cerradas);
+            }
         } catch (Exception e) {
             log.error("Error en el cierre automático de sesiones", e);
         }

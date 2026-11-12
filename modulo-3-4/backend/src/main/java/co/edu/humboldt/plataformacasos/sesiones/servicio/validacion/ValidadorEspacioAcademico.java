@@ -1,7 +1,7 @@
-package com.example.demo.service.validacion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.validacion;
 
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.SesionProgramada;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 /*
  #REQUISITO RF-04
  Para qué sirve: al agendar, el docente debe asociar el nombre del espacio académico.

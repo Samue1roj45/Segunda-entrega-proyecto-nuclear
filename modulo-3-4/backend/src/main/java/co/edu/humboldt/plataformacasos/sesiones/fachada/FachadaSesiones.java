@@ -1,13 +1,14 @@
-package com.example.demo.facade;
+package co.edu.humboldt.plataformacasos.sesiones.fachada;
 
-import com.example.demo.dto.AgendarSesionRequest;
-import com.example.demo.dto.ConvocadoDto;
-import com.example.demo.dto.SesionCreadaResponse;
-import com.example.demo.dto.SesionDto;
-import com.example.demo.model.SesionProgramada;
-import com.example.demo.service.GestionSesionService;
-import com.example.demo.service.SesionService;
-import com.example.demo.service.validacion.CadenaValidacionAgenda;
+import co.edu.humboldt.plataformacasos.sesiones.dto.AgendarSesionRequest;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ConvocadoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ModificarSesionRequest;
+import co.edu.humboldt.plataformacasos.sesiones.dto.SesionCreadaResponse;
+import co.edu.humboldt.plataformacasos.sesiones.dto.SesionDto;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioGestionSesion;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioSesiones;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.validacion.CadenaValidacionAgenda;
 import java.util.List;
 import org.springframework.stereotype.Component;
 /*
@@ -15,17 +16,17 @@ import org.springframework.stereotype.Component;
  Patrón: FACADE
  Para qué sirve: punto de entrada único para programar y gestionar sesiones. Oculta al
  controlador los pasos internos: armar la sesión (Builder) -> validarla (Chain) ->
- guardarla (Service/BD) y el ciclo de vida (State). El controlador solo conoce esta clase.
+ guardarla (Service) y el ciclo de vida (State). El controlador solo conoce esta clase.
  */
 @Component
-public class Facade {
+public class FachadaSesiones {
 
     private final CadenaValidacionAgenda cadena;
-    private final SesionService sesionService;
-    private final GestionSesionService gestionService;
+    private final ServicioSesiones sesionService;
+    private final ServicioGestionSesion gestionService;
 
-    public Facade(CadenaValidacionAgenda cadena, SesionService sesionService,
-                              GestionSesionService gestionService) {
+    public FachadaSesiones(CadenaValidacionAgenda cadena, ServicioSesiones sesionService,
+                              ServicioGestionSesion gestionService) {
         this.cadena = cadena;
         this.sesionService = sesionService;
         this.gestionService = gestionService;
@@ -47,6 +48,24 @@ public class Facade {
                 .build();
         cadena.validar(sesion);
         return sesionService.agendarConEstudiantes(sesion);
+    }
+
+    // ----- RF-18: cambiar condiciones (los convocados reciben el aviso, RF-21) -----
+    public SesionDto modificarSesion(Long idPractica, Long idDocente, ModificarSesionRequest r) {
+        SesionProgramada sesion = SesionProgramada.builder()
+                .idCaso(gestionService.obtener(idPractica, idDocente).idCaso())
+                .idDocente(idDocente)
+                .espacioAcademico(r.espacioAcademico())
+                .fechaInicio(r.fechaInicio())
+                .fechaFin(r.fechaFin())
+                .tiempoMaximoMinutos(r.tiempoMaximoMinutos())
+                .lugar(r.lugar())
+                .mensajePersonalizado(r.mensajePersonalizado())
+                .urlAcceso(r.urlAcceso())
+                .build();
+        cadena.validarCondiciones(sesion);
+        sesionService.modificarCondiciones(idPractica, sesion);
+        return gestionService.obtener(idPractica, idDocente);
     }
 
     // ----- RF-04: estudiantes de la sesión -----

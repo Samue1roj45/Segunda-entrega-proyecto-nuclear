@@ -1,4 +1,4 @@
-package com.example.demo.modulo4.negativas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo4.negativas;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -10,15 +10,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demo.dto.ResponderRequest;
-import com.example.demo.exception.AccesoDenegadoException;
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.proxy.ParticipacionServiceProxy;
-import com.example.demo.test.Datos;
-import com.example.demo.repository.ParticipacionRepository;
-import com.example.demo.service.IngresoTardioService;
-import com.example.demo.service.ParticipacionService;
-import com.example.demo.service.ParticipacionServiceImpl;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ResponderRequest;
+import co.edu.humboldt.plataformacasos.sesiones.dto.TiempoRestanteDto;
+import java.util.Optional;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.proxy.ProxyServicioParticipacionEstudiante;
+import co.edu.humboldt.plataformacasos.sesiones.soporte.Datos;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioIngresoTardio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioParticipacionEstudiante;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioParticipacionEstudianteImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,21 +31,21 @@ import org.springframework.dao.DataIntegrityViolationException;
  */
 class ParticipacionNegativaTest {
 
-    private final ParticipacionRepository repo = mock(ParticipacionRepository.class);
+    private final ParticipacionEstudianteRepositorio repo = mock(ParticipacionEstudianteRepositorio.class);
     private final ApplicationEventPublisher eventos = mock(ApplicationEventPublisher.class);
-    private final IngresoTardioService ingreso = mock(IngresoTardioService.class);
-    private final ParticipacionServiceImpl servicio = new ParticipacionServiceImpl(repo, eventos, ingreso);
+    private final ServicioIngresoTardio ingreso = mock(ServicioIngresoTardio.class);
+    private final ServicioParticipacionEstudianteImpl servicio = new ServicioParticipacionEstudianteImpl(repo, eventos, ingreso);
 
     @Test
-    @DisplayName("CP-RF10-02 No se inicia la participación si el ingreso no está permitido")
-    void CP_RF10_02_noIniciaSiElIngresoNoEstaPermitido() {
-        doThrow(new ReglaNegocioException("Ingreso tardío: ya pasó el límite para iniciar la participación"))
-                .when(ingreso).exigirPermitido(5L);
+    @DisplayName("CP-RF10-02 No se registra la respuesta si el tiempo máximo del intento ya se agotó")
+    void CP_RF10_02_noRespondeConElTiempoAgotado() {
+        when(repo.consultarTiempo(7L)).thenReturn(Optional.of(new TiempoRestanteDto(7L, "EN_CURSO",
+                Datos.AHORA.minusMinutes(90), Datos.AHORA.minusMinutes(30), 0, true)));
 
-        assertThatThrownBy(() -> servicio.iniciar(3L, 5L))
+        assertThatThrownBy(() -> servicio.responder(3L, 7L, 1L, 1L))
                 .isInstanceOf(ReglaNegocioException.class)
-                .hasMessageContaining("Ingreso tardío");
-        verify(repo, never()).iniciar(anyLong());
+                .hasMessageContaining("tiempo máximo");
+        verify(repo, never()).responder(anyLong(), anyLong(), anyLong());
     }
 
     @Test
@@ -59,11 +61,11 @@ class ParticipacionNegativaTest {
     @Test
     @DisplayName("CP-RF10-06 Un estudiante ajeno no puede consultar el contexto de otra participación")
     void CP_RF10_06_ajenoNoConsultaElContexto() {
-        ParticipacionService real = mock(ParticipacionService.class);
-        ParticipacionRepository repoProxy = mock(ParticipacionRepository.class);
+        ServicioParticipacionEstudiante real = mock(ServicioParticipacionEstudiante.class);
+        ParticipacionEstudianteRepositorio repoProxy = mock(ParticipacionEstudianteRepositorio.class);
         when(repoProxy.participacionDeEstudiante(7L, 4L)).thenReturn(false);
 
-        assertThatThrownBy(() -> new ParticipacionServiceProxy(real, repoProxy).consultarContexto(4L, 7L))
+        assertThatThrownBy(() -> new ProxyServicioParticipacionEstudiante(real, repoProxy).consultarContexto(4L, 7L))
                 .isInstanceOf(AccesoDenegadoException.class);
         verify(real, never()).consultarContexto(anyLong(), anyLong());
     }

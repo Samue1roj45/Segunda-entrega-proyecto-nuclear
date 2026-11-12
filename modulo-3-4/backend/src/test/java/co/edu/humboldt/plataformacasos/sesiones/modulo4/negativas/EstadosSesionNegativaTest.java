@@ -1,4 +1,4 @@
-package com.example.demo.modulo4.negativas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo4.negativas;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -9,13 +9,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.repository.SesionRepository;
-import com.example.demo.scheduler.CierreAutomaticoScheduler;
-import com.example.demo.service.GestionSesionService;
-import com.example.demo.state.AccionesSesion;
-import com.example.demo.state.SesionEnCurso;
-import com.example.demo.state.SesionSinIniciar;
+import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import org.springframework.context.ApplicationEventPublisher;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.SesionRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.tareas.TareaCierreAutomatico;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioGestionSesion;
+import co.edu.humboldt.plataformacasos.sesiones.estado.AccionesSesion;
+import co.edu.humboldt.plataformacasos.sesiones.estado.SesionEnCurso;
+import co.edu.humboldt.plataformacasos.sesiones.estado.SesionSinIniciar;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,11 +53,12 @@ class EstadosSesionNegativaTest {
     @Test
     @DisplayName("CP-RF19-06 No se puede iniciar una sesión que no existe o es de otro docente")
     void CP_RF19_06_noIniciaUnaSesionInexistente() {
-        SesionRepository repo = mock(SesionRepository.class);
+        SesionRepositorio repo = mock(SesionRepositorio.class);
         when(repo.buscar(99L, 2L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> new GestionSesionService(repo).iniciar(99L, 2L))
-                .isInstanceOf(ReglaNegocioException.class)
+        assertThatThrownBy(() -> new ServicioGestionSesion(repo, mock(ContenidoCasoInterno.class),
+                mock(ApplicationEventPublisher.class)).iniciar(99L, 2L))
+                .isInstanceOf(RecursoNoEncontradoException.class)
                 .hasMessageContaining("no existe");
         verify(repo, never()).iniciarEnBd(anyLong(), anyLong());
     }
@@ -62,9 +66,9 @@ class EstadosSesionNegativaTest {
     @Test
     @DisplayName("CP-RF19-08 Si el cierre automático falla, el error no detiene la aplicación")
     void CP_RF19_08_falloDelCierreAutomaticoNoSePropaga() {
-        SesionRepository repo = mock(SesionRepository.class);
-        doThrow(new RuntimeException("BD no disponible")).when(repo).cerrarVencidas();
+        ServicioGestionSesion gestion = mock(ServicioGestionSesion.class);
+        doThrow(new RuntimeException("BD no disponible")).when(gestion).cerrarVencidas();
 
-        assertThatCode(() -> new CierreAutomaticoScheduler(repo).cerrarVencidas()).doesNotThrowAnyException();
+        assertThatCode(() -> new TareaCierreAutomatico(gestion).cerrarVencidas()).doesNotThrowAnyException();
     }
 }

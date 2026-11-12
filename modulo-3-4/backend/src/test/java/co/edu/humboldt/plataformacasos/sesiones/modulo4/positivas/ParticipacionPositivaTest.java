@@ -1,4 +1,4 @@
-package com.example.demo.modulo4.positivas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo4.positivas;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,16 +6,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demo.dto.ContextoDto;
-import com.example.demo.dto.ProgresoDto;
-import com.example.demo.dto.ResponderRequest;
-import com.example.demo.event.RespuestaRegistradaEvent;
-import com.example.demo.proxy.ParticipacionServiceProxy;
-import com.example.demo.test.Datos;
-import com.example.demo.repository.ParticipacionRepository;
-import com.example.demo.service.IngresoTardioService;
-import com.example.demo.service.ParticipacionService;
-import com.example.demo.service.ParticipacionServiceImpl;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ContextoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.EstadoIngresoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ProgresoDto;
+import co.edu.humboldt.plataformacasos.sesiones.dto.ResponderRequest;
+import co.edu.humboldt.plataformacasos.sesiones.evento.RespuestaRegistradaEvento;
+import co.edu.humboldt.plataformacasos.sesiones.proxy.ProxyServicioParticipacionEstudiante;
+import co.edu.humboldt.plataformacasos.sesiones.soporte.Datos;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioIngresoTardio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioParticipacionEstudiante;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioParticipacionEstudianteImpl;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,20 +28,22 @@ import org.springframework.context.ApplicationEventPublisher;
  */
 class ParticipacionPositivaTest {
 
-    private final ParticipacionRepository repo = mock(ParticipacionRepository.class);
+    private final ParticipacionEstudianteRepositorio repo = mock(ParticipacionEstudianteRepositorio.class);
     private final ApplicationEventPublisher eventos = mock(ApplicationEventPublisher.class);
-    private final IngresoTardioService ingreso = mock(IngresoTardioService.class);
-    private final ParticipacionServiceImpl servicio = new ParticipacionServiceImpl(repo, eventos, ingreso);
+    private final ServicioIngresoTardio ingreso = mock(ServicioIngresoTardio.class);
+    private final ServicioParticipacionEstudianteImpl servicio = new ServicioParticipacionEstudianteImpl(repo, eventos, ingreso);
 
     @Test
-    @DisplayName("CP-RF10-01 Iniciar la participación validando antes el ingreso")
-    void CP_RF10_01_iniciaLaParticipacionValidandoIngreso() {
-        when(repo.iniciar(5L)).thenReturn(7L);
+    @DisplayName("CP-RF10-01 Antes de iniciar, el estudiante consulta si puede ingresar (regla de RF-22)")
+    void CP_RF10_01_consultaElIngresoAntesDeIniciar() {
+        EstadoIngresoDto permitido = new EstadoIngresoDto(true, null, Datos.AHORA.plusMinutes(30), Datos.AHORA,
+                "EN_CURSO");
+        when(ingreso.consultar(5L)).thenReturn(permitido);
 
-        Long id = servicio.iniciar(3L, 5L);
+        EstadoIngresoDto r = servicio.consultarIngreso(3L, 5L);
 
-        assertThat(id).isEqualTo(7L);
-        verify(ingreso).exigirPermitido(5L);
+        assertThat(r.permitido()).isTrue();
+        verify(ingreso).consultar(5L);
     }
 
     @Test
@@ -60,13 +63,13 @@ class ParticipacionPositivaTest {
     @Test
     @DisplayName("CP-RF10-05 El propietario de la participación consulta su contexto")
     void CP_RF10_05_propietarioConsultaSuContexto() {
-        ParticipacionService real = mock(ParticipacionService.class);
-        ParticipacionRepository repoProxy = mock(ParticipacionRepository.class);
+        ServicioParticipacionEstudiante real = mock(ServicioParticipacionEstudiante.class);
+        ParticipacionEstudianteRepositorio repoProxy = mock(ParticipacionEstudianteRepositorio.class);
         ContextoDto contexto = new ContextoDto("Caso de prueba", "Contexto", "Desarrollo", List.of());
         when(repoProxy.participacionDeEstudiante(7L, 3L)).thenReturn(true);
         when(real.consultarContexto(3L, 7L)).thenReturn(contexto);
 
-        ContextoDto r = new ParticipacionServiceProxy(real, repoProxy).consultarContexto(3L, 7L);
+        ContextoDto r = new ProxyServicioParticipacionEstudiante(real, repoProxy).consultarContexto(3L, 7L);
 
         assertThat(r).isSameAs(contexto);
     }
@@ -86,7 +89,7 @@ class ParticipacionPositivaTest {
 
         assertThat(p.preguntasRespondidas()).isEqualTo(1);
         assertThat(p.porcentajeProgreso()).isEqualByComparingTo("50.00");
-        ArgumentCaptor<RespuestaRegistradaEvent> captor = ArgumentCaptor.forClass(RespuestaRegistradaEvent.class);
+        ArgumentCaptor<RespuestaRegistradaEvento> captor = ArgumentCaptor.forClass(RespuestaRegistradaEvento.class);
         verify(eventos).publishEvent(captor.capture());
         assertThat(captor.getValue().idPregunta()).isEqualTo(1L);
         assertThat(captor.getValue().progreso().totalPreguntas()).isEqualTo(2);

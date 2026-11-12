@@ -1,6 +1,6 @@
-package com.example.demo.state;
+package co.edu.humboldt.plataformacasos.sesiones.estado;
 
-import com.example.demo.exception.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import java.util.List;
 /*
  #REQUISITO RF-19

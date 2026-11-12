@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package co.edu.humboldt.plataformacasos.sesiones.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -11,7 +11,7 @@ import java.util.List;
  #REQUISITO RF-04 || RF-18
  Para qué sirve: cuerpo JSON con el que el docente agenda un caso. Valida formato
  básico (nulos, vacíos, tamaños). Las reglas de fondo las aplican la cadena de
- validación (Java) y los triggers de la BD.
+ validación (Chain) y ServicioSesiones (caso publicado, estudiantes activos).
  */
 public record AgendarSesionRequest(
         @NotNull Long idCaso,

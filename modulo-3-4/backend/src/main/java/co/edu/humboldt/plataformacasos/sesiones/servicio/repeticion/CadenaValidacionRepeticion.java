@@ -1,6 +1,6 @@
-package com.example.demo.service.repeticion;
+package co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion;
 
-import com.example.demo.model.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
 import org.springframework.stereotype.Component;
 /*
  #REQUISITO RF-25
@@ -15,7 +15,8 @@ public class CadenaValidacionRepeticion {
     public CadenaValidacionRepeticion() {
         ValidadorRepeticion activa = new ValidadorAutorizacionActiva();
         activa.siguiente(new ValidadorDocenteCreador())
-              .siguiente(new ValidadorSesionNoFinalizada());
+              .siguiente(new ValidadorSesionNoFinalizada())
+              .siguiente(new ValidadorLimiteRepeticiones());
         this.cabeza = activa;
     }
 

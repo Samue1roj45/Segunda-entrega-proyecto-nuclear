@@ -1,46 +1,58 @@
-package com.example.demo.repository;
+package co.edu.humboldt.plataformacasos.sesiones.repositorio;
 
-import com.example.demo.model.DatosRepeticion;
+import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.IntentoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RegistroParticipaciones;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.DatosRepeticion;
+import java.sql.Timestamp;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 /*
  #REQUISITO RF-25
- Para qué sirve: acceso a la BD para las repeticiones. sp_autorizar_repeticion inserta la
- fila que concede UN intento extra; el trigger trg_repeticion_bi vuelve a validar que sea
- el docente creador del caso y que la sesión no esté finalizada.
+ Para qué sirve: acceso a `autorizaciones_repeticion` (cada fila concede UN intento extra) y armado de
+ los datos que necesita la cadena de validación: estado de la autorización y de la sesión, docente
+ creador del caso (módulo 2) e intentos usados (módulo 5; una ausencia no cuenta).
 */
 @Repository
-public class RepeticionRepository {
+public class RepeticionRepositorio {
 
     private final JdbcTemplate jdbc;
+    private final AutorizacionRepositorio autorizaciones;
+    private final SesionRepositorio sesiones;
+    private final ContenidoCasoInterno casos;
+    private final RegistroParticipaciones participaciones;
+    private final Clock reloj;
 
-    public RepeticionRepository(JdbcTemplate jdbc) {
+    public RepeticionRepositorio(JdbcTemplate jdbc, AutorizacionRepositorio autorizaciones,
+                                 SesionRepositorio sesiones, ContenidoCasoInterno casos,
+                                 RegistroParticipaciones participaciones, Clock reloj) {
         this.jdbc = jdbc;
+        this.autorizaciones = autorizaciones;
+        this.sesiones = sesiones;
+        this.casos = casos;
+        this.participaciones = participaciones;
+        this.reloj = reloj;
     }
 
     public Optional<DatosRepeticion> cargar(Long idAutorizacion) {
-        return jdbc.query("""
-                SELECT a.estado AS estado_aut, c.id_docente_creador, pr.id_docente,
-                       pr.estado_practica,
-                       (SELECT COUNT(*) FROM participaciones p
-                         WHERE p.id_autorizacion = a.id_autorizacion
-                           AND p.estado_participacion <> 'AUSENTE') AS usados,
-                       (SELECT COUNT(*) FROM autorizaciones_repeticion r
-                         WHERE r.id_autorizacion = a.id_autorizacion) AS repeticiones
-                  FROM autorizaciones a
-                  JOIN practicas pr ON pr.id_practica = a.id_practica
-                  JOIN casos_estudio c ON c.id_caso = pr.id_caso
-                 WHERE a.id_autorizacion = ?
-                """,
-                (rs, n) -> new DatosRepeticion(rs.getString("estado_aut"),
-                        rs.getLong("id_docente_creador"), rs.getLong("id_docente"),
-                        rs.getString("estado_practica"), rs.getInt("usados"),
-                        rs.getInt("repeticiones")),
-                idAutorizacion).stream().findFirst();
+        return autorizaciones.buscar(idAutorizacion).flatMap(a -> sesiones.buscar(a.idPractica()).map(p -> {
+            int usados = (int) participaciones.intentosDeAutorizacion(idAutorizacion).stream()
+                    .filter(IntentoParticipacion::cuentaComoIntento).count();
+            Long creador = casos.resumen(p.idCaso()).docenteId();
+            return new DatosRepeticion(a.estado(), creador, p.idDocente(), p.estado(), usados,
+                    contarRepeticiones(idAutorizacion));
+        }));
+    }
+
+    public int contarRepeticiones(Long idAutorizacion) {
+        return autorizaciones.contarRepeticiones(idAutorizacion);
     }
 
     public void autorizar(Long idAutorizacion, Long idDocente, String motivo) {
-        jdbc.update("CALL sp_autorizar_repeticion(?,?,?)", idAutorizacion, idDocente, motivo);
+        jdbc.update("INSERT INTO autorizaciones_repeticion (id_autorizacion, id_docente, motivo, fecha_autorizacion) "
+                + "VALUES (?, ?, ?, ?)", idAutorizacion, idDocente, motivo, Timestamp.valueOf(LocalDateTime.now(reloj)));
     }
 }

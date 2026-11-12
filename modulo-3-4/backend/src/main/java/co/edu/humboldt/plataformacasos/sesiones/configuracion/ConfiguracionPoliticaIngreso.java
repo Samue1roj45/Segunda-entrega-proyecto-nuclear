@@ -1,8 +1,8 @@
-package com.example.demo.configuracion;
+package co.edu.humboldt.plataformacasos.sesiones.configuracion;
 
-import com.example.demo.politica.PoliticaIngresoTardio;
-import com.example.demo.politica.PoliticaMitadDelTiempo;
-import com.example.demo.politica.PoliticaPorcentajeConfigurable;
+import co.edu.humboldt.plataformacasos.sesiones.politica.PoliticaIngresoTardio;
+import co.edu.humboldt.plataformacasos.sesiones.politica.PoliticaMitadDelTiempo;
+import co.edu.humboldt.plataformacasos.sesiones.politica.PoliticaPorcentajeConfigurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,21 +10,21 @@ import org.springframework.context.annotation.Configuration;
 /*
  #REQUISITO RF-22
  Patrón: STRATEGY (selección)
- Para qué sirve: elige la estrategia con la propiedad soma.ingreso-tardio.politica
+ Para qué sirve: elige la estrategia con la propiedad app.sesiones.politica-ingreso-tardio
  ("mitad" por defecto, o "porcentaje"). Un solo lugar decide; nadie más usa `if`.
 */
 
 @Configuration
-public class PoliticaIngresoConfig {
+public class ConfiguracionPoliticaIngreso {
 
     @Bean
     public PoliticaIngresoTardio politicaIngresoTardio(
-            @Value("${soma.ingreso-tardio.politica:mitad}") String politica) {
+            @Value("${app.sesiones.politica-ingreso-tardio:mitad}") String politica) {
         return switch (politica.trim().toLowerCase()) {
             case "mitad" -> new PoliticaMitadDelTiempo();
             case "porcentaje" -> new PoliticaPorcentajeConfigurable();
             default -> throw new IllegalArgumentException(
-                    "soma.ingreso-tardio.politica debe ser 'mitad' o 'porcentaje'");
+                    "app.sesiones.politica-ingreso-tardio debe ser 'mitad' o 'porcentaje'");
         };
     }
 }

@@ -1,62 +1,35 @@
-package com.example.demo.modulo4.negativas;
+package co.edu.humboldt.plataformacasos.sesiones.modulo4.negativas;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.demo.exception.AccesoDenegadoException;
-import com.example.demo.exception.ReglaNegocioException;
-import com.example.demo.model.SolicitudRepeticion;
-import com.example.demo.test.Datos;
-import com.example.demo.repository.HerramientasRepository;
-import com.example.demo.repository.ParticipacionRepository;
-import com.example.demo.repository.RegistroTiempoRepository;
-import com.example.demo.repository.RepeticionRepository;
-import com.example.demo.service.HerramientasService;
-import com.example.demo.service.RegistroTiempoService;
-import com.example.demo.service.RepeticionService;
-import com.example.demo.service.repeticion.CadenaValidacionRepeticion;
+import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Herramienta;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.TipoHerramienta;
+import co.edu.humboldt.plataformacasos.sesiones.dto.RegistrarHerramientaRequest;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.HerramientasRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.RepeticionRepositorio;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioHerramientas;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.servicio.repeticion.CadenaValidacionRepeticion;
+import co.edu.humboldt.plataformacasos.sesiones.soporte.Datos;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 /*
- MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-12 (inicio y fin), RF-25 (repetición excepcional) y RF-28 (herramientas) 6
+ MÓDULO 4 · ESCENARIOS NEGATIVOS · RF-25 (repetición excepcional) y RF-28 (herramientas profesionales) 6
  Pareja exacta de RegistroRepeticionHerramientasPositivaTest.
  */
 class RegistroRepeticionHerramientasNegativaTest {
-
-    private static final String RUTA = "$.herramientas";
-
-    // ---------- RF-12 ----------
-    @Test
-    @DisplayName("CP-RF12-02 Un estudiante ajeno no puede ver el registro de otra participación")
-    void CP_RF12_02_ajenoNoVeElRegistro() {
-        RegistroTiempoRepository repoRegistro = mock(RegistroTiempoRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
-        when(participaciones.participacionDeEstudiante(7L, 4L)).thenReturn(false);
-
-        assertThatThrownBy(() -> new RegistroTiempoService(repoRegistro, participaciones).consultarPropio(4L, 7L))
-                .isInstanceOf(AccesoDenegadoException.class);
-        verify(repoRegistro, never()).porParticipacion(anyLong());
-    }
-
-    @Test
-    @DisplayName("CP-RF12-04 Rechazar la consulta cuando la participación no tiene registro")
-    void CP_RF12_04_rechazaParticipacionSinRegistro() {
-        RegistroTiempoRepository repoRegistro = mock(RegistroTiempoRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
-        when(participaciones.participacionDeEstudiante(7L, 3L)).thenReturn(true);
-        when(repoRegistro.porParticipacion(7L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> new RegistroTiempoService(repoRegistro, participaciones).consultarPropio(3L, 7L))
-                .isInstanceOf(ReglaNegocioException.class)
-                .hasMessageContaining("no existe");
-    }
 
     // ---------- RF-25 ----------
     @Test
@@ -73,38 +46,66 @@ class RegistroRepeticionHerramientasNegativaTest {
     @Test
     @DisplayName("CP-RF25-04 Un docente ajeno no puede conceder el intento adicional")
     void CP_RF25_04_docenteAjenoNoConcedeElIntento() {
-        RepeticionRepository repo = mock(RepeticionRepository.class);
+        RepeticionRepositorio repo = mock(RepeticionRepositorio.class);
         when(repo.cargar(5L)).thenReturn(Optional.of(Datos.datosRepeticion("ACTIVA", 2L, 2L, "EN_CURSO", 1, 0)));
 
-        assertThatThrownBy(() -> new RepeticionService(repo, new CadenaValidacionRepeticion())
+        assertThatThrownBy(() -> new ServicioRepeticion(repo, new CadenaValidacionRepeticion())
                 .autorizar(5L, 9L, "Intento no válido"))
                 .isInstanceOf(AccesoDenegadoException.class);
         verify(repo, never()).autorizar(anyLong(), anyLong(), any());
+    }
+
+    @Test
+    @DisplayName("CP-RF25-06 La repetición es excepcional: no se concede una segunda (máximo dos intentos)")
+    void CP_RF25_06_noSeConcedeUnaSegundaRepeticion() {
+        SolicitudRepeticion s = new SolicitudRepeticion(5L, 2L, "Otra vez",
+                Datos.datosRepeticion("ACTIVA", 2L, 2L, "EN_CURSO", 2, 1));
+
+        assertThatThrownBy(() -> new CadenaValidacionRepeticion().validar(s))
+                .isInstanceOf(ReglaNegocioException.class)
+                .hasMessageContaining("máximo dos intentos");
     }
 
     // ---------- RF-28 ----------
     @Test
     @DisplayName("CP-RF28-02 Un estudiante ajeno no puede ver las herramientas de otra participación")
     void CP_RF28_02_ajenoNoVeLasHerramientas() {
-        HerramientasRepository repoHerramientas = mock(HerramientasRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ParticipacionEstudianteRepositorio participaciones = mock(ParticipacionEstudianteRepositorio.class);
         when(participaciones.participacionDeEstudiante(7L, 4L)).thenReturn(false);
 
-        assertThatThrownBy(() -> new HerramientasService(repoHerramientas, participaciones, RUTA).consultar(4L, 7L))
+        assertThatThrownBy(() -> new ServicioHerramientas(repoHerramientas, participaciones,
+                mock(ContenidoCasoInterno.class)).consultar(4L, 7L))
                 .isInstanceOf(AccesoDenegadoException.class);
-        verify(repoHerramientas, never()).herramientasDelCaso(anyLong(), anyString());
+        verify(repoHerramientas, never()).delCaso(anyLong());
     }
 
     @Test
     @DisplayName("CP-RF28-04 Las herramientas no se entregan cuando la participación ya terminó")
     void CP_RF28_04_noEntregaHerramientasConLaParticipacionTerminada() {
-        HerramientasRepository repoHerramientas = mock(HerramientasRepository.class);
-        ParticipacionRepository participaciones = mock(ParticipacionRepository.class);
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ParticipacionEstudianteRepositorio participaciones = mock(ParticipacionEstudianteRepositorio.class);
         when(participaciones.participacionDeEstudiante(7L, 3L)).thenReturn(true);
-        when(repoHerramientas.estadoParticipacion(7L)).thenReturn("FINALIZADA");
+        when(participaciones.estadoParticipacion(7L)).thenReturn("FINALIZADA");
 
-        assertThatThrownBy(() -> new HerramientasService(repoHerramientas, participaciones, RUTA).consultar(3L, 7L))
+        assertThatThrownBy(() -> new ServicioHerramientas(repoHerramientas, participaciones,
+                mock(ContenidoCasoInterno.class)).consultar(3L, 7L))
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessageContaining("en curso");
+    }
+
+    @Test
+    @DisplayName("CP-RF28-06 Un docente que no creó el caso no puede registrar herramientas")
+    void CP_RF28_06_noCreadorNoRegistraHerramientas() {
+        HerramientasRepositorio repoHerramientas = mock(HerramientasRepositorio.class);
+        ContenidoCasoInterno casos = mock(ContenidoCasoInterno.class);
+        when(casos.resumen(1L)).thenReturn(Datos.casoPublicado(2L));
+
+        assertThatThrownBy(() -> new ServicioHerramientas(repoHerramientas,
+                mock(ParticipacionEstudianteRepositorio.class), casos).registrar(9L, 1L,
+                new RegistrarHerramientaRequest("Tabla", TipoHerramienta.TABLA, null, null, null)))
+                .isInstanceOf(AccesoDenegadoException.class)
+                .hasMessageContaining("creador");
+        verify(repoHerramientas, never()).registrar(any(Herramienta.class));
     }
 }

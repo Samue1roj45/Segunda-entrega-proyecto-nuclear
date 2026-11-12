@@ -1,6 +1,6 @@
-package com.example.demo.scheduler;
+package co.edu.humboldt.plataformacasos.sesiones.tareas;
 
-import com.example.demo.repository.ParticipacionRepository;
+import co.edu.humboldt.plataformacasos.sesiones.repositorio.ParticipacionEstudianteRepositorio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -8,21 +8,21 @@ import org.springframework.stereotype.Component;
 /*
  #REQUISITO RF-23
  Para qué sirve: cuando a un estudiante se le agota el tiempo máximo, su intento se cierra
- SOLO: cada 30 s llama a sp_expirar_participaciones, que finaliza los intentos vencidos
- (INCOMPLETA si faltó responder), los califica y encola la notificación.
+ SOLO: cada 30 s cierra los intentos vencidos
+ (INCOMPLETA si faltó responder) y el módulo 5 los califica.
  */
 @Component
-public class ExpiracionParticipacionesScheduler {
+public class TareaExpiracionParticipaciones {
 
-    private static final Logger log = LoggerFactory.getLogger(ExpiracionParticipacionesScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(TareaExpiracionParticipaciones.class);
 
-    private final ParticipacionRepository repo;
+    private final ParticipacionEstudianteRepositorio repo;
 
-    public ExpiracionParticipacionesScheduler(ParticipacionRepository repo) {
+    public TareaExpiracionParticipaciones(ParticipacionEstudianteRepositorio repo) {
         this.repo = repo;
     }
 
-    @Scheduled(fixedDelayString = "${soma.expiracion.intervalo-ms:30000}")
+    @Scheduled(fixedDelayString = "${app.sesiones.intervalo-expiracion-ms:30000}")
     public void expirarVencidas() {
         try {
             repo.expirarVencidas();
