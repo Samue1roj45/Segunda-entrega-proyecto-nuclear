@@ -1,5 +1,6 @@
 package co.edu.humboldt.plataformacasos.sesiones.estado;
 
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Practica;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import java.util.List;
 /*
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public final class SesionEnCurso implements EstadoSesion {
 
-    @Override public String nombre() { return "EN_CURSO"; }
+    @Override public String nombre() { return Practica.EN_CURSO; }
 
     @Override
     public void iniciar(AccionesSesion acciones, Long idPractica, Long idDocente) {

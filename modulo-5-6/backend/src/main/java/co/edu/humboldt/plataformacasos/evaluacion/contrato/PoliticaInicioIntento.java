@@ -1,5 +1,6 @@
 package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 
+// Patrón Puerto (Ports & Adapters) + Strategy: decide si un intento puede iniciar; lo implementa PoliticaInicioDesdeSesiones con la política de ingreso tardío de M4.
 /**
  * Puerto hacia la regla de ingreso del módulo 4 (RF-22): antes de registrar el inicio de un intento
  * NUEVO (RF-12) se pregunta si el estudiante todavía puede ingresar (sesión en curso, autorización

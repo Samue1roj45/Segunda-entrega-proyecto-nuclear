@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+// Patrón Puerto entre módulos: M4 consulta y cierra intentos de M5 a través de este contrato.
 /**
  * Puerto que este módulo (RF-12, dueño de la participación) ofrece al módulo 4 (RF-10, RF-11, RF-22,
  * RF-23, RF-25): consultar los intentos, guardar o cambiar una respuesta y cerrar un intento por tiempo.

@@ -34,15 +34,15 @@ Las pruebas en memoria usan H2 en `MODE=MySQL` (`aplicacion/src/test/resources/a
 |---|---|---|
 | RF-12 | Implementado | Inicio y fin; regla de ingreso del módulo 4 (RF-22) e intentos permitidos (RF-25). State: `EstadoDeParticipacion` y estados concretos. |
 | RF-13 | Implementado | Nota con rúbrica. Strategy + `FachadaEvaluacion.calcular`, que delega en `CalculoNota` (no reescribe una nota persistida). |
-| RF-14 | Implementado | Consulta de resultado cerrado, nota oficial elegida por el docente. State + FachadaSesiones + Proxy. |
-| RF-15 | Implementado | Consulta e historial de participaciones. FachadaSesiones + `ProxyConsultaParticipacion`. |
-| RF-16 | Implementado | PDF OpenPDF 2.0.3 y Excel Apache POI 5.4.1. FachadaSesiones + `ProxyDescargaReporte`. |
+| RF-14 | Implementado | Consulta de resultado cerrado, nota oficial elegida por el docente. State + Facade + Proxy. |
+| RF-15 | Implementado | Consulta e historial de participaciones. Facade + `ProxyConsultaParticipacion`. |
+| RF-16 | Implementado | PDF OpenPDF 2.0.3 y Excel Apache POI 5.4.1. Facade + `ProxyDescargaReporte`. |
 | RF-21 | Implementado | Convocatoria y cambios. Observer (`PublicadorEventos`) + `FachadaNotificaciones`. |
 | RF-24 | Implementado | Incompleta ≠ ausencia (nota 0). Strategy de completa, incompleta y ausencia. |
-| RF-26 | Implementado | Retroalimentación por intento. FachadaSesiones + `ProxyRetroalimentacion`. |
-| RF-27 | Implementado | Aviso de calificaciones vía `FachadaNotificaciones` (el cálculo sigue en `FachadaEvaluacion`) y aviso de feedback. Observer + FachadaSesiones. |
+| RF-26 | Implementado | Retroalimentación por intento. Facade + `ProxyRetroalimentacion`. |
+| RF-27 | Implementado | Aviso de calificaciones vía `FachadaNotificaciones` (el cálculo sigue en `FachadaEvaluacion`) y aviso de feedback. Observer + Facade. |
 
-Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, FachadaSesiones, Proxy y Observer. El API valida un JWT HS256; no emite sesiones ni trae el catálogo académico real. Existe un frontend Angular 21 en `frontend/` todavía **sin versionar** en esta rama; solo RF-15 (consulta de participaciones) llama al API, todavía sin `Authorization`, y el resto son pantallas de estructura.
+Patrones de la tabla 4.1 aplicados en este módulo: State, Strategy, Facade, Proxy y Observer. El API valida un JWT HS256; no emite sesiones ni trae el catálogo académico real. Existe un frontend Angular 21 en `frontend/` todavía **sin versionar** en esta rama; solo RF-15 (consulta de participaciones) llama al API, todavía sin `Authorization`, y el resto son pantallas de estructura.
 
 ## Relación tabla 4.1 y clases reales
 
@@ -51,14 +51,14 @@ Nombres comprobados en el código de esta rama. La columna **4.1** es lo exigido
 | RF | 4.1 | Clases del patrón exigido | Responsabilidad | Adicional (no exigido por 4.1) |
 |---|---|---|---|---|
 | RF-12 | State | `EstadoDeParticipacion`, `EstadoNoIniciada`, `EstadoEnCurso`, `EstadoFinalizada`, `EstadoIncompleta`, `MaquinaEstadoParticipacion` | Cada estado admite o rechaza iniciar, finalizar o marcar incompleta. | `FachadaParticipacion` orquesta inicio/fin. `Participacion.setEstado` es de paquete: solo la máquina cambia un intento ya creado. `NO_INICIADA` es el valor inicial del campo; `enEstadoInicial` no es una transición. |
-| RF-13 | Strategy y FachadaSesiones | `EstrategiaEvaluacion`, `EstrategiaEvaluacionCompleta`, `CalculoRubrica`, `FachadaEvaluacion`, `CalculoNota` | La fachada delega en `CalculoNota`, que elige la estrategia y persiste la nota; no reescribe un `Resultado` existente. | — |
-| RF-14 | State, FachadaSesiones y Proxy | State: los mismos estados de RF-12 (`consultarCerrado` no entrega un intento `EN_CURSO`). FachadaSesiones: `FachadaEvaluacion`, `LecturaResultados`, `ServicioNotaOficial`. Proxy: `ConsultaResultado`, `ProxyConsultaResultado` | El Proxy limita visibilidad. La fachada delega la lectura y la nota oficial elegida por el docente. | — |
-| RF-15 | FachadaSesiones y Proxy | `FachadaParticipacion`, `ConsultaParticipacion`, `ProxyConsultaParticipacion` | El Proxy filtra dueño/práctica; el FachadaSesiones describe e historializa intentos. | — |
-| RF-16 | FachadaSesiones y Proxy | `FachadaReportes`, `DescargaReporte`, `ProxyDescargaReporte` | El Proxy autoriza la descarga; el FachadaSesiones arma filas y PDF/Excel sin recalcular notas. | Generadores `ReportePdfOpenPdf` y `ReporteExcelPoi` (no son el Proxy). |
-| RF-21 | Observer y FachadaSesiones | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. FachadaSesiones: `FachadaNotificaciones` | El FachadaSesiones publica convocatoria/cambio; el Observer envía correo con idempotencia. | `ServicioCorreoNotificaciones` persiste el intento SMTP; no es un segundo observador. |
-| RF-24 | Strategy | `EstrategiaEvaluacion`, `EstrategiaEvaluacionIncompleta`, `EstrategiaEvaluacionAusencia`, `EstrategiaEvaluacionCompleta` | Incompleta usa respuestas registradas; ausencia deja nota 0 en `NO_INICIADA`. | `CierrePendientes` (vía `FachadaEvaluacion.evaluarPendientes`) y el State (`marcarIncompleta`) coordinan el cierre; 4.1 no pide FachadaSesiones ni State en este RF. |
-| RF-26 | FachadaSesiones y Proxy | `FachadaRetroalimentacion`, `GestionRetroalimentacion`, `ProxyRetroalimentacion` | El Proxy restringe registro y consulta; el FachadaSesiones guarda el texto por intento. | Al guardar se publica un evento (eso es RF-27, no un patrón extra de RF-26). |
-| RF-27 | Observer y FachadaSesiones | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. FachadaSesiones: `FachadaNotificaciones.publicarCalificaciones`; el feedback sale de `FachadaRetroalimentacion.guardar` | Avisa calificaciones ya persistidas y retroalimentación; no altera `notaFinal`. | `FachadaEvaluacion.publicarCalificaciones` solo delega en `FachadaNotificaciones`. |
+| RF-13 | Strategy y Facade | `EstrategiaEvaluacion`, `EstrategiaEvaluacionCompleta`, `CalculoRubrica`, `FachadaEvaluacion`, `CalculoNota` | La fachada delega en `CalculoNota`, que elige la estrategia y persiste la nota; no reescribe un `Resultado` existente. | — |
+| RF-14 | State, Facade y Proxy | State: los mismos estados de RF-12 (`consultarCerrado` no entrega un intento `EN_CURSO`). Facade: `FachadaEvaluacion`, `LecturaResultados`, `ServicioNotaOficial`. Proxy: `ConsultaResultado`, `ProxyConsultaResultado` | El Proxy limita visibilidad. La fachada delega la lectura y la nota oficial elegida por el docente. | — |
+| RF-15 | Facade y Proxy | `FachadaParticipacion`, `ConsultaParticipacion`, `ProxyConsultaParticipacion` | El Proxy filtra dueño/práctica; el Facade describe e historializa intentos. | — |
+| RF-16 | Facade y Proxy | `FachadaReportes`, `DescargaReporte`, `ProxyDescargaReporte` | El Proxy autoriza la descarga; el Facade arma filas y PDF/Excel sin recalcular notas. | Generadores `ReportePdfOpenPdf` y `ReporteExcelPoi` (no son el Proxy). |
+| RF-21 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `FachadaNotificaciones` | El Facade publica convocatoria/cambio; el Observer envía correo con idempotencia. | `ServicioCorreoNotificaciones` persiste el intento SMTP; no es un segundo observador. |
+| RF-24 | Strategy | `EstrategiaEvaluacion`, `EstrategiaEvaluacionIncompleta`, `EstrategiaEvaluacionAusencia`, `EstrategiaEvaluacionCompleta` | Incompleta usa respuestas registradas; ausencia deja nota 0 en `NO_INICIADA`. | `CierrePendientes` (vía `FachadaEvaluacion.evaluarPendientes`) y el State (`marcarIncompleta`) coordinan el cierre; 4.1 no pide Facade ni State en este RF. |
+| RF-26 | Facade y Proxy | `FachadaRetroalimentacion`, `GestionRetroalimentacion`, `ProxyRetroalimentacion` | El Proxy restringe registro y consulta; el Facade guarda el texto por intento. | Al guardar se publica un evento (eso es RF-27, no un patrón extra de RF-26). |
+| RF-27 | Observer y Facade | Observer: `PublicadorEventos`, `ObservadorAcademico`, `ObservadorCorreo`. Facade: `FachadaNotificaciones.publicarCalificaciones`; el feedback sale de `FachadaRetroalimentacion.guardar` | Avisa calificaciones ya persistidas y retroalimentación; no altera `notaFinal`. | `FachadaEvaluacion.publicarCalificaciones` solo delega en `FachadaNotificaciones`. |
 
 Los tipos de `contrato` son los puertos del módulo hacia los demás; la aplicación los conecta en `aplicacion/.../integracion`
 (detalle en `modulo-5-6/backend/README.md`). En las pruebas del módulo se usan dobles en memoria.

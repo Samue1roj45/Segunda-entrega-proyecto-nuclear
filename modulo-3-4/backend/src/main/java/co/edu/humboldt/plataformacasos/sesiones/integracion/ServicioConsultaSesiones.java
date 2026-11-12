@@ -9,6 +9,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Patrón Adapter (Ports & Adapters): expone prácticas y autorizaciones de M3 a otros módulos por el contrato ConsultaSesiones.
 @Service
 @Transactional(readOnly = true)
 public class ServicioConsultaSesiones implements ConsultaSesiones {

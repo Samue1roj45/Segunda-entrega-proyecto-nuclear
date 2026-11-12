@@ -7,14 +7,14 @@ import { Inicio } from './paginas/inicio/inicio';
 import { Login } from './paginas/login/login';
 
 export const routes: Routes = [
-  { path: 'login', component: Login, title: 'Iniciar sesión · SimulaPsi' },
-  { path: 'inicio', component: Inicio, canActivate: [guardiaSesion], title: 'Inicio · SimulaPsi' },
-  { path: 'acceso-denegado', component: AccesoDenegado, title: 'Acceso denegado · SimulaPsi' },
+  { path: 'login', component: Login, title: 'Iniciar sesión · SOMA' },
+  { path: 'inicio', component: Inicio, canActivate: [guardiaSesion], title: 'Inicio · SOMA' },
+  { path: 'acceso-denegado', component: AccesoDenegado, title: 'Acceso denegado · SOMA' },
   {
     path: 'admin/docentes',
     component: AdminDocentes,
     canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
-    title: 'Docentes y permisos · SimulaPsi',
+    title: 'Docentes y permisos · SOMA',
   },
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   { path: '**', redirectTo: 'inicio' },

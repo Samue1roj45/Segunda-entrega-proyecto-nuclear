@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// Patrón Adapter (Ports & Adapters): implementa el puerto RegistroParticipaciones que usa M4 para registrar respuestas y cerrar intentos.
 /** Implementación del puerto {@link RegistroParticipaciones} sobre las entidades de este módulo. */
 @Service
 public class ServicioRegistroParticipaciones implements RegistroParticipaciones {

@@ -8,6 +8,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.notificacion.FachadaNotificaci
 import co.edu.humboldt.plataformacasos.evaluacion.notificacion.ResumenEnvio;
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 
+// Patrón Facade: calcula y consulta resultados (RF-13, RF-14, RF-24) eligiendo la estrategia adecuada.
 /**
  * Fachada de evaluación. Delega el cálculo, la lectura, la nota oficial y el cierre.
  * Publicar calificaciones no recalcula: lo hace {@link FachadaNotificaciones}.

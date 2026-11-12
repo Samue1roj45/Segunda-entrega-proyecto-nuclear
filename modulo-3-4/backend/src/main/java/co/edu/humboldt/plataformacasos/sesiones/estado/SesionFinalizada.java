@@ -1,5 +1,6 @@
 package co.edu.humboldt.plataformacasos.sesiones.estado;
 
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Practica;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import java.util.List;
 /*
@@ -8,7 +9,7 @@ import java.util.List;
  */
 public final class SesionFinalizada implements EstadoSesion {
 
-    @Override public String nombre() { return "FINALIZADO"; }
+    @Override public String nombre() { return Practica.FINALIZADO; }
 
     @Override
     public void iniciar(AccionesSesion acciones, Long idPractica, Long idDocente) {

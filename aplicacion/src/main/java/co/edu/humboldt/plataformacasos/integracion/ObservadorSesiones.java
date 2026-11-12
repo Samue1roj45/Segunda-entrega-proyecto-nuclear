@@ -16,6 +16,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.format.DateTimeFormatter;
 
+// Patrón Observer: escucha los eventos de M3 (convocatoria, modificación, finalización) y dispara notificaciones y cierres en M5.
 /**
  * Observer entre módulos: los eventos del módulo 3 disparan la evaluación y las notificaciones de los
  * módulos 5 y 6.

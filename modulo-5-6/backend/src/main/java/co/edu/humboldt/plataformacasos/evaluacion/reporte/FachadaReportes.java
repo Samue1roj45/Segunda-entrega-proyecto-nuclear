@@ -20,6 +20,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.resultado.NotaOficialRepositor
 import co.edu.humboldt.plataformacasos.evaluacion.resultado.Resultado;
 import co.edu.humboldt.plataformacasos.evaluacion.resultado.ResultadoRepositorio;
 
+// Patrón Facade: genera reportes PDF/Excel (RF-16) ocultando OpenPDF y Apache POI.
 @Service
 public class FachadaReportes {
 

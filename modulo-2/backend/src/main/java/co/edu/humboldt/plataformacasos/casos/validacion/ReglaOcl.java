@@ -8,6 +8,7 @@ import co.edu.humboldt.plataformacasos.compartido.validacion.ValidadorBase;
 
 import java.util.stream.Stream;
 
+// Patrón Chain of Responsibility / Strategy: cada regla OCL es un eslabón independiente que valida el caso antes de publicarlo.
 /**
  * Eslabón de la cadena de validación de RF-09 (Chain of Responsibility), sobre la base compartida del
  * Módulo 1. RF-09 exige informar todas las reglas incumplidas, así que un eslabón no corta la cadena:

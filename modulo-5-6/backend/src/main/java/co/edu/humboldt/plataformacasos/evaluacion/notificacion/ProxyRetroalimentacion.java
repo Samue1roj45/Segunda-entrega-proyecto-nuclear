@@ -12,6 +12,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 
+// Patrón Proxy de protección: verifica permisos antes de delegar en FachadaRetroalimentacion.
 /**
  * Protection Proxy RF-26: solo el docente de la práctica registra;
  * la consulta queda limitada al dueño o a ese docente.

@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.sesiones.servicio.validacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 import java.util.HashSet;
+// Patrón Chain of Responsibility: eslabón de agenda que valida la lista de estudiantes.
 /*
  #REQUISITO RF-04
  Para qué sirve: debe haber uno o varios estudiantes y sin repetidos.

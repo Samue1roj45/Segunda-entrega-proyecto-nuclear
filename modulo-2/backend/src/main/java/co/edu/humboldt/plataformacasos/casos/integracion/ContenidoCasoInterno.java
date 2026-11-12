@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.casos.repositorio.CasoProgramable;
 
 import java.util.Optional;
 
+// Patrón Puerto/contrato entre módulos: M4 y M5 leen preguntas y respuestas de M2 a través de esta interfaz.
 /**
  * Puerto interno para los Módulos 3 y 4, sin endpoint a propósito: quien lo llama debe haber comprobado
  * antes la convocatoria y el horario del estudiante (Módulo 3) o el fin del intento (Módulo 4). Exponerlo

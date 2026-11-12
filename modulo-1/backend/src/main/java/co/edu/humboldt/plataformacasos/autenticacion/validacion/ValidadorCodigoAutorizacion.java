@@ -9,6 +9,7 @@ import co.edu.humboldt.plataformacasos.compartido.validacion.ValidadorBase;
 import java.util.Locale;
 import java.util.Objects;
 
+// Patrón Chain of Responsibility: eslabón que verifica el código de acceso del estudiante a través del puerto VerificadorCodigoAutorizacion.
 /**
  * Eslabón 4 (RF-01): el código de autorización es válido para ese estudiante.
  * La regla de validez la decide el Módulo 3 (RF-20) a través de {@link VerificadorCodigoAutorizacion}.

@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.OffsetDateTime;
 
+// Patrón State: estado concreto NO_INICIADA; sólo admite iniciar.
 /**
  * RF-12: un intento NO_INICIADA puede arrancar. No se cierra aquí:
  * la ausencia (nota 0) permanece NO_INICIADA y no usa esta transición.

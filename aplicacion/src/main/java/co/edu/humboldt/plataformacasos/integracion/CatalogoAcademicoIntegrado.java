@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+// Patrón Adapter (Ports & Adapters): adapta los datos de sesiones de M3 al puerto CatalogoAcademico de M5.
 /**
  * Catálogo académico real de los módulos 5 y 6:
  * <ul>

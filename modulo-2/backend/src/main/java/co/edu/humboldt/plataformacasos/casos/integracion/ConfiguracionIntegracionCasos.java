@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+// Patrón Proxy de protección: cada bean expone el servicio real envuelto en ProxyAcceso (M1), que verifica el permiso @RequierePermiso antes de delegar.
 /** Publica los contratos consultables por HTTP envueltos en el Proxy de RF-02. */
 @Configuration
 public class ConfiguracionIntegracionCasos {

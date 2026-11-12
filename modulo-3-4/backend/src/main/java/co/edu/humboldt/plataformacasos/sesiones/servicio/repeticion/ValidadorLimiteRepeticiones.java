@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioExceptio
 import co.edu.humboldt.plataformacasos.sesiones.dominio.DatosRepeticion;
 import co.edu.humboldt.plataformacasos.sesiones.dominio.SolicitudRepeticion;
 
+// Patrón Chain of Responsibility: eslabón de repetición que controla el límite de intentos.
 /*
  #REQUISITO RF-25
  Para qué sirve: la repetición es EXCEPCIONAL: se concede una sola vez (máximo dos intentos por

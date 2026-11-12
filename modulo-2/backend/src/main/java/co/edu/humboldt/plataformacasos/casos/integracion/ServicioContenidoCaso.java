@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+// Patrón Adapter (Ports & Adapters): implementa ContenidoCasoInterno para que M4 y M5 lean preguntas y opciones del caso.
 @Service
 @Transactional(readOnly = true)
 public class ServicioContenidoCaso implements ContenidoCasoInterno {

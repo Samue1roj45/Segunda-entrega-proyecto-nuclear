@@ -1,5 +1,6 @@
 package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
 import co.edu.humboldt.plataformacasos.casos.integracion.ContenidoCasoInterno;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
@@ -37,7 +38,7 @@ public class ServicioHerramientas {
         if (!participaciones.participacionDeEstudiante(idParticipacion, idEstudiante)) {
             throw new AccesoDenegadoException("La participación no existe o no pertenece al estudiante");
         }
-        if (!"EN_CURSO".equals(participaciones.estadoParticipacion(idParticipacion))) {
+        if (!EstadoParticipacion.EN_CURSO.name().equals(participaciones.estadoParticipacion(idParticipacion))) {
             throw new ReglaNegocioException("Las herramientas solo están disponibles mientras la participación está en curso");
         }
         return repo.delCaso(participaciones.idCasoDeParticipacion(idParticipacion)).stream()

@@ -12,6 +12,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
 
+// Patrón Proxy de protección: sólo el docente con permiso puede descargar reportes.
 /**
  * Protection Proxy RF-16: el estudiante no descarga ajenos; el docente no descarga otra práctica.
  * No recalcula ni cambia notas de intento.

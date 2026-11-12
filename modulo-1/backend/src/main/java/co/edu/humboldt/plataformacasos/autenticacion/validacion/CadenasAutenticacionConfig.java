@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+// Patrón Chain of Responsibility: aquí se ensamblan los eslabones de validación del login (RF-01..RF-03).
 /**
  * Arma las cadenas de RF-01 en un solo lugar. Cambiar el orden o agregar una regla es
  * tocar este método, no el servicio (Chain of Responsibility).

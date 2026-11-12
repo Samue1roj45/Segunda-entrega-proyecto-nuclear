@@ -15,6 +15,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 
+// Patrón Facade: simplifica el registro y consulta de retroalimentación (RF-26).
 @Service
 public class FachadaRetroalimentacion {
 

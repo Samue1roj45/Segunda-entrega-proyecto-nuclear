@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+// Patrón Adapter (Ports & Adapters): implementa el puerto VerificadorCodigoAutorizacion de M1 comparando el código con el hash BCrypt de la autorización.
 /*
  #REQUISITO RF-20 (puerto del módulo 1, RF-01)
  Para qué sirve: implementación oficial de VerificadorCodigoAutorizacion. El módulo 1 pregunta si el

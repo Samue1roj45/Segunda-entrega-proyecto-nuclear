@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.OffsetDateTime;
 
+// Patrón State: estado concreto EN_CURSO; permite guardar respuestas y finalizar.
 /**
  * RF-12: el intento en curso puede reutilizarse al iniciar de nuevo,
  * finalizarse o marcarse incompleto (RF-24).

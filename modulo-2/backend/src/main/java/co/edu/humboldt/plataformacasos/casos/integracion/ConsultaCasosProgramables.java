@@ -6,6 +6,7 @@ import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.util.List;
 
+// Patrón Puerto/contrato entre módulos: M3 consulta casos publicados de M2 sin conocer su persistencia.
 /** Contrato para el Módulo 3 (RF-04, RF-18): qué casos se pueden programar. */
 public interface ConsultaCasosProgramables {
 

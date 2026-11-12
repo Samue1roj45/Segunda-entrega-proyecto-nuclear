@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.OffsetDateTime;
 
+// Patrón State: estado concreto FINALIZADA; estado terminal, rechaza transiciones.
 /**
  * RF-12 / RF-14: un intento FINALIZADA no se reabre. Finalizar de nuevo es idempotente.
  */

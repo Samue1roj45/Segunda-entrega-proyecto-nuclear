@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
+// Patrón Strategy: estrategia concreta para intentos finalizados.
 public class EstrategiaEvaluacionCompleta implements EstrategiaEvaluacion {
 
     private final CatalogoAcademico catalogo;

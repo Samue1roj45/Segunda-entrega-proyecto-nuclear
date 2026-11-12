@@ -5,6 +5,7 @@ import co.edu.humboldt.plataformacasos.autenticacion.dominio.SolicitudAutenticac
 import co.edu.humboldt.plataformacasos.compartido.validacion.ResultadoValidacion;
 import co.edu.humboldt.plataformacasos.compartido.validacion.ValidadorBase;
 
+// Patrón Chain of Responsibility: eslabón que valida campos obligatorios y delega al siguiente.
 /** Eslabón 1 (RF-01): correo y código presentes y con longitud razonable. */
 public class ValidadorCamposObligatorios extends ValidadorBase<SolicitudAutenticacion> {
 

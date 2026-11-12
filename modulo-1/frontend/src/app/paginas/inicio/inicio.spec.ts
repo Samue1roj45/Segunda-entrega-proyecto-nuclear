@@ -13,7 +13,7 @@ function sesion(rol: Rol, permisos: Permiso[]): SesionUsuario {
 }
 
 async function mostrarInicio(datos: SesionUsuario): Promise<HTMLElement> {
-  sessionStorage.setItem('simulapsi.sesion', JSON.stringify(datos));
+  sessionStorage.setItem('soma.sesion', JSON.stringify(datos));
   TestBed.configureTestingModule({ imports: [Inicio], providers: [provideRouter([]), provideHttpClient()] });
   const fixture = TestBed.createComponent(Inicio);
   await fixture.whenStable();

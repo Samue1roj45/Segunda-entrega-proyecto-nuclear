@@ -20,6 +20,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// Patrón Facade: orquesta iniciar, responder y finalizar un intento (RF-12) ocultando estados, repositorios y políticas.
 /**
  * RF-12 (Facade): registra el inicio y el fin de cada intento. Antes de abrir un intento nuevo
  * consulta la regla de ingreso del módulo 4 (RF-22) y el número de intentos permitidos de la

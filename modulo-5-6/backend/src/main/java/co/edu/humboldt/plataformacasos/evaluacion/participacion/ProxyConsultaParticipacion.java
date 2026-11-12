@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
 
+// Patrón Proxy de protección: valida que el actor pueda consultar la participación antes de delegar.
 /**
  * Protection Proxy RF-15: el estudiante solo ve sus intentos;
  * el docente solo los de sus prácticas.

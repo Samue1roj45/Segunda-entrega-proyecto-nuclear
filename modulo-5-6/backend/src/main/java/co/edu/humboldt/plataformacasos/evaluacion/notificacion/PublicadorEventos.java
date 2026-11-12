@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+// Patrón Observer (sujeto): registra observadores y les publica cada evento académico.
 @Component
 public class PublicadorEventos {
 

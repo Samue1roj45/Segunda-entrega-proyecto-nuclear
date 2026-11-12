@@ -23,7 +23,8 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 ```
 .
 ├── pom.xml                 backend único (Java 21, Spring Boot 4.1.2)
-├── docker-compose.yml      MySQL 8 + Mailpit (correo de pruebas)
+├── Dockerfile              imagen del backend único (Maven + Java 21 → JRE 21)
+├── docker-compose.yml      backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
 ├── .env.example            variables de entorno de toda la aplicación
 ├── aplicacion/             PlataformaCasosApplication, application.yml, adaptadores entre módulos y prueba de punta a punta
 ├── modulo-1/
@@ -37,9 +38,11 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 ├── modulo-3-4/
 │   ├── backend/            sesiones · migraciones V30-V39
 │   └── docs/
-└── modulo-5-6/
-    ├── backend/            evaluacion (participacion, resultado, reporte, notificacion) · migración V40
-    └── docs/
+├── modulo-5-6/
+│   ├── backend/            evaluacion (participacion, resultado, reporte, notificacion) · migración V40
+│   └── docs/
+├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
+└── docs/                   PATRONES.md (patrón → clases → RF) y ANTIPATRONES.md (revisión)
 ```
 
 ## Cómo se comunican los módulos
@@ -77,13 +80,27 @@ módulo conoce las clases internas de otro.
 `GET /api/salud` (público) muestra el estado del backend. Todos los errores tienen el mismo cuerpo:
 `{fecha, estado, error, mensaje, ruta}`. El detalle de cada ruta está en la documentación de cada módulo.
 
-## Ejecutar
+## Ejecutar con Docker (lo más rápido)
+
+Sólo hace falta Docker Desktop:
+
+```bash
+docker compose up -d --build      # backend en http://localhost:8080, MySQL en :3306, correos en http://localhost:8025
+docker compose logs -f app        # ver el arranque
+docker compose down -v            # apagar y borrar la base (la próxima vez arranca con datos semilla limpios)
+```
+
+El contenedor `app` arranca con el perfil `pruebas` (datos semilla). Con un `.env` (copiado de `.env.example`) se
+cambian claves, puerto o perfil. Luego se importa `postman/SOMA.postman_collection.json` y
+`postman/SOMA-local.postman_environment.json` en Postman y se ejecuta la colección en orden.
+
+## Ejecutar sin Docker para el backend
 
 Requisitos: JDK 21, Maven 3.9+, Docker (opcional, para MySQL y el correo de pruebas) y Node 22 para los frontends.
 
 ```bash
 cp .env.example .env              # completar claves; JWT_SECRETO: openssl rand -base64 32
-docker compose up -d              # MySQL 8 en :3306 y Mailpit en http://localhost:8025
+docker compose up -d db correo     # sólo MySQL 8 en :3306 y Mailpit en http://localhost:8025
 export $(grep -v '^#' .env | xargs)
 mvn spring-boot:run -Dspring-boot.run.profiles=pruebas    # http://localhost:8080
 ```

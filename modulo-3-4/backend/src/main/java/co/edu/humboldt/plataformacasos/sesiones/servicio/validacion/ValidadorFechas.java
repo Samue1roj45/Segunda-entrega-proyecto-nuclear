@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.sesiones.servicio.validacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 import java.time.LocalDateTime;
+// Patrón Chain of Responsibility: eslabón de agenda que valida fechas de inicio y fin.
 /*
  #REQUISITO RF-18
  Para qué sirve: fecha y horario de inicio/fin coherentes. El tope del tiempo máximo

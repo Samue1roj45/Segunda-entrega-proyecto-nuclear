@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.OffsetDateTime;
 
+// Patrón State: estado concreto INCOMPLETA; estado terminal por tiempo vencido o cierre de sesión.
 /**
  * RF-24: INCOMPLETA es terminal para ese intento. Un segundo intento es otra participación.
  */

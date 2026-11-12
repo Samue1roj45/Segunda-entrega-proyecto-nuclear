@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ServicioGestionSesion {
 
-    private static final Set<String> ESTADOS = Set.of("SIN_INICIAR", "EN_CURSO", "FINALIZADO");
+    private static final Set<String> ESTADOS = Set.of(Practica.SIN_INICIAR, Practica.EN_CURSO, Practica.FINALIZADO);
 
     private final SesionRepositorio repo;
     private final ContenidoCasoInterno casos;

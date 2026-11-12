@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 import java.util.List;
 import java.util.Optional;
 
+// Patrón Puerto (Ports & Adapters): M5 consulta prácticas y autorizaciones; el adaptador CatalogoAcademicoIntegrado lo implementa con M3.
 /**
  * Puerto hacia los datos de otros módulos: sesiones y autorizaciones (módulo 3), estudiantes (módulo 1)
  * y preguntas, opciones y rúbrica del caso (módulo 2). Lo implementa la aplicación

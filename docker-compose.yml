@@ -1,11 +1,14 @@
 # Servicios de apoyo del backend único: la base MySQL 8 de los seis módulos y un servidor de correo de
 # pruebas (Mailpit) para ver las convocatorias, cambios, calificaciones y retroalimentaciones (RF-21, RF-27).
-#   docker compose up -d        → MySQL en localhost:3306 y bandeja de correo en http://localhost:8025
-# El backend se ejecuta aparte (ver README).
+#   docker compose up -d --build   → backend SOMA en http://localhost:8080, MySQL en localhost:3306 y
+#                                    bandeja de correo en http://localhost:8025
+#   docker compose up -d db correo → sólo los servicios de apoyo (para correr el backend desde el IDE)
+# Por defecto el backend arranca con el perfil `pruebas` (datos semilla para Postman). Para producción:
+#   SPRING_PROFILES_ACTIVE=default docker compose up -d --build
 services:
   db:
     image: mysql:8.0
-    container_name: plataforma_casos_db
+    container_name: soma_db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-plataforma_casos}
@@ -24,9 +27,36 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  app:
+    build: .
+    image: soma-backend:1.0.0
+    container_name: soma_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      correo:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-pruebas}
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-plataforma_casos}?serverTimezone=America/Bogota
+      DB_USER: ${MYSQL_USER:-plataforma}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-cambiar-esta-clave}
+      JWT_SECRETO: ${JWT_SECRETO:-}
+      JWT_MINUTOS: ${JWT_MINUTOS:-60}
+      DOMINIO_INSTITUCIONAL: ${DOMINIO_INSTITUCIONAL:-institucion.edu.co}
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200}
+      MAIL_HOST: correo
+      MAIL_PORT: 1025
+      MAIL_FROM: ${MAIL_FROM:-no-reply@institucion.edu.co}
+      ZONA_HORARIA: ${ZONA_HORARIA:-America/Bogota}
+      POLITICA_INGRESO_TARDIO: ${POLITICA_INGRESO_TARDIO:-mitad}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
   correo:
     image: axllent/mailpit:latest
-    container_name: plataforma_casos_correo
+    container_name: soma_correo
     restart: unless-stopped
     ports:
       - "1025:1025"

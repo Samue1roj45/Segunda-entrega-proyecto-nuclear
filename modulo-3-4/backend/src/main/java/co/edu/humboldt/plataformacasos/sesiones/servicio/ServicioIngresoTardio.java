@@ -1,5 +1,7 @@
 package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Practica;
+import co.edu.humboldt.plataformacasos.sesiones.dominio.Autorizacion;
 import co.edu.humboldt.plataformacasos.sesiones.dto.EstadoIngresoDto;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
@@ -33,11 +35,11 @@ public class ServicioIngresoTardio {
         LocalDateTime limite = politica.limiteIngreso(d);
 
         String motivo = null;
-        if (!"ACTIVA".equals(d.estadoAutorizacion())) {
+        if (!Autorizacion.ACTIVA.equals(d.estadoAutorizacion())) {
             motivo = "La autorización del estudiante fue retirada";
-        } else if ("FINALIZADO".equals(d.estadoSesion())) {
+        } else if (Practica.FINALIZADO.equals(d.estadoSesion())) {
             motivo = "La sesión ya finalizó";
-        } else if ("SIN_INICIAR".equals(d.estadoSesion())) {
+        } else if (Practica.SIN_INICIAR.equals(d.estadoSesion())) {
             motivo = "La sesión aún no ha sido iniciada por el docente";
         } else if (d.ahora().isAfter(limite)) {
             motivo = "Ingreso tardío: ya pasó el límite para iniciar la participación";

@@ -1,5 +1,6 @@
 package co.edu.humboldt.plataformacasos.sesiones.servicio;
 
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 import co.edu.humboldt.plataformacasos.sesiones.dto.ContextoDto;
@@ -49,7 +50,7 @@ public class ServicioParticipacionEstudianteImpl implements ServicioParticipacio
     @Transactional
     public ProgresoDto responder(Long idEstudiante, Long idParticipacion, Long idPregunta, Long idRespuesta) {
         repo.consultarTiempo(idParticipacion)
-                .filter(tiempo -> "EN_CURSO".equals(tiempo.estado()) && tiempo.expirada())
+                .filter(tiempo -> EstadoParticipacion.EN_CURSO.name().equals(tiempo.estado()) && tiempo.expirada())
                 .ifPresent(tiempo -> {
                     throw new ReglaNegocioException("El tiempo máximo de la participación se agotó");
                 });

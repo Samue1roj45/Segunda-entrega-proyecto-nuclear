@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+// Patrón Adapter (Ports & Adapters): adapta el JWT de M1 al puerto ActorActualResolver de M5.
 /**
  * Módulo 1 → módulos 5 y 6: el actor es el usuario del token, leído de la base en cada petición
  * (ServicioAutorizacion.verificarIdentidad), con sus permisos vigentes. En la base única el id del

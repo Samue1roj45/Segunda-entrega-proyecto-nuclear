@@ -10,6 +10,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
 import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 
+// Patrón Proxy de protección: el estudiante sólo ve sus resultados y el docente los de sus sesiones.
 /**
  * Protection Proxy RF-14: oculta resultados ajenos. No altera notaFinal ni la nota oficial.
  */

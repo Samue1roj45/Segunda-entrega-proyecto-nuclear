@@ -20,6 +20,7 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioExceptio
 import co.edu.humboldt.plataformacasos.evaluacion.resultado.Resultado;
 import co.edu.humboldt.plataformacasos.evaluacion.resultado.ResultadoRepositorio;
 
+// Patrón Facade: punto único para convocar, notificar cambios y publicar eventos académicos (RF-21, RF-27).
 @Service
 public class FachadaNotificaciones {
 

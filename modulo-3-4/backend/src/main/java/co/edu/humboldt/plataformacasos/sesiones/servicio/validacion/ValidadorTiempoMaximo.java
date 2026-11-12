@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioExceptio
 import co.edu.humboldt.plataformacasos.sesiones.dominio.SesionProgramada;
 import java.time.Duration;
 
+// Patrón Chain of Responsibility: eslabón de agenda que valida el tiempo máximo por intento.
 /*
  #REQUISITO RF-18 || RF-23
  Para qué sirve: el tiempo máximo de un intento debe caber dentro del horario de la sesión; si no,

@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.evaluacion.contrato.PoliticaInicioIntento
 import co.edu.humboldt.plataformacasos.sesiones.servicio.ServicioIngresoTardio;
 import org.springframework.stereotype.Component;
 
+// Patrón Adapter + Strategy: conecta la política de ingreso tardío de M4 con el puerto PoliticaInicioIntento de M5.
 /**
  * Módulo 4 → módulo 5: la regla de ingreso tardío (RF-22, Strategy PoliticaIngresoTardio) es una sola;
  * el módulo 5 la aplica antes de registrar el inicio de un intento nuevo (RF-12).

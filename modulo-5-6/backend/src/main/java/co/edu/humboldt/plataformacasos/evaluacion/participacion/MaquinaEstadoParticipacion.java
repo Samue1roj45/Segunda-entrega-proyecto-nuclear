@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+// Patrón State (contexto): resuelve el objeto estado y aplica las transiciones válidas.
 /**
  * Contexto del State: elige el estado concreto según el enum persistido (RF-12).
  */
