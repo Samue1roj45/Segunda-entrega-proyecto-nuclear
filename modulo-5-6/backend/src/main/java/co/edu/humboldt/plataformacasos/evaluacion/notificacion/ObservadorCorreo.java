@@ -1,13 +1,13 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class ObservadorCorreo implements ObservadorAcademico {
 
-    private final NotificacionCorreoServicio correo;
+    private final ServicioCorreoNotificaciones correo;
 
-    public ObservadorCorreo(NotificacionCorreoServicio correo) {
+    public ObservadorCorreo(ServicioCorreoNotificaciones correo) {
         this.correo = correo;
     }
 

@@ -1,7 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.contrato;
+package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 
 /**
- * Referencia temporal a una opción de respuesta del caso.
+ * Opción de respuesta de una pregunta del caso (módulo 2) y si es la correcta.
  */
 public record RespuestaOpcionRef(Long id, Long preguntaId, String texto, boolean correcta) {
 }

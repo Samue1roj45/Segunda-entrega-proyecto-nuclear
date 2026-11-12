@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ResultadoRepository extends JpaRepository<Resultado, Long> {
+public interface ResultadoRepositorio extends JpaRepository<Resultado, Long> {
 
     Optional<Resultado> findByParticipacionId(Long participacionId);
 

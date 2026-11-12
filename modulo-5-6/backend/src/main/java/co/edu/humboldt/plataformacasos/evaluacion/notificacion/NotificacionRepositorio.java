@@ -1,11 +1,11 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
+public interface NotificacionRepositorio extends JpaRepository<Notificacion, Long> {
 
     boolean existsByClaveIdempotencia(String claveIdempotencia);
 

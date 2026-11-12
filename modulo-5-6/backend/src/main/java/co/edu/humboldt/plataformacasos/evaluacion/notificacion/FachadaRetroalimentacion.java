@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -8,23 +8,23 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 
 @Service
-public class RetroalimentacionFacade {
+public class FachadaRetroalimentacion {
 
-    private final RetroalimentacionRepository repositorio;
+    private final RetroalimentacionRepositorio repositorio;
     private final CatalogoAcademico catalogo;
     private final PublicadorEventos publicador;
     private final Clock clock;
 
-    public RetroalimentacionFacade(
-            RetroalimentacionRepository repositorio,
+    public FachadaRetroalimentacion(
+            RetroalimentacionRepositorio repositorio,
             CatalogoAcademico catalogo,
             PublicadorEventos publicador,
             Clock clock) {

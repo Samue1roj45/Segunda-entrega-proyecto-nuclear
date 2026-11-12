@@ -1,9 +1,9 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
 
 /**
  * Una fila = un intento. No combina intentos.

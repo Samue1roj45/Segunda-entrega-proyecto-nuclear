@@ -1,28 +1,47 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
+
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 
 import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActualResolver;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActualResolver;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 @Component
 public class AccesoEvaluacion {
 
     private final ActorActualResolver actores;
     private final CatalogoAcademico catalogo;
-    private final ParticipacionRepository participaciones;
+    private final ParticipacionRepositorio participaciones;
 
     public AccesoEvaluacion(
             ActorActualResolver actores,
             CatalogoAcademico catalogo,
-            ParticipacionRepository participaciones) {
+            ParticipacionRepositorio participaciones) {
         this.actores = actores;
         this.catalogo = catalogo;
         this.participaciones = participaciones;
+    }
+
+    /**
+     * RF-02: el actor debe tener el permiso del módulo 1 para la operación. El administrador conserva la
+     * visibilidad total que este módulo le daba (puede operar como docente de cualquier práctica).
+     */
+    public void exigirPermiso(ActorActual actor, Permiso permiso) {
+        if (!actor.esAdmin() && !actor.tienePermiso(permiso)) {
+            throw new AccesoDenegadoException();
+        }
+    }
+
+    /** Consultas: el estudiante necesita su permiso propio y el docente el permiso de consulta indicado. */
+    public void exigirPermisoDeConsulta(ActorActual actor, Permiso permisoDocente) {
+        exigirPermiso(actor, actor.esEstudiante() ? Permiso.CONSULTAR_RESULTADOS_PROPIOS : permisoDocente);
     }
 
     public ActorActual exigirActor() {

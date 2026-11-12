@@ -1,9 +1,10 @@
-package com.unihumboldt.nuclear.evaluacion.contrato;
+package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 
 import java.time.OffsetDateTime;
 
 /**
- * Referencia temporal a Práctica. Fechas usadas por RF-12 (RN17) y RF-21.
+ * Sesión (práctica) programada en el módulo 3. Estados: SIN_INICIAR, EN_CURSO y FINALIZADO (RF-19).
+ * nombre es el nombre del caso; tiempoMaximoMinutos es el tiempo de cada intento (RF-23).
  */
 public record PracticaRef(
         Long id,
@@ -13,5 +14,14 @@ public record PracticaRef(
         OffsetDateTime fechaInicio,
         OffsetDateTime fechaFin,
         String estado,
-        String mensajePersonalizado) {
+        String mensajePersonalizado,
+        int tiempoMaximoMinutos) {
+
+    public static final String SIN_INICIAR = "SIN_INICIAR";
+    public static final String EN_CURSO = "EN_CURSO";
+    public static final String FINALIZADO = "FINALIZADO";
+
+    public boolean finalizada() {
+        return FINALIZADO.equals(estado);
+    }
 }

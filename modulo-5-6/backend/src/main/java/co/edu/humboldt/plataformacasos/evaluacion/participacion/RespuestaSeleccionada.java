@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

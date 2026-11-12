@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,17 +10,17 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionada;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PreguntaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RespuestaOpcionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionada;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
 /**
  * Arma la respuesta de un resultado ya cerrado. No calcula ni elige la nota oficial.
@@ -28,15 +28,15 @@ import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRep
 @Service
 public class LecturaResultados {
 
-    private final ResultadoRepository resultados;
-    private final NotaOficialRepository notasOficiales;
-    private final RespuestaSeleccionadaRepository respuestas;
+    private final ResultadoRepositorio resultados;
+    private final NotaOficialRepositorio notasOficiales;
+    private final RespuestaSeleccionadaRepositorio respuestas;
     private final CatalogoAcademico catalogo;
 
     public LecturaResultados(
-            ResultadoRepository resultados,
-            NotaOficialRepository notasOficiales,
-            RespuestaSeleccionadaRepository respuestas,
+            ResultadoRepositorio resultados,
+            NotaOficialRepositorio notasOficiales,
+            RespuestaSeleccionadaRepositorio respuestas,
             CatalogoAcademico catalogo) {
         this.resultados = resultados;
         this.notasOficiales = notasOficiales;

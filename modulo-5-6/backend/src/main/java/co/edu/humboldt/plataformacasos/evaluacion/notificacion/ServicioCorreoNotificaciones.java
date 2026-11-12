@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -12,28 +12,28 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
 
 /**
  * Persistencia del intento de envío. Un fallo SMTP no relanza la excepción
  * para no revertir retroalimentación ni calificaciones ya guardadas.
  */
 @Service
-public class NotificacionCorreoServicio {
+public class ServicioCorreoNotificaciones {
 
-    private final NotificacionRepository repositorio;
+    private final NotificacionRepositorio repositorio;
     private final CatalogoAcademico catalogo;
     private final JavaMailSender mailSender;
     private final Clock clock;
     private final String remitente;
 
-    public NotificacionCorreoServicio(
-            NotificacionRepository repositorio,
+    public ServicioCorreoNotificaciones(
+            NotificacionRepositorio repositorio,
             CatalogoAcademico catalogo,
             JavaMailSender mailSender,
             Clock clock,
-            @Value("${app.mail.from:no-reply@simulador.local}") String remitente) {
+            @Value("${app.mail.from:no-reply@institucion.edu.co}") String remitente) {
         this.repositorio = repositorio;
         this.catalogo = catalogo;
         this.mailSender = mailSender;
@@ -50,7 +50,7 @@ public class NotificacionCorreoServicio {
                 return ResultadoEnvio.OMITIDA_DUPLICADO;
             }
             sincronizar(previa, evento);
-            return intentarSmtp(previa);
+            return intentarSmtp(previa, evento.cuerpoCorreo());
         }
         EstudianteRef estudiante = catalogo.buscarEstudiante(evento.estudianteId()).orElse(null);
         Notificacion n = new Notificacion();
@@ -69,7 +69,7 @@ public class NotificacionCorreoServicio {
         } catch (DataIntegrityViolationException ex) {
             return ResultadoEnvio.OMITIDA_DUPLICADO;
         }
-        return intentarSmtp(n);
+        return intentarSmtp(n, evento.cuerpoCorreo());
     }
 
     private void sincronizar(Notificacion n, EventoAcademico evento) {
@@ -85,7 +85,7 @@ public class NotificacionCorreoServicio {
         n.setCuerpo(evento.cuerpo());
     }
 
-    private ResultadoEnvio intentarSmtp(Notificacion n) {
+    private ResultadoEnvio intentarSmtp(Notificacion n, String textoCorreo) {
         if (n.getDestinatarioCorreo() == null || n.getDestinatarioCorreo().isBlank()) {
             n.setEstado(EstadoEnvio.ERROR);
             n.setErrorMensaje("Sin correo en el catálogo académico; no se inventó destinatario.");
@@ -97,7 +97,7 @@ public class NotificacionCorreoServicio {
             mensaje.setFrom(remitente);
             mensaje.setTo(n.getDestinatarioCorreo());
             mensaje.setSubject(n.getAsunto());
-            mensaje.setText(n.getCuerpo());
+            mensaje.setText(textoCorreo == null ? n.getCuerpo() : textoCorreo);
             mailSender.send(mensaje);
             n.setEstado(EstadoEnvio.ENVIADA);
             n.setFechaEnvio(OffsetDateTime.now(clock));

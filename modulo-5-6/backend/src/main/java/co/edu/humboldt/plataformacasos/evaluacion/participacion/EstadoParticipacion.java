@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 public enum EstadoParticipacion {
     NO_INICIADA,

@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,14 +14,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 
+/**
+ * RF-12 y RF-15: inicio y fin de cada intento, y consulta de participaciones. Las respuestas y el
+ * progreso del intento (RF-10, RF-11) están en el módulo 4: PUT /api/participaciones/{id}/preguntas/{idPregunta}/respuesta.
+ */
 @RestController
 @RequestMapping("/api/participaciones")
-public class ParticipacionController {
+public class ParticipacionControlador {
 
-    private final ParticipacionFacade facade;
+    private final FachadaParticipacion facade;
     private final ConsultaParticipacion consulta;
 
-    public ParticipacionController(ParticipacionFacade facade, ConsultaParticipacion consulta) {
+    public ParticipacionControlador(FachadaParticipacion facade, ConsultaParticipacion consulta) {
         this.facade = facade;
         this.consulta = consulta;
     }
@@ -45,11 +49,6 @@ public class ParticipacionController {
     @GetMapping("/{id}")
     public ParticipacionRespuesta obtener(@PathVariable Long id) {
         return consulta.obtener(id);
-    }
-
-    @PostMapping("/{id}/respuestas")
-    public void responder(@PathVariable Long id, @Valid @RequestBody RegistrarRespuestaRequest request) {
-        facade.responder(id, request);
     }
 
     @PostMapping("/{id}/finalizar")

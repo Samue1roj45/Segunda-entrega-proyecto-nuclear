@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
 import java.time.OffsetDateTime;
 
@@ -20,6 +20,7 @@ import jakarta.persistence.UniqueConstraint;
                 columnNames = {"autorizacion_id", "numero_intento"}))
 public class Participacion {
 
+    /** Tope de intentos por autorización: 1 + una repetición excepcional (RF-25, módulo 3). */
     public static final int MAX_INTENTOS = 2;
 
     @Id

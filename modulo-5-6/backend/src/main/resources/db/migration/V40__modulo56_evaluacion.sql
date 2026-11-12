@@ -1,6 +1,8 @@
--- MySQL 8 DDL for the evaluation module.
--- Table and column names follow the JPA entities.
--- Foreign keys stay inside this module. Catalog tables belong to other components.
+-- Módulos 5 y 6 · Participaciones, resultados, notas oficiales, notificaciones y retroalimentación
+-- (RF-12 a RF-16, RF-21, RF-24, RF-26, RF-27). Las versiones V40 a V49 quedan reservadas a estos módulos.
+-- Los nombres de tablas y columnas siguen las entidades JPA. Las llaves foráneas se quedan dentro del
+-- módulo: practica_id, autorizacion_id y estudiante_id se leen del módulo 3 y del módulo 1 por el puerto
+-- CatalogoAcademico, así el módulo se prueba solo con un catálogo en memoria.
 
 CREATE TABLE participacion (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -15,7 +17,7 @@ CREATE TABLE participacion (
     PRIMARY KEY (id),
     UNIQUE KEY uk_participacion_autorizacion_intento (autorizacion_id, numero_intento),
     KEY idx_participacion_practica (practica_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE respuesta_seleccionada (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -26,7 +28,7 @@ CREATE TABLE respuesta_seleccionada (
     UNIQUE KEY uk_respuesta_participacion_pregunta (participacion_id, pregunta_id),
     CONSTRAINT fk_respuesta_seleccionada_participacion
         FOREIGN KEY (participacion_id) REFERENCES participacion (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE resultado (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -43,7 +45,7 @@ CREATE TABLE resultado (
     UNIQUE KEY uk_resultado_participacion (participacion_id),
     CONSTRAINT fk_resultado_participacion
         FOREIGN KEY (participacion_id) REFERENCES participacion (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE nota_oficial (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -56,7 +58,7 @@ CREATE TABLE nota_oficial (
     UNIQUE KEY uk_nota_oficial_practica_estudiante (practica_id, estudiante_id),
     CONSTRAINT fk_nota_oficial_participacion
         FOREIGN KEY (participacion_id) REFERENCES participacion (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE notificacion (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -76,7 +78,7 @@ CREATE TABLE notificacion (
     UNIQUE KEY uk_notificacion_clave (clave_idempotencia),
     KEY idx_notificacion_estudiante (estudiante_id),
     KEY idx_notificacion_practica (practica_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE TABLE retroalimentacion (
     id BIGINT NOT NULL AUTO_INCREMENT,
@@ -91,4 +93,4 @@ CREATE TABLE retroalimentacion (
     UNIQUE KEY uk_retroalimentacion_participacion (participacion_id),
     CONSTRAINT fk_retroalimentacion_participacion
         FOREIGN KEY (participacion_id) REFERENCES participacion (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);

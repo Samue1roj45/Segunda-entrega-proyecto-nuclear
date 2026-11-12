@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 import java.util.Comparator;
 import java.util.List;
@@ -10,31 +10,31 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
-import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficial;
-import com.unihumboldt.nuclear.evaluacion.resultado.NotaOficialRepository;
-import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
-import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.ParticipacionRepositorio;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.NotaOficial;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.NotaOficialRepositorio;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.Resultado;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.ResultadoRepositorio;
 
 @Service
-public class ReporteFacade {
+public class FachadaReportes {
 
     public static final String PDF = "application/pdf";
     public static final String XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-    private final ParticipacionRepository participaciones;
-    private final ResultadoRepository resultados;
-    private final NotaOficialRepository notasOficiales;
+    private final ParticipacionRepositorio participaciones;
+    private final ResultadoRepositorio resultados;
+    private final NotaOficialRepositorio notasOficiales;
     private final CatalogoAcademico catalogo;
 
-    public ReporteFacade(
-            ParticipacionRepository participaciones,
-            ResultadoRepository resultados,
-            NotaOficialRepository notasOficiales,
+    public FachadaReportes(
+            ParticipacionRepositorio participaciones,
+            ResultadoRepositorio resultados,
+            NotaOficialRepositorio notasOficiales,
             CatalogoAcademico catalogo) {
         this.participaciones = participaciones;
         this.resultados = resultados;

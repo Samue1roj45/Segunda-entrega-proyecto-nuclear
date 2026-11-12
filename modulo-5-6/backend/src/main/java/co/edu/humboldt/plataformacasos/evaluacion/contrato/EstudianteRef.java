@@ -1,7 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.contrato;
+package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 
 /**
- * Referencia temporal a Estudiante (módulo académico ajeno).
+ * Estudiante (usuario con rol ESTUDIANTE del módulo 1). id y usuarioId coinciden en la base única.
  */
 public record EstudianteRef(Long id, String correo, String nombreCompleto, Long usuarioId) {
 }

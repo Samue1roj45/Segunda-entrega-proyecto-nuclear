@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
@@ -10,26 +10,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.unihumboldt.nuclear.evaluacion.notificacion.NotificacionFacade;
-import com.unihumboldt.nuclear.evaluacion.notificacion.ResumenEnvio;
+import co.edu.humboldt.plataformacasos.evaluacion.notificacion.FachadaNotificaciones;
+import co.edu.humboldt.plataformacasos.evaluacion.notificacion.ResumenEnvio;
 
 @ExtendWith(MockitoExtension.class)
-class EvaluacionFacadePublicacionTest {
+class FachadaEvaluacionPublicacionTest {
 
     @Mock
     private CalculoNota calculo;
     @Mock
     private LecturaResultados lectura;
     @Mock
-    private NotaOficialServicio notasOficiales;
+    private ServicioNotaOficial notasOficiales;
     @Mock
     private CierrePendientes pendientes;
     @Mock
-    private NotificacionFacade notificaciones;
+    private FachadaNotificaciones notificaciones;
 
     @Test
     void delegaPublicarCalificacionesSinRecalcularNotas() {
-        EvaluacionFacade facade = new EvaluacionFacade(calculo, lectura, notasOficiales, pendientes, notificaciones);
+        FachadaEvaluacion facade = new FachadaEvaluacion(calculo, lectura, notasOficiales, pendientes, notificaciones);
         ResumenEnvio esperado = new ResumenEnvio(1, 1, 0);
         when(notificaciones.publicarCalificaciones(1L)).thenReturn(esperado);
 

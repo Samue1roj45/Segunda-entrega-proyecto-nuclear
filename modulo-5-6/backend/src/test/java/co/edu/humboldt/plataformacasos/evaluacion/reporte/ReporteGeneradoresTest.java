@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

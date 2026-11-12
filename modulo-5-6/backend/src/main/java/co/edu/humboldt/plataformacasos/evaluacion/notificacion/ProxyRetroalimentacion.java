@@ -1,26 +1,28 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 
 /**
  * Protection Proxy RF-26: solo el docente de la práctica registra;
  * la consulta queda limitada al dueño o a ese docente.
  */
 @Service
-public class RetroalimentacionProxy implements GestionRetroalimentacion {
+public class ProxyRetroalimentacion implements GestionRetroalimentacion {
 
-    private final RetroalimentacionFacade real;
+    private final FachadaRetroalimentacion real;
     private final AccesoEvaluacion acceso;
 
-    public RetroalimentacionProxy(RetroalimentacionFacade real, AccesoEvaluacion acceso) {
+    public ProxyRetroalimentacion(FachadaRetroalimentacion real, AccesoEvaluacion acceso) {
         this.real = real;
         this.acceso = acceso;
     }
@@ -31,6 +33,7 @@ public class RetroalimentacionProxy implements GestionRetroalimentacion {
         if (!actor.esDocente() && !actor.esAdmin()) {
             throw new AccesoDenegadoException("Solo el docente puede registrar retroalimentación.");
         }
+        acceso.exigirPermiso(actor, Permiso.REGISTRAR_RETROALIMENTACION);
         Participacion participacion = acceso.exigirParticipacion(request.participacionId());
         acceso.exigirPracticaDocente(participacion.getPracticaId(), actor);
         return real.guardar(actor, participacion, request);

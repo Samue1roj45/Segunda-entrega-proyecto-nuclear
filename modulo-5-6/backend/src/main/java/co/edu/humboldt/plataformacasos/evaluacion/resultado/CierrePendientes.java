@@ -1,4 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
+
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -7,14 +10,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.MaquinaEstadoParticipacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.MaquinaEstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.ParticipacionRepositorio;
 
 /**
  * RF-24: cierra intentos en curso como incompletos y registra ausencias en NO_INICIADA.
@@ -22,16 +26,16 @@ import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
 @Service
 public class CierrePendientes {
 
-    private final ParticipacionRepository participaciones;
-    private final ResultadoRepository resultados;
+    private final ParticipacionRepositorio participaciones;
+    private final ResultadoRepositorio resultados;
     private final CatalogoAcademico catalogo;
     private final AccesoEvaluacion acceso;
     private final CalculoNota calculo;
     private final Clock clock;
 
     public CierrePendientes(
-            ParticipacionRepository participaciones,
-            ResultadoRepository resultados,
+            ParticipacionRepositorio participaciones,
+            ResultadoRepositorio resultados,
             CatalogoAcademico catalogo,
             AccesoEvaluacion acceso,
             CalculoNota calculo,
@@ -46,7 +50,22 @@ public class CierrePendientes {
 
     @Transactional
     public EvaluacionPendientesRespuesta evaluar(Long practicaId) {
-        PracticaRef practica = acceso.exigirPracticaDocente(practicaId, acceso.exigirActor());
+        ActorActual actor = acceso.exigirActor();
+        acceso.exigirPermiso(actor, Permiso.CONSULTAR_PARTICIPACIONES);
+        return cerrar(acceso.exigirPracticaDocente(practicaId, actor));
+    }
+
+    /**
+     * RF-24 sin actor: lo invoca la aplicación cuando el módulo 3 finaliza una sesión (manual o
+     * automáticamente), dentro de la misma transacción.
+     */
+    @Transactional
+    public EvaluacionPendientesRespuesta evaluarAlFinalizarSesion(Long practicaId) {
+        return cerrar(catalogo.buscarPractica(practicaId)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada.")));
+    }
+
+    private EvaluacionPendientesRespuesta cerrar(PracticaRef practica) {
         int incompletas = 0;
         int ausencias = 0;
         int omitidas = 0;

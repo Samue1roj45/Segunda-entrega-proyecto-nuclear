@@ -1,5 +1,8 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.DoblesModuloEvaluacion;
+import org.springframework.context.annotation.Import;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RegistroParticipaciones;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,7 +15,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,18 +23,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
-import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RubricaRef;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.ActorTokens;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.CatalogoAcademicoEnMemoria;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PreguntaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RespuestaOpcionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RubricaRef;
 
 @SpringBootTest
+@Import(DoblesModuloEvaluacion.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
@@ -39,6 +43,9 @@ class ResultadoApiTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private RegistroParticipaciones registro;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -54,9 +61,9 @@ class ResultadoApiTest {
         catalogo.registrar(new EstudianteRef(11L, "est2@uni.edu", "Ana Estudiante", 2L));
         catalogo.registrar(new PracticaRef(
                 1L, "Práctica 1", 50L, 5L,
-                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos"));
-        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, "ABC123", false));
-        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, "XYZ789", false));
+                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos", 240));
+        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, true, 1));
+        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, true, 1));
         catalogo.registrar(new PreguntaRef(1L, 50L, "Pregunta 1", 2));
         catalogo.registrar(new PreguntaRef(2L, 50L, "Pregunta 2", 2));
         catalogo.registrar(new RespuestaOpcionRef(11L, 1L, "Correcta 1", true));
@@ -161,8 +168,8 @@ class ResultadoApiTest {
         catalogo.limpiar();
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.UTC);
         catalogo.registrar(new EstudianteRef(10L, "est1@uni.edu", "Luis", 1L));
-        catalogo.registrar(new PracticaRef(1L, "P", 50L, 5L, ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", ""));
-        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, "ABC123", false));
+        catalogo.registrar(new PracticaRef(1L, "P", 50L, 5L, ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "", 240));
+        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, true, 1));
 
         long pid = iniciar(10, 100);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pid)
@@ -221,19 +228,14 @@ class ResultadoApiTest {
 
     @Test
     void rf13ConservaResultadosDeIntentosAnteriores() throws Exception {
+        // RF-25: el docente creador autorizó una repetición (dos intentos permitidos).
+        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, true, 2));
         long id1 = iniciarYResponderParcial();
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id1)
                 .with(ActorTokens.estudiante(10)));
         long id2 = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                        .with(ActorTokens.estudiante(10))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"preguntaId\":1,\"respuestaId\":11}"))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                        .with(ActorTokens.estudiante(10))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"preguntaId\":2,\"respuestaId\":21}"));
+        registro.registrarRespuesta(id2, 1L, 11L);
+        registro.registrarRespuesta(id2, 2L, 21L);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
                 .with(ActorTokens.estudiante(10)));
 
@@ -269,14 +271,8 @@ class ResultadoApiTest {
                         .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
         long id2 = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":1,\"respuestaId\":11}"));
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":2,\"respuestaId\":21}"));
+        registro.registrarRespuesta(id2, 1L, 11L);
+        registro.registrarRespuesta(id2, 2L, 21L);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
                 .with(ActorTokens.estudiante(10)));
 
@@ -293,14 +289,8 @@ class ResultadoApiTest {
                         .with(ActorTokens.docente(5)))
                 .andExpect(status().isOk());
         long id2 = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":1,\"respuestaId\":11}"));
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id2)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":2,\"respuestaId\":21}"));
+        registro.registrarRespuesta(id2, 1L, 11L);
+        registro.registrarRespuesta(id2, 2L, 21L);
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id2)
                 .with(ActorTokens.estudiante(10)));
 
@@ -403,34 +393,23 @@ class ResultadoApiTest {
     }
 
     @Test
-    void responderPreguntaInvalidaEs400() throws Exception {
+    void responderPreguntaInvalidaSeRechaza() throws Exception {
         long pid = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                        .with(ActorTokens.estudiante(10))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"preguntaId\":999,\"respuestaId\":11}"))
-                .andExpect(status().isBadRequest());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException.class,
+                () -> registro.registrarRespuesta(pid, 999L, 11L));
     }
 
     private long iniciarYResponderParcial() throws Exception {
         long pid = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":1,\"respuestaId\":11}"));
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":2,\"respuestaId\":22}"));
+        registro.registrarRespuesta(pid, 1L, 11L);
+        registro.registrarRespuesta(pid, 2L, 22L);
         return pid;
     }
 
     private long iniciarYResponderUnaCorrecta() throws Exception {
         long pid = iniciar(10, 100);
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", pid)
-                .with(ActorTokens.estudiante(10))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"preguntaId\":1,\"respuestaId\":11}"));
+        registro.registrarRespuesta(pid, 1L, 11L);
         return pid;
     }
 

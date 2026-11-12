@@ -1,4 +1,6 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -8,31 +10,31 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.ParticipacionRepository;
-import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.ParticipacionRepositorio;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
 
 /**
  * RF-14: el docente elige qué intento es la nota oficial. No reescribe notaFinal.
  */
 @Service
-public class NotaOficialServicio {
+public class ServicioNotaOficial {
 
-    private final NotaOficialRepository notasOficiales;
-    private final ResultadoRepository resultados;
-    private final ParticipacionRepository participaciones;
+    private final NotaOficialRepositorio notasOficiales;
+    private final ResultadoRepositorio resultados;
+    private final ParticipacionRepositorio participaciones;
     private final AccesoEvaluacion acceso;
     private final Clock clock;
 
-    public NotaOficialServicio(
-            NotaOficialRepository notasOficiales,
-            ResultadoRepository resultados,
-            ParticipacionRepository participaciones,
+    public ServicioNotaOficial(
+            NotaOficialRepositorio notasOficiales,
+            ResultadoRepositorio resultados,
+            ParticipacionRepositorio participaciones,
             AccesoEvaluacion acceso,
             Clock clock) {
         this.notasOficiales = notasOficiales;
@@ -48,6 +50,7 @@ public class NotaOficialServicio {
         if (!actor.esDocente() && !actor.esAdmin()) {
             throw new AccesoDenegadoException("Solo el docente puede seleccionar la nota oficial.");
         }
+        acceso.exigirPermiso(actor, Permiso.CONSULTAR_PARTICIPACIONES);
         PracticaRef practica = acceso.exigirPracticaDocente(request.practicaId(), actor);
         Participacion participacion = participaciones.findById(request.participacionId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Participación no encontrada."));

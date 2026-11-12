@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.support;
+package co.edu.humboldt.plataformacasos.evaluacion.soporte;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 

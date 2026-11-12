@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/reportes")
-public class ReporteController {
+public class ReporteControlador {
 
     private final DescargaReporte descarga;
 
-    public ReporteController(DescargaReporte descarga) {
+    public ReporteControlador(DescargaReporte descarga) {
         this.descarga = descarga;
     }
 

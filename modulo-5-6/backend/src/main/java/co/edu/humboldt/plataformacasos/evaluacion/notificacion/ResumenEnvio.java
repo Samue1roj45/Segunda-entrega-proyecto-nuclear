@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 public record ResumenEnvio(int enviadas, int omitidasDuplicado, int errores) {
 

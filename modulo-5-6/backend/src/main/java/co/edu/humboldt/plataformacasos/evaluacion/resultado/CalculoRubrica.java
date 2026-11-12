@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RubricaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.ReglaNegocioException;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionada;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PreguntaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RespuestaOpcionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RubricaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionada;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
 /**
  * Fórmula oficial: nota = (peso_obtenido / peso_total) * rubrica.escala_maxima.
@@ -33,7 +33,7 @@ public final class CalculoRubrica {
     public static MetricasEvaluacion porRespuestas(
             Participacion participacion,
             CatalogoAcademico catalogo,
-            RespuestaSeleccionadaRepository respuestas) {
+            RespuestaSeleccionadaRepositorio respuestas) {
         Long casoId = catalogo.buscarPractica(participacion.getPracticaId())
                 .map(p -> p.casoId())
                 .orElseThrow(() -> new ReglaNegocioException("No hay práctica/caso para calcular la nota."));

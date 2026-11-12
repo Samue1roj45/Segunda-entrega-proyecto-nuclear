@@ -1,4 +1,12 @@
-package com.unihumboldt.nuclear.evaluacion.contrato;
+package co.edu.humboldt.plataformacasos.evaluacion.soporte;
+
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PreguntaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RespuestaOpcionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RubricaRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,12 +14,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.stereotype.Component;
 
 /**
- * Catálogo temporal en memoria. No es el módulo de prácticas ni el académico.
+ * DOBLE DE PRUEBA del puerto CatalogoAcademico (lo registra DoblesModuloEvaluacion). En la aplicación el
+ * catálogo real es integracion.CatalogoAcademicoIntegrado (módulos 1, 2 y 3).
  */
-@Component
 public class CatalogoAcademicoEnMemoria implements CatalogoAcademico {
 
     private final Map<Long, PracticaRef> practicas = new ConcurrentHashMap<>();
@@ -69,7 +76,6 @@ public class CatalogoAcademicoEnMemoria implements CatalogoAcademico {
         return Optional.ofNullable(estudiantes.get(id));
     }
 
-    @Override
     public void actualizarAutorizacion(AutorizacionRef autorizacion) {
         autorizaciones.put(autorizacion.id(), autorizacion);
     }
@@ -78,6 +84,7 @@ public class CatalogoAcademicoEnMemoria implements CatalogoAcademico {
     public List<AutorizacionRef> autorizacionesDePractica(Long practicaId) {
         return autorizaciones.values().stream()
                 .filter(a -> a.practicaId().equals(practicaId))
+                .filter(AutorizacionRef::activa)
                 .toList();
     }
 

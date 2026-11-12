@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.time.OffsetDateTime;
 

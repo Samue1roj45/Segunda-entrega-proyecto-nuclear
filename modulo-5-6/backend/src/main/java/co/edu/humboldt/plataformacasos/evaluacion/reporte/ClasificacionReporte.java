@@ -1,8 +1,8 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.Resultado;
 
 final class ClasificacionReporte {
 

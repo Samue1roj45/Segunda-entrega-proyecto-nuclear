@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.util.List;
 
@@ -14,11 +14,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/notificaciones")
-public class NotificacionController {
+public class NotificacionControlador {
 
-    private final NotificacionFacade facade;
+    private final FachadaNotificaciones facade;
 
-    public NotificacionController(NotificacionFacade facade) {
+    public NotificacionControlador(FachadaNotificaciones facade) {
         this.facade = facade;
     }
 

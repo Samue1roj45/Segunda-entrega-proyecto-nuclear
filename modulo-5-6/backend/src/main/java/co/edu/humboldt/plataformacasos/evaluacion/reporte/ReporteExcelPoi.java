@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

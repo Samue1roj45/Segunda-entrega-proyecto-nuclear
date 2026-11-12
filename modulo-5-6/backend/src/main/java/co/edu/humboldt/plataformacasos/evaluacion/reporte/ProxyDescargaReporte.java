@@ -1,4 +1,6 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
 import java.util.List;
 import java.util.Objects;
@@ -6,21 +8,21 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
 
 /**
  * Protection Proxy RF-16: el estudiante no descarga ajenos; el docente no descarga otra práctica.
  * No recalcula ni cambia notas de intento.
  */
 @Service
-public class ReporteDescargaProxy implements DescargaReporte {
+public class ProxyDescargaReporte implements DescargaReporte {
 
-    private final ReporteFacade real;
+    private final FachadaReportes real;
     private final AccesoEvaluacion acceso;
 
-    public ReporteDescargaProxy(ReporteFacade real, AccesoEvaluacion acceso) {
+    public ProxyDescargaReporte(FachadaReportes real, AccesoEvaluacion acceso) {
         this.real = real;
         this.acceso = acceso;
     }
@@ -39,6 +41,7 @@ public class ReporteDescargaProxy implements DescargaReporte {
 
     private List<FilaReporteEvaluacion> filasAutorizadas(Long practicaId, Long estudianteId) {
         ActorActual actor = acceso.exigirActor();
+        acceso.exigirPermisoDeConsulta(actor, Permiso.DESCARGAR_REPORTES);
         Long estudianteFiltro = estudianteId;
         if (actor.esEstudiante()) {
             if (estudianteId != null && !Objects.equals(estudianteId, actor.estudianteId())) {

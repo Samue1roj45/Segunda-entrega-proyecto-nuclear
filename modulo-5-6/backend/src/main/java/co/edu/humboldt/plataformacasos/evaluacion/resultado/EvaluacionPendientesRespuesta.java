@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 public record EvaluacionPendientesRespuesta(int incompletas, int ausencias, int omitidas) {
 }

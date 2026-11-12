@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.util.List;
 
@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.unihumboldt.nuclear.evaluacion.notificacion.ResumenEnvio;
+import co.edu.humboldt.plataformacasos.evaluacion.notificacion.ResumenEnvio;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/resultados")
-public class ResultadoController {
+public class ResultadoControlador {
 
-    private final EvaluacionFacade facade;
+    private final FachadaEvaluacion facade;
     private final ConsultaResultado consulta;
 
-    public ResultadoController(EvaluacionFacade facade, ConsultaResultado consulta) {
+    public ResultadoControlador(FachadaEvaluacion facade, ConsultaResultado consulta) {
         this.facade = facade;
         this.consulta = consulta;
     }

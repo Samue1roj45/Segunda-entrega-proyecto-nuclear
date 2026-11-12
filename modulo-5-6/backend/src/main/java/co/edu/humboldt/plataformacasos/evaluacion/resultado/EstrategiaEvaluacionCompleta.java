@@ -1,15 +1,15 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
-public class EvaluacionCompletaStrategy implements EstrategiaEvaluacion {
+public class EstrategiaEvaluacionCompleta implements EstrategiaEvaluacion {
 
     private final CatalogoAcademico catalogo;
-    private final RespuestaSeleccionadaRepository respuestas;
+    private final RespuestaSeleccionadaRepositorio respuestas;
 
-    public EvaluacionCompletaStrategy(CatalogoAcademico catalogo, RespuestaSeleccionadaRepository respuestas) {
+    public EstrategiaEvaluacionCompleta(CatalogoAcademico catalogo, RespuestaSeleccionadaRepositorio respuestas) {
         this.catalogo = catalogo;
         this.respuestas = respuestas;
     }

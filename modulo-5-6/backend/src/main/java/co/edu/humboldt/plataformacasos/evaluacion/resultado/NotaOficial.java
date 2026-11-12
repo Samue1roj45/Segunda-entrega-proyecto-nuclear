@@ -1,8 +1,8 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.time.OffsetDateTime;
 
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

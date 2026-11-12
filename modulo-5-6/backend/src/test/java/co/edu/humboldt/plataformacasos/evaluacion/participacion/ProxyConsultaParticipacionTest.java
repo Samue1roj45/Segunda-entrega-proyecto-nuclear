@@ -1,4 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
+
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,23 +19,22 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.Rol;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
 
 @ExtendWith(MockitoExtension.class)
-class ParticipacionConsultaProxyTest {
+class ProxyConsultaParticipacionTest {
 
     @Mock
-    private ParticipacionFacade real;
+    private FachadaParticipacion real;
 
     @Mock
     private AccesoEvaluacion acceso;
 
-    private ParticipacionConsultaProxy proxy;
+    private ProxyConsultaParticipacion proxy;
 
     @BeforeEach
     void setup() {
-        proxy = new ParticipacionConsultaProxy(real, acceso);
+        proxy = new ProxyConsultaParticipacion(real, acceso);
     }
 
     @Test

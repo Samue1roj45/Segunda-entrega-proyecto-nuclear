@@ -1,42 +1,51 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ReglaNegocioException;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PoliticaInicioIntento;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.CalculoNota;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.ResultadoRepositorio;
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.resultado.CalculoNota;
-import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
-
+/**
+ * RF-12 (Facade): registra el inicio y el fin de cada intento. Antes de abrir un intento nuevo
+ * consulta la regla de ingreso del módulo 4 (RF-22) y el número de intentos permitidos de la
+ * autorización (RF-25, módulo 3). Las respuestas (RF-10, RF-11) las registra el módulo 4 por el
+ * puerto {@link RegistroParticipaciones}.
+ */
 @Service
-public class ParticipacionFacade {
+public class FachadaParticipacion {
 
-    private final ParticipacionRepository repositorio;
-    private final RespuestaSeleccionadaRepository respuestas;
-    private final ResultadoRepository resultados;
+    private final ParticipacionRepositorio repositorio;
+    private final RespuestaSeleccionadaRepositorio respuestas;
+    private final ResultadoRepositorio resultados;
     private final CatalogoAcademico catalogo;
     private final AccesoEvaluacion acceso;
     private final CalculoNota evaluacion;
+    private final PoliticaInicioIntento politicaInicio;
     private final Clock clock;
 
-    public ParticipacionFacade(
-            ParticipacionRepository repositorio,
-            RespuestaSeleccionadaRepository respuestas,
-            ResultadoRepository resultados,
+    public FachadaParticipacion(
+            ParticipacionRepositorio repositorio,
+            RespuestaSeleccionadaRepositorio respuestas,
+            ResultadoRepositorio resultados,
             CatalogoAcademico catalogo,
             AccesoEvaluacion acceso,
             CalculoNota evaluacion,
+            PoliticaInicioIntento politicaInicio,
             Clock clock) {
         this.repositorio = repositorio;
         this.respuestas = respuestas;
@@ -44,13 +53,14 @@ public class ParticipacionFacade {
         this.catalogo = catalogo;
         this.acceso = acceso;
         this.evaluacion = evaluacion;
+        this.politicaInicio = politicaInicio;
         this.clock = clock;
     }
 
     @Transactional
     public ParticipacionRespuesta iniciar(IniciarParticipacionRequest request) {
         ActorActual actor = acceso.exigirActor();
-        if (!actor.esEstudiante()) {
+        if (!actor.esEstudiante() || !actor.tienePermiso(Permiso.PARTICIPAR_EN_CASOS)) {
             throw new AccesoDenegadoException("Solo estudiantes pueden iniciar participaciones.");
         }
         if (request == null || request.autorizacionId() == null) {
@@ -67,10 +77,10 @@ public class ParticipacionFacade {
                 .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada."));
 
         OffsetDateTime ahora = OffsetDateTime.now(clock);
-        if ("CANCELADA".equals(practica.estado())) {
-            throw new ReglaNegocioException("La práctica fue cancelada.");
+        if (!autorizacion.activa()) {
+            throw new ReglaNegocioException("La autorización del estudiante fue retirada.");
         }
-        if ("FINALIZADA".equals(practica.estado()) || ahora.isAfter(practica.fechaFin())) {
+        if (practica.finalizada() || ahora.isAfter(practica.fechaFin())) {
             throw new ReglaNegocioException("La práctica ya finalizó.");
         }
 
@@ -80,23 +90,27 @@ public class ParticipacionFacade {
                 .findFirst()
                 .orElse(null);
         if (enCurso != null) {
-            return toRespuesta(enCurso, practica);
+            return toRespuesta(enCurso, practica);   // retomar un intento en curso siempre se permite
         }
+
+        // RF-22 (módulo 4): sesión en curso y dentro del límite de ingreso tardío.
+        politicaInicio.exigirInicioPermitido(autorizacion.id());
 
         Participacion noIniciadaSinNota = existentes.stream()
                 .filter(p -> p.getEstado() == EstadoParticipacion.NO_INICIADA)
                 .filter(p -> !intentoConNota(p))
                 .findFirst()
                 .orElse(null);
-
-        Rn17.validarVentanaInicio(practica, ahora);
-
         if (noIniciadaSinNota != null) {
             return toRespuesta(repositorio.save(MaquinaEstadoParticipacion.iniciar(noIniciadaSinNota, ahora)), practica);
         }
 
-        if (existentes.size() >= Participacion.MAX_INTENTOS) {
-            throw new ReglaNegocioException("Ya usaste los dos intentos permitidos.");
+        // RF-25: 1 intento + repeticiones autorizadas; una ausencia (NO_INICIADA) no cuenta como intento.
+        long usados = existentes.stream().filter(p -> p.getEstado() != EstadoParticipacion.NO_INICIADA).count();
+        if (usados >= autorizacion.intentosPermitidos()) {
+            throw new ReglaNegocioException(autorizacion.intentosPermitidos() == 1
+                    ? "Ya usaste tu intento. Solo el docente creador del caso puede autorizar una repetición."
+                    : "Ya usaste los " + autorizacion.intentosPermitidos() + " intentos permitidos.");
         }
 
         int siguiente = existentes.stream().mapToInt(Participacion::getNumeroIntento).max().orElse(0) + 1;
@@ -107,33 +121,6 @@ public class ParticipacionFacade {
         nueva.setNumeroIntento(siguiente);
         MaquinaEstadoParticipacion.iniciar(nueva, ahora);
         return toRespuesta(repositorio.save(nueva), practica);
-    }
-
-    @Transactional
-    public void responder(Long participacionId, RegistrarRespuestaRequest request) {
-        ActorActual actor = acceso.exigirActor();
-        Participacion participacion = acceso.exigirDueñoEstudiante(participacionId, actor);
-        if (participacion.getEstado() != EstadoParticipacion.EN_CURSO) {
-            throw new ReglaNegocioException("No es posible alterar respuestas de un intento cerrado.");
-        }
-        PracticaRef practica = catalogo.buscarPractica(participacion.getPracticaId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Práctica no encontrada."));
-        PreguntaRef pregunta = catalogo.preguntasDelCaso(practica.casoId()).stream()
-                .filter(p -> p.id().equals(request.preguntaId()))
-                .findFirst()
-                .orElseThrow(() -> new ReglaNegocioException("La pregunta no pertenece al caso de esta práctica."));
-        RespuestaOpcionRef opcion = catalogo.buscarRespuesta(request.respuestaId())
-                .orElseThrow(() -> new ReglaNegocioException("La respuesta no existe."));
-        if (!opcion.preguntaId().equals(pregunta.id())) {
-            throw new ReglaNegocioException("La respuesta no pertenece a la pregunta indicada.");
-        }
-        RespuestaSeleccionada seleccion = respuestas
-                .findByParticipacionIdAndPreguntaId(participacion.getId(), pregunta.id())
-                .orElseGet(RespuestaSeleccionada::new);
-        seleccion.setParticipacion(participacion);
-        seleccion.setPreguntaId(pregunta.id());
-        seleccion.setRespuestaId(opcion.id());
-        respuestas.save(seleccion);
     }
 
     @Transactional

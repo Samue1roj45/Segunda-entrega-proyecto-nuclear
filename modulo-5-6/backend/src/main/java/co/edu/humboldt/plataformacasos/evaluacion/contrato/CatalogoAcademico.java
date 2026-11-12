@@ -1,11 +1,12 @@
-package com.unihumboldt.nuclear.evaluacion.contrato;
+package co.edu.humboldt.plataformacasos.evaluacion.contrato;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Puerto hacia prácticas, autorizaciones, estudiantes y contenido del caso (módulos ajenos).
- * Esta implementación es temporal y se reemplazará por los servicios oficiales.
+ * Puerto hacia los datos de otros módulos: sesiones y autorizaciones (módulo 3), estudiantes (módulo 1)
+ * y preguntas, opciones y rúbrica del caso (módulo 2). Lo implementa la aplicación
+ * (integracion.CatalogoAcademicoIntegrado); las pruebas del módulo usan un doble en memoria.
  */
 public interface CatalogoAcademico {
 
@@ -15,8 +16,7 @@ public interface CatalogoAcademico {
 
     Optional<EstudianteRef> buscarEstudiante(Long id);
 
-    void actualizarAutorizacion(AutorizacionRef autorizacion);
-
+    /** Solo las autorizaciones ACTIVAS (un estudiante retirado no se evalúa ni se notifica). */
     List<AutorizacionRef> autorizacionesDePractica(Long practicaId);
 
     List<PreguntaRef> preguntasDelCaso(Long casoId);

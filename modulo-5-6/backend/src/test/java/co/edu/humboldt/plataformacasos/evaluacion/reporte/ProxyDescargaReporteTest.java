@@ -1,4 +1,6 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,26 +19,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.Rol;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
 
 @ExtendWith(MockitoExtension.class)
-class ReporteDescargaProxyTest {
+class ProxyDescargaReporteTest {
 
     @Mock
-    private ReporteFacade real;
+    private FachadaReportes real;
 
     @Mock
     private AccesoEvaluacion acceso;
 
-    private ReporteDescargaProxy proxy;
+    private ProxyDescargaReporte proxy;
 
     @BeforeEach
     void setup() {
-        proxy = new ReporteDescargaProxy(real, acceso);
+        proxy = new ProxyDescargaReporte(real, acceso);
     }
 
     @Test
@@ -63,7 +64,7 @@ class ReporteDescargaProxyTest {
         ActorActual docente = new ActorActual(5L, null, 5L, Rol.DOCENTE);
         FilaReporteEvaluacion propia = fila(1L, 10L, new BigDecimal("0.00"), "AUSENCIA");
         FilaReporteEvaluacion ajena = fila(9L, 11L, new BigDecimal("80.00"), "FINALIZADA");
-        ArchivoReporte archivo = new ArchivoReporte("r.pdf", ReporteFacade.PDF, new byte[] {1});
+        ArchivoReporte archivo = new ArchivoReporte("r.pdf", FachadaReportes.PDF, new byte[] {1});
         when(acceso.exigirActor()).thenReturn(docente);
         when(real.filas(1L, null)).thenReturn(List.of(propia, ajena));
         when(acceso.visible(docente, 1L, 10L)).thenReturn(true);

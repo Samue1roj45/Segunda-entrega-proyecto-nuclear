@@ -1,32 +1,32 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.unihumboldt.nuclear.evaluacion.notificacion.NotificacionFacade;
-import com.unihumboldt.nuclear.evaluacion.notificacion.ResumenEnvio;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.notificacion.FachadaNotificaciones;
+import co.edu.humboldt.plataformacasos.evaluacion.notificacion.ResumenEnvio;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 
 /**
  * Fachada de evaluación. Delega el cálculo, la lectura, la nota oficial y el cierre.
- * Publicar calificaciones no recalcula: lo hace {@link NotificacionFacade}.
+ * Publicar calificaciones no recalcula: lo hace {@link FachadaNotificaciones}.
  */
 @Service
-public class EvaluacionFacade {
+public class FachadaEvaluacion {
 
     private final CalculoNota calculo;
     private final LecturaResultados lectura;
-    private final NotaOficialServicio notasOficiales;
+    private final ServicioNotaOficial notasOficiales;
     private final CierrePendientes pendientes;
-    private final NotificacionFacade notificaciones;
+    private final FachadaNotificaciones notificaciones;
 
-    public EvaluacionFacade(
+    public FachadaEvaluacion(
             CalculoNota calculo,
             LecturaResultados lectura,
-            NotaOficialServicio notasOficiales,
+            ServicioNotaOficial notasOficiales,
             CierrePendientes pendientes,
-            NotificacionFacade notificaciones) {
+            FachadaNotificaciones notificaciones) {
         this.calculo = calculo;
         this.lectura = lectura;
         this.notasOficiales = notasOficiales;

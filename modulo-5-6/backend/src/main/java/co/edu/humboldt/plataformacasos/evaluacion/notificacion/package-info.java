@@ -1,7 +1,7 @@
 /**
  * RF-21, RF-26 y RF-27: convocatoria/cambios, retroalimentación y correo (JavaMailSender).
  * Observer: PublicadorEventos + ObservadorCorreo.
- * Facade RF-27: NotificacionFacade.publicarCalificaciones.
- * Proxy RF-26: RetroalimentacionProxy sobre GestionRetroalimentacion.
+ * FachadaSesiones RF-27: FachadaNotificaciones.publicarCalificaciones.
+ * Proxy RF-26: ProxyRetroalimentacion sobre GestionRetroalimentacion.
  */
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;

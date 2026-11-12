@@ -1,10 +1,10 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
 
 public record ResultadoRespuesta(
         Long id,

@@ -1,14 +1,14 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
 
 /** RN22: autorizado que nunca inició → nota 0. */
-public class EvaluacionAusenciaStrategy implements EstrategiaEvaluacion {
+public class EstrategiaEvaluacionAusencia implements EstrategiaEvaluacion {
 
     private final CatalogoAcademico catalogo;
 
-    public EvaluacionAusenciaStrategy(CatalogoAcademico catalogo) {
+    public EstrategiaEvaluacionAusencia(CatalogoAcademico catalogo) {
         this.catalogo = catalogo;
     }
 

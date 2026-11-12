@@ -1,5 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.participacion;
+package co.edu.humboldt.plataformacasos.evaluacion.participacion;
 
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.DoblesModuloEvaluacion;
+import org.springframework.context.annotation.Import;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,7 +14,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,15 +22,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
-import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.ActorTokens;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.CatalogoAcademicoEnMemoria;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
 
 @SpringBootTest
+@Import(DoblesModuloEvaluacion.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
@@ -44,7 +47,7 @@ class ParticipacionApiTest {
     private CatalogoAcademicoEnMemoria catalogo;
 
     @Autowired
-    private ParticipacionRepository repositorio;
+    private ParticipacionRepositorio repositorio;
 
     @BeforeEach
     void seed() {
@@ -54,9 +57,9 @@ class ParticipacionApiTest {
         catalogo.registrar(new EstudianteRef(11L, "est2@uni.edu", "Ana Estudiante", 2L));
         catalogo.registrar(new PracticaRef(
                 1L, "Práctica 1", 50L, 5L,
-                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos"));
-        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, "ABC123", false));
-        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, "XYZ789", false));
+                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos", 240));
+        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, true, 1));
+        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, true, 1));
     }
 
     @Test
@@ -94,7 +97,7 @@ class ParticipacionApiTest {
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", pendiente.getId())
                         .with(ActorTokens.estudiante(10)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(
+                .andExpect(jsonPath("$.mensaje").value(
                         "No es posible finalizar una participación que no está en curso."));
     }
 
@@ -105,7 +108,7 @@ class ParticipacionApiTest {
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id1)
                 .with(ActorTokens.estudiante(10)));
 
-        catalogo.actualizarAutorizacion(new AutorizacionRef(100L, 1L, 10L, "ABC123", true));
+        catalogo.actualizarAutorizacion(new AutorizacionRef(100L, 1L, 10L, true, 2));
 
         JsonNode segundo = iniciar(100, 10);
         long id2 = segundo.get("id").asLong();
@@ -121,18 +124,18 @@ class ParticipacionApiTest {
     }
 
     @Test
-    void rn17BloqueaInicioTrasPuntoMedio() throws Exception {
+    void rf22BloqueaInicioTrasLaMitadDelTiempoMaximo() throws Exception {
         OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.UTC);
         catalogo.registrar(new PracticaRef(
                 1L, "Práctica 1", 50L, 5L,
-                ahora.minusHours(4), ahora.plusMinutes(10), "EN_CURSO", "Bienvenidos"));
+                ahora.minusHours(4), ahora.plusMinutes(10), "EN_CURSO", "Bienvenidos", 60));
 
         mockMvc.perform(post("/api/participaciones/iniciar")
                         .with(ActorTokens.estudiante(10))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("mitad")));
+                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("Ingreso tardío")));
     }
 
     @Test
@@ -161,15 +164,9 @@ class ParticipacionApiTest {
     }
 
     @Test
-    void docenteNoRespondeNiFinalizaIntentoAjeno() throws Exception {
+    void docenteNoFinalizaIntentoAjeno() throws Exception {
         JsonNode propio = iniciar(100, 10);
         long id = propio.get("id").asLong();
-
-        mockMvc.perform(post("/api/participaciones/{id}/respuestas", id)
-                        .with(ActorTokens.docente(5))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"preguntaId\":1,\"respuestaId\":11}"))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/participaciones/{id}/finalizar", id)
                         .with(ActorTokens.docente(5)))
@@ -207,7 +204,7 @@ class ParticipacionApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"autorizacionId\":100}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("dos intentos")));
+                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("Ya usaste tu intento")));
     }
 
     @Test

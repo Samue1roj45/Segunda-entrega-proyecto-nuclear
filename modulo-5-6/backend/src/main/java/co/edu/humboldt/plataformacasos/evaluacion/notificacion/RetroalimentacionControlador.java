@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
 import java.util.List;
 
@@ -14,11 +14,11 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/retroalimentaciones")
-public class RetroalimentacionController {
+public class RetroalimentacionControlador {
 
     private final GestionRetroalimentacion gestion;
 
-    public RetroalimentacionController(GestionRetroalimentacion gestion) {
+    public RetroalimentacionControlador(GestionRetroalimentacion gestion) {
         this.gestion = gestion;
     }
 

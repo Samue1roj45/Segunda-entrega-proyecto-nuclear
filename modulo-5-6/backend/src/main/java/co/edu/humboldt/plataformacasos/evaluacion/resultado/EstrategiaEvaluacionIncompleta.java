@@ -1,16 +1,16 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
 /** RN21: califica el avance; las no respondidas no aportan peso obtenido. */
-public class EvaluacionIncompletaStrategy implements EstrategiaEvaluacion {
+public class EstrategiaEvaluacionIncompleta implements EstrategiaEvaluacion {
 
     private final CatalogoAcademico catalogo;
-    private final RespuestaSeleccionadaRepository respuestas;
+    private final RespuestaSeleccionadaRepositorio respuestas;
 
-    public EvaluacionIncompletaStrategy(CatalogoAcademico catalogo, RespuestaSeleccionadaRepository respuestas) {
+    public EstrategiaEvaluacionIncompleta(CatalogoAcademico catalogo, RespuestaSeleccionadaRepositorio respuestas) {
         this.catalogo = catalogo;
         this.respuestas = respuestas;
     }

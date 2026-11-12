@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.reporte;
+package co.edu.humboldt.plataformacasos.evaluacion.reporte;
 
 /**
  * Sujeto del Proxy de descarga de reportes (RF-16).

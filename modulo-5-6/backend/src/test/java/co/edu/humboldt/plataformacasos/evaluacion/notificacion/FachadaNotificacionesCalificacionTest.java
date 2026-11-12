@@ -1,4 +1,6 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,22 +17,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.Rol;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.resultado.Resultado;
-import com.unihumboldt.nuclear.evaluacion.resultado.ResultadoRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.Resultado;
+import co.edu.humboldt.plataformacasos.evaluacion.resultado.ResultadoRepositorio;
 
 @ExtendWith(MockitoExtension.class)
-class NotificacionFacadeCalificacionTest {
+class FachadaNotificacionesCalificacionTest {
 
     @Mock
-    private NotificacionRepository repositorio;
+    private NotificacionRepositorio repositorio;
     @Mock
-    private ResultadoRepository resultados;
+    private ResultadoRepositorio resultados;
     @Mock
     private CatalogoAcademico catalogo;
     @Mock
@@ -40,9 +41,9 @@ class NotificacionFacadeCalificacionTest {
 
     @Test
     void publicaCalificacionPorIntentoSinTocarLaNota() {
-        NotificacionFacade facade = new NotificacionFacade(repositorio, resultados, catalogo, acceso, publicador);
+        FachadaNotificaciones facade = new FachadaNotificaciones(repositorio, resultados, catalogo, acceso, publicador);
         ActorActual docente = new ActorActual(5L, null, 5L, Rol.DOCENTE);
-        PracticaRef practica = new PracticaRef(1L, "Practica 1", 50L, 5L, null, null, "EN_CURSO", "");
+        PracticaRef practica = new PracticaRef(1L, "Practica 1", 50L, 5L, null, null, "EN_CURSO", "", 240);
         Resultado propio = resultado(3L, 1L, 10L, new BigDecimal("50.00"), true);
         Resultado ajeno = resultado(4L, 9L, 11L, new BigDecimal("80.00"), false);
         when(acceso.exigirActor()).thenReturn(docente);

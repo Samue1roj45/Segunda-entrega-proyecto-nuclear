@@ -1,4 +1,6 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
+
+import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,27 +17,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.ActorActual;
-import com.unihumboldt.nuclear.evaluacion.contrato.Rol;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoDenegadoException;
-import com.unihumboldt.nuclear.evaluacion.participacion.AccesoEvaluacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.ActorActual;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.AccesoEvaluacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 
 @ExtendWith(MockitoExtension.class)
-class RetroalimentacionProxyTest {
+class ProxyRetroalimentacionTest {
 
     @Mock
-    private RetroalimentacionFacade real;
+    private FachadaRetroalimentacion real;
 
     @Mock
     private AccesoEvaluacion acceso;
 
-    private RetroalimentacionProxy proxy;
+    private ProxyRetroalimentacion proxy;
 
     @BeforeEach
     void setup() {
-        proxy = new RetroalimentacionProxy(real, acceso);
+        proxy = new ProxyRetroalimentacion(real, acceso);
     }
 
     @Test

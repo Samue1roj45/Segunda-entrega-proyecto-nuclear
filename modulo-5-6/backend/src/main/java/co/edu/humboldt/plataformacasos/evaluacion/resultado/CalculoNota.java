@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
@@ -6,10 +6,10 @@ import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademico;
-import com.unihumboldt.nuclear.evaluacion.participacion.EstadoParticipacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.CatalogoAcademico;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.EstadoParticipacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
 /**
  * RF-13 y RF-24: elige la estrategia y persiste la nota una sola vez.
@@ -17,14 +17,14 @@ import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRep
 @Service
 public class CalculoNota {
 
-    private final ResultadoRepository resultados;
-    private final RespuestaSeleccionadaRepository respuestas;
+    private final ResultadoRepositorio resultados;
+    private final RespuestaSeleccionadaRepositorio respuestas;
     private final CatalogoAcademico catalogo;
     private final Clock clock;
 
     public CalculoNota(
-            ResultadoRepository resultados,
-            RespuestaSeleccionadaRepository respuestas,
+            ResultadoRepositorio resultados,
+            RespuestaSeleccionadaRepositorio respuestas,
             CatalogoAcademico catalogo,
             Clock clock) {
         this.resultados = resultados;
@@ -55,11 +55,11 @@ public class CalculoNota {
 
     private EstrategiaEvaluacion estrategiaPara(Participacion participacion) {
         if (participacion.getEstado() == EstadoParticipacion.FINALIZADA) {
-            return new EvaluacionCompletaStrategy(catalogo, respuestas);
+            return new EstrategiaEvaluacionCompleta(catalogo, respuestas);
         }
         if (participacion.getEstado() == EstadoParticipacion.INCOMPLETA) {
-            return new EvaluacionIncompletaStrategy(catalogo, respuestas);
+            return new EstrategiaEvaluacionIncompleta(catalogo, respuestas);
         }
-        return new EvaluacionAusenciaStrategy(catalogo);
+        return new EstrategiaEvaluacionAusencia(catalogo);
     }
 }

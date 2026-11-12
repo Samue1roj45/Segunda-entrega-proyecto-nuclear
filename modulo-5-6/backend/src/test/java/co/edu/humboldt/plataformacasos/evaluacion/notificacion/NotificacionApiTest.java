@@ -1,5 +1,7 @@
-package com.unihumboldt.nuclear.evaluacion.notificacion;
+package co.edu.humboldt.plataformacasos.evaluacion.notificacion;
 
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.DoblesModuloEvaluacion;
+import org.springframework.context.annotation.Import;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,7 +20,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mail.MailSendException;
@@ -30,13 +32,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.AutorizacionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
-import com.unihumboldt.nuclear.evaluacion.contrato.EstudianteRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.support.ActorTokens;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.AutorizacionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.CatalogoAcademicoEnMemoria;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.EstudianteRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.ActorTokens;
 
 @SpringBootTest
+@Import(DoblesModuloEvaluacion.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
@@ -59,9 +62,9 @@ class NotificacionApiTest {
         catalogo.registrar(new EstudianteRef(11L, "est2@uni.edu", "Ana Estudiante", 2L));
         catalogo.registrar(new PracticaRef(
                 1L, "Practica 1", 50L, 5L,
-                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos"));
-        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, "ABC123", false));
-        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, "XYZ789", false));
+                ahora.minusHours(1), ahora.plusHours(3), "EN_CURSO", "Bienvenidos", 240));
+        catalogo.registrar(new AutorizacionRef(100L, 1L, 10L, true, 1));
+        catalogo.registrar(new AutorizacionRef(101L, 1L, 11L, true, 1));
     }
 
     @Test

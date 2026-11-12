@@ -1,4 +1,4 @@
-package com.unihumboldt.nuclear.evaluacion.resultado;
+package co.edu.humboldt.plataformacasos.evaluacion.resultado;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -10,21 +10,21 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.unihumboldt.nuclear.evaluacion.contrato.CatalogoAcademicoEnMemoria;
-import com.unihumboldt.nuclear.evaluacion.contrato.PracticaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.PreguntaRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RespuestaOpcionRef;
-import com.unihumboldt.nuclear.evaluacion.contrato.RubricaRef;
-import com.unihumboldt.nuclear.evaluacion.participacion.Participacion;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionada;
-import com.unihumboldt.nuclear.evaluacion.participacion.RespuestaSeleccionadaRepository;
+import co.edu.humboldt.plataformacasos.evaluacion.soporte.CatalogoAcademicoEnMemoria;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PracticaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.PreguntaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RespuestaOpcionRef;
+import co.edu.humboldt.plataformacasos.evaluacion.contrato.RubricaRef;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.Participacion;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionada;
+import co.edu.humboldt.plataformacasos.evaluacion.participacion.RespuestaSeleccionadaRepositorio;
 
 class CalculoRubricaTest {
 
     @Test
     void ausenciaNotaCeroAunqueHayaPreguntas() {
         CatalogoAcademicoEnMemoria catalogo = new CatalogoAcademicoEnMemoria();
-        catalogo.registrar(new PracticaRef(1L, "P", 9L, 5L, null, null, "EN_CURSO", ""));
+        catalogo.registrar(new PracticaRef(1L, "P", 9L, 5L, null, null, "EN_CURSO", "", 240));
         catalogo.registrar(new PreguntaRef(1L, 9L, "P1", 3));
         catalogo.registrar(new RubricaRef(1L, 9L, 80));
         Participacion p = new Participacion();
@@ -39,7 +39,7 @@ class CalculoRubricaTest {
     @Test
     void sieteDeDiezUsaEscalaDeLaRubrica() {
         CatalogoAcademicoEnMemoria catalogo = new CatalogoAcademicoEnMemoria();
-        catalogo.registrar(new PracticaRef(1L, "P", 9L, 5L, null, null, "EN_CURSO", ""));
+        catalogo.registrar(new PracticaRef(1L, "P", 9L, 5L, null, null, "EN_CURSO", "", 240));
         for (long i = 1; i <= 10; i++) {
             catalogo.registrar(new PreguntaRef(i, 9L, "P" + i, 1));
             catalogo.registrar(new RespuestaOpcionRef(i * 10, i, "ok", true));
@@ -55,7 +55,7 @@ class CalculoRubricaTest {
             s.setRespuestaId(i * 10);
             dadas.add(s);
         }
-        RespuestaSeleccionadaRepository repo = mock(RespuestaSeleccionadaRepository.class);
+        RespuestaSeleccionadaRepositorio repo = mock(RespuestaSeleccionadaRepositorio.class);
         when(repo.findByParticipacionId(null)).thenReturn(dadas);
         MetricasEvaluacion m = CalculoRubrica.porRespuestas(p, catalogo, repo);
         assertEquals(7, m.pesoObtenido());
