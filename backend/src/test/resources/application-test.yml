@@ -26,3 +26,10 @@ app:
     # Las tareas programadas no corren durante las pruebas (se invocan a mano cuando se prueban).
     intervalo-cierre-ms: 3600000
     intervalo-expiracion-ms: 3600000
+
+# Consola limpia en las pruebas: solo avisos y errores, sin banner; el reporte de cada prueba lo imprime
+# soporte/ReporteConsola (nombre, peticiones HTTP y resultado).
+logging:
+  level:
+    root: WARN
+spring.main.banner-mode: "off"
