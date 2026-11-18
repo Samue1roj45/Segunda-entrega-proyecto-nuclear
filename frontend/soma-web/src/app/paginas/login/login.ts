@@ -2,8 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { Fondo } from '../../compartido/fondo';
-import { Logo } from '../../compartido/logo';
 import { ConOperaciones } from '../../core/con-operaciones';
 import { SesionUsuario } from '../../core/modelos/sesion-usuario';
 import { SesionService } from '../../core/sesion.service';
@@ -15,170 +13,186 @@ import { SesionService } from '../../core/sesion.service';
  */
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, Fondo, Logo],
+  imports: [FormsModule],
   template: `
-    <soma-fondo />
+    <div class="escena">
+      <!-- Render de cristal de la referencia, sin el contenido del panel (que se dibuja abajo con campos reales). -->
+      <img class="fondo" src="fondo-login.jpg" alt="" width="1672" height="941" fetchpriority="high" />
+      <h1 class="sr-only">SOMA · Simulaciones para el aprendizaje en psicología social. Explora realidades, comprende personas.</h1>
 
-    <main class="escenario">
-      <section class="marca" aria-label="SOMA">
-        <soma-logo [tamano]="150" />
-        <p class="palabra">SOMA</p>
-        <p class="lema">Simulaciones para el aprendizaje<br />en psicología social</p>
-        <span class="linea" aria-hidden="true"></span>
-        <h2 class="titular">Explora realidades,<br />comprende personas.</h2>
-        <p class="bajada">
-          Simulaciones interactivas para analizar, reflexionar y construir soluciones en contextos sociales reales.
-        </p>
-      </section>
+      <form #formulario="ngForm" class="tarjeta" novalidate (ngSubmit)="ingresar(formulario)">
+        <div class="interior">
+          <h2 class="titulo">Bienvenido a SOMA</h2>
+          <p class="subtitulo">Inicia sesión para continuar con tu<br />experiencia de aprendizaje</p>
 
-      <form #formulario="ngForm" class="tarjeta cristal" novalidate (ngSubmit)="ingresar(formulario)">
-        <header>
-          <h1>Bienvenido a SOMA</h1>
-          <p class="suave">Inicia sesión para continuar con tu experiencia de aprendizaje</p>
-        </header>
+          @if (error(); as mensaje) { <p class="aviso error" role="alert">{{ mensaje }}</p> }
+          @else if (info(); as mensaje) { <p class="aviso" role="status">{{ mensaje }}</p> }
 
-        <label class="campo">
-          <span class="sr-only">Correo institucional</span>
-          <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7 8 6 8-6" /></svg>
-          <input type="email" name="correo" placeholder="Correo institucional" autocomplete="username" required
-                 maxlength="150" [(ngModel)]="correo" #campoCorreo="ngModel" />
-        </label>
-        @if (enviado() && campoCorreo.invalid) {
-          <span class="falta" role="alert">Escribe tu correo institucional.</span>
-        }
-
-        @if (esEstudiante()) {
-          <label class="campo">
-            <span class="sr-only">Código de acceso</span>
-            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4" /><path d="M12 12h9m-3 0v3m-3-3v2" /></svg>
-            <input name="codigo" placeholder="Código de acceso de la convocatoria" autocomplete="one-time-code"
-                   required maxlength="64" [(ngModel)]="codigo" #campoCodigo="ngModel" />
+          <label class="campo c1" [class.invalido]="enviado() && campoCorreo.invalid">
+            <span class="sr-only">Correo institucional</span>
+            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7.5 8 5.5 8-5.5" /></svg>
+            <input type="email" name="correo" placeholder="Correo institucional" autocomplete="username" required
+                   maxlength="150" [(ngModel)]="correo" #campoCorreo="ngModel" />
           </label>
-          @if (enviado() && campoCodigo.invalid) {
-            <span class="falta" role="alert">Escribe el código que recibiste por correo.</span>
-          }
-        } @else {
-          <label class="campo">
-            <span class="sr-only">Contraseña</span>
-            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2.5" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-            <input [type]="verClave() ? 'text' : 'password'" name="clave" placeholder="Contraseña"
-                   autocomplete="current-password" required maxlength="100" [(ngModel)]="clave" #campoClave="ngModel" />
-            <button type="button" class="ojo" (click)="verClave.set(!verClave())"
-                    [attr.aria-label]="verClave() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
-                @if (!verClave()) { <path d="M4 4l16 16" /> }
-              </svg>
-            </button>
-          </label>
-          @if (enviado() && campoClave.invalid) {
-            <span class="falta" role="alert">Escribe tu contraseña.</span>
-          }
-        }
+          @if (enviado() && campoCorreo.invalid) { <span class="sr-only" role="alert">Escribe tu correo institucional.</span> }
 
-        <div class="opciones">
+          @if (esEstudiante()) {
+            <label class="campo c2" [class.invalido]="enviado() && campoCodigo.invalid">
+              <span class="sr-only">Código de acceso</span>
+              <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4" /><path d="M12 12h9m-3 0v3m-3-3v2" /></svg>
+              <input name="codigo" placeholder="Código de acceso" autocomplete="one-time-code" required maxlength="64"
+                     [(ngModel)]="codigo" #campoCodigo="ngModel" />
+            </label>
+            @if (enviado() && campoCodigo.invalid) { <span class="sr-only" role="alert">Escribe el código que recibiste por correo.</span> }
+          } @else {
+            <label class="campo c2" [class.invalido]="enviado() && campoClave.invalid">
+              <span class="sr-only">Contraseña</span>
+              <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></svg>
+              <input [type]="verClave() ? 'text' : 'password'" name="clave" placeholder="Contraseña" autocomplete="current-password"
+                     required maxlength="100" [(ngModel)]="clave" #campoClave="ngModel" />
+              <button type="button" class="ojo" (click)="verClave.set(!verClave())"
+                      [attr.aria-label]="verClave() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
+                  @if (!verClave()) { <path d="M4 4l16 16" /> }
+                </svg>
+              </button>
+            </label>
+            @if (enviado() && campoClave.invalid) { <span class="sr-only" role="alert">Escribe tu contraseña.</span> }
+          }
+
           <label class="recordar">
-            <input type="checkbox" name="recordar" [(ngModel)]="recordar" /> Recordarme
+            <input type="checkbox" name="recordar" [(ngModel)]="recordar" />
+            <span class="caja" aria-hidden="true"></span>
+            <span>Recordarme</span>
           </label>
-          <button type="button" class="enlace" (click)="noDisponible('recuperar')">¿Olvidaste tu contraseña?</button>
+          <button type="button" class="olvido" (click)="noDisponible('recuperar')">¿Olvidaste tu contraseña?</button>
+
+          <button type="submit" class="ingresar" [disabled]="ocupado()">
+            <span>{{ ocupado() ? 'Ingresando…' : 'Ingresar' }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5" /></svg>
+          </button>
+
+          <div class="separador"><span>o continúa con</span></div>
+          <div class="sociales">
+            <button type="button" class="social" aria-label="Continuar con Google" (click)="noDisponible('social')">
+              <span class="g" aria-hidden="true">G</span>
+            </button>
+            <button type="button" class="social" aria-label="Continuar con Microsoft" (click)="noDisponible('social')">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4a3a6b" d="M3 3h8.500v8.500H3zM12.500 3H21v8.500h-8.500zM3 12.500h8.500V21H3zM12.500 12.500H21V21h-8.500z" /></svg>
+            </button>
+            <button type="button" class="social" aria-label="Continuar con Apple" (click)="noDisponible('social')">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4a3a6b" d="M16.400 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9-.7 0-1.900-.9-3.100-.8-1.600 0-3.100.9-3.900 2.400-1.700 2.900-.4 7.200 1.200 9.600.8 1.200 1.800 2.500 3 2.400 1.200 0 1.700-.8 3.100-.8s1.900.8 3.100.8c1.300 0 2.100-1.200 2.900-2.400.9-1.300 1.300-2.600 1.300-2.700-.1 0-2.600-1-2.700-4.100ZM14.200 5.600c.6-.8 1.100-1.900 1-3-.9 0-2.100.6-2.700 1.400-.6.700-1.100 1.800-1 2.900 1 .1 2.100-.5 2.700-1.300Z"/></svg>
+            </button>
+          </div>
+
+          <p class="registro">¿No tienes una cuenta? <button type="button" (click)="noDisponible('registro')">Regístrate</button></p>
         </div>
-
-        @if (error(); as mensaje) { <p class="alerta-error" role="alert">{{ mensaje }}</p> }
-        @if (info(); as mensaje) { <p class="info" role="status">{{ mensaje }}</p> }
-
-        <button type="submit" class="boton-primario ingresar" [disabled]="ocupado()">
-          <span>{{ ocupado() ? 'Ingresando…' : 'Ingresar' }}</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" /></svg>
+        <button type="button" class="cambio" (click)="alternarTipo()">
+          {{ esEstudiante() ? 'Ingresar como docente o administrador' : 'Ingresar como estudiante, con código de acceso' }}
         </button>
-
-        <button type="button" class="enlace cambio" (click)="alternarTipo()">
-          {{ esEstudiante() ? '¿Eres docente o administrador? Ingresa con tu contraseña'
-                            : '¿Eres estudiante? Ingresa con tu código de acceso' }}
-        </button>
-
-        <div class="separador"><span>o continúa con</span></div>
-        <div class="sociales">
-          <button type="button" class="social" aria-label="Continuar con Google" (click)="noDisponible('social')">
-            <span class="g">G</span>
-          </button>
-          <button type="button" class="social" aria-label="Continuar con Microsoft" (click)="noDisponible('social')">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="ms"><rect x="3" y="3" width="8" height="8" /><rect x="13" y="3" width="8" height="8" /><rect x="3" y="13" width="8" height="8" /><rect x="13" y="13" width="8" height="8" /></svg>
-          </button>
-          <button type="button" class="social" aria-label="Continuar con Apple" (click)="noDisponible('social')">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="apple"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.9-.9-3.1-.8-1.6 0-3.1.9-3.9 2.4-1.7 2.9-.4 7.2 1.2 9.6.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8s1.9.8 3.1.8c1.3 0 2.1-1.2 2.9-2.4.9-1.3 1.3-2.6 1.3-2.7-.1 0-2.6-1-2.7-4.1ZM14.2 5.6c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3Z" /></svg>
-          </button>
-        </div>
-
-        <p class="registro">¿No tienes una cuenta? <button type="button" class="enlace fuerte" (click)="noDisponible('registro')">Regístrate</button></p>
       </form>
-    </main>
+    </div>
   `,
   styles: `
-    :host { display: block; min-height: 100vh; }
-    .escenario {
-      position: relative; z-index: 1; min-height: 100vh;
-      display: grid; grid-template-columns: 1.1fr minmax(360px, 480px); align-items: center;
-      gap: clamp(2rem, 6vw, 7rem); padding: clamp(1.5rem, 5vw, 5rem) clamp(1.5rem, 7vw, 8rem);
-    }
-    .marca { display: grid; justify-items: start; gap: .35rem; max-width: 30rem; padding-left: 4rem; }
-    .marca soma-logo { margin-left: 3.2rem; filter: drop-shadow(0 18px 24px rgba(59,45,92,.18)); }
-    .palabra { font-family: var(--serif); font-size: clamp(4.2rem, 8vw, 6.4rem); line-height: .9; color: var(--lila-950); letter-spacing: .04em; }
-    .lema { text-transform: uppercase; letter-spacing: .22em; font-size: .78rem; color: var(--lila-800); text-align: center; line-height: 1.6; }
-    .linea { width: 3rem; height: 2px; background: var(--lila-800); margin: 1.6rem 0 .8rem; border-radius: 2px; }
-    .titular { font-size: clamp(2rem, 3.2vw, 2.7rem); line-height: 1.05; color: var(--lila-950); }
-    .bajada { margin-top: .9rem; color: var(--tinta); font-size: 1.05rem; line-height: 1.55; max-width: 24rem; }
+    :host { display: block; }
+    .escena { position: relative; min-height: 100vh; min-height: 100dvh; overflow: hidden; background: #cfc6e6; color: #4a3a6b; font-family: 'Figtree', var(--sans); }
+    .fondo { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 27% 40%; user-select: none; pointer-events: none; }
 
-    .tarjeta { padding: 2.6rem 2.4rem 2rem; display: grid; gap: .95rem; }
-    .tarjeta header { text-align: center; display: grid; gap: .5rem; margin-bottom: .9rem; }
-    h1 { font-size: 2.6rem; }
-    header .suave { font-size: 1rem; line-height: 1.45; padding: 0 1.4rem; }
+    .escena::before { content: ''; position: fixed; left: 0; right: 0; top: 43vh; height: 18vh; background: linear-gradient(180deg, rgba(207,198,230,0), rgba(207,198,230,.96) 55%); pointer-events: none; }
+    /* Móvil / tableta vertical: el render queda de fondo y la tarjeta fluye debajo de la marca. */
+    .tarjeta {
+      position: relative; container-type: inline-size; aspect-ratio: 610 / 694;
+      width: min(92vw, 460px); margin: 56vh auto 5vh; z-index: 1;
+      border-radius: 6.6% / 5.8%; overflow: visible;
+      background: linear-gradient(160deg, rgba(255,255,255,.62), rgba(236,229,250,.5) 55%, rgba(222,212,245,.45));
+      -webkit-backdrop-filter: blur(22px) saturate(1.15); backdrop-filter: blur(22px) saturate(1.15);
+      border: 1px solid rgba(255,255,255,.75);
+      box-shadow: 0 30px 70px -20px rgba(74,58,107,.35), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 40px rgba(255,255,255,.25);
+    }
+
+    /* Escritorio (≥ 3:2): el render ocupa todo el viewport y la tarjeta se posiciona sobre su panel de cristal. */
+    @media (min-aspect-ratio: 3/2) and (min-width: 900px) {
+      .escena { height: 100vh; min-height: 0; }
+      .escena::before { display: none; }
+      .fondo { position: absolute; inset: auto; left: 50%; top: 50%; width: max(100vw, 177.7778vh); height: auto; aspect-ratio: 1672 / 941; transform: translate(-50%, -50%); object-fit: fill; }
+      .tarjeta {
+        position: absolute; margin: 0; width: calc(max(100vw, 177.7778vh) * 610 / 1672);
+        left: calc(50vw - max(100vw, 177.7778vh) / 2 + max(100vw, 177.7778vh) * 920 / 1672);
+        top: calc(50vh - max(100vw, 177.7778vh) * 941 / 3344 + max(100vw, 177.7778vh) * 138 / 1672);
+        background: linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+        -webkit-backdrop-filter: none; backdrop-filter: none; border-color: transparent;
+        box-shadow: none;
+      }
+    }
+
+    /* Todo el interior se mide en "px de referencia" (1 u = 1 px de la imagen de 1672 de ancho). */
+    .interior { --u: calc(100cqw / 610); position: absolute; inset: 0; }
+    .interior > * { position: absolute; }
+    .titulo { left: 0; right: 0; top: calc(var(--u) * 73); margin: 0; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: max(calc(var(--u) * 48), 26px); line-height: 1.1; color: #43335f; letter-spacing: 0; }
+    .subtitulo { left: 0; right: 0; top: calc(var(--u) * 136); margin: 0; text-align: center; font-size: max(calc(var(--u) * 19.5), 14px); line-height: 1.37; color: #6a5d86; font-weight: 400; }
+    .aviso { left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 190); margin: 0; text-align: center; font-size: calc(var(--u) * 13.5); line-height: 1.25; color: #4a3a6b; }
+    .aviso.error { color: #9b3b4e; }
 
     .campo {
-      position: relative; display: flex; align-items: center; gap: .8rem;
-      padding: 0 1.2rem; height: 3.6rem; border-radius: 18px;
-      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.9);
-      box-shadow: inset 0 1px 2px rgba(59,45,92,.06); transition: border-color .15s, background .15s;
+      left: calc(var(--u) * 67); width: calc(var(--u) * 478); height: calc(var(--u) * 63); border-radius: calc(var(--u) * 32);
+      display: flex; align-items: center; padding: 0 calc(var(--u) * 24) 0 calc(var(--u) * 26); gap: calc(var(--u) * 18);
+      background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.26));
+      border: 1px solid rgba(255,255,255,.8);
+      box-shadow: 0 8px 22px -12px rgba(94,74,138,.28), inset 0 1px 0 rgba(255,255,255,.9);
+      transition: border-color .18s, box-shadow .18s, background .18s;
     }
-    .campo:focus-within { background: rgba(255,255,255,.8); border-color: var(--lila-300); }
-    .campo input { flex: 1; border: 0; background: transparent; font: inherit; font-size: 1rem; color: var(--tinta); outline: none; min-width: 0; }
-    .campo input::placeholder { color: #8d84a3; }
-    .icono, .ojo svg { width: 22px; height: 22px; fill: none; stroke: var(--lila-800); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-    .ojo { border: 0; background: none; padding: .3rem; display: flex; border-radius: 8px; }
-    .falta { color: var(--alerta); font-size: .82rem; margin: -.5rem 0 0 1rem; }
+    .c1 { top: calc(var(--u) * 219); }
+    .c2 { top: calc(var(--u) * 295); }
+    .campo:focus-within { border-color: #8a77b8; background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.6)); box-shadow: 0 0 0 calc(var(--u) * 3) rgba(138,119,184,.28), 0 8px 22px -12px rgba(94,74,138,.3); }
+    .campo.invalido { border-color: #c27a8a; }
+    .campo input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: max(calc(var(--u) * 17), 13.5px); color: #3f3257; }
+    .campo input::placeholder { color: #8c829f; opacity: 1; }
+    .icono, .ojo svg { width: calc(var(--u) * 28); height: calc(var(--u) * 28); flex: none; fill: none; stroke: #4a3a6b; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+    .ojo { border: 0; background: none; padding: 0; display: flex; border-radius: 8px; cursor: pointer; }
+    .ojo svg { width: calc(var(--u) * 26); height: calc(var(--u) * 26); }
 
-    .opciones { display: flex; justify-content: space-between; align-items: center; font-size: .95rem; margin-top: .2rem; }
-    .recordar { display: flex; align-items: center; gap: .55rem; color: var(--tinta); cursor: pointer; }
-    .recordar input { width: 1.2rem; height: 1.2rem; accent-color: var(--lila-800); }
-    .enlace { border: 0; background: none; padding: 0; color: var(--lila-900); font-size: .95rem; }
-    .enlace:hover { text-decoration: underline; }
-    .fuerte { font-weight: 600; }
+    .recordar { left: calc(var(--u) * 67); top: calc(var(--u) * 374); height: calc(var(--u) * 30); display: flex; align-items: center; gap: calc(var(--u) * 14); font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: #43355f; cursor: pointer; }
+    .recordar input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .caja { width: calc(var(--u) * 25); height: calc(var(--u) * 25); border-radius: calc(var(--u) * 6); background: rgba(255,255,255,.7); border: 1.5px solid #6f6093; transition: background .15s, box-shadow .15s; display: grid; place-items: center; }
+    .recordar input:checked + .caja { background: #5b4a80; border-color: #5b4a80; }
+    .recordar input:checked + .caja::after { content: ''; width: 28%; height: 52%; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-8%) rotate(45deg); }
+    .recordar input:focus-visible + .caja { box-shadow: 0 0 0 3px rgba(138,119,184,.45); }
+    .olvido { right: calc(var(--u) * 65); top: calc(var(--u) * 374); height: calc(var(--u) * 30); border: 0; background: none; padding: 0; font: inherit; font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: #43355f; cursor: pointer; }
+    .olvido:hover, .registro button:hover, .cambio:hover { text-decoration: underline; }
 
-    .ingresar { width: 100%; height: 3.6rem; font-size: 1.1rem; justify-content: center; position: relative; margin-top: .4rem; }
-    .ingresar svg { position: absolute; right: 1.6rem; width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-    .cambio { font-size: .85rem; color: var(--lila-700); justify-self: center; }
+    .ingresar {
+      left: calc(var(--u) * 67); top: calc(var(--u) * 420); width: calc(var(--u) * 478); height: calc(var(--u) * 65); border-radius: calc(var(--u) * 33);
+      display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(100deg, #5e4d82 0%, #5a4879 60%, #55437a 100%);
+      box-shadow: 0 14px 26px -12px rgba(63,48,95,.65), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 6px rgba(40,28,66,.35);
+      color: #fff; font: inherit; font-size: max(calc(var(--u) * 20), 15px); font-weight: 500; letter-spacing: .01em; cursor: pointer;
+      transition: filter .2s, transform .2s, box-shadow .2s;
+    }
+    .ingresar svg { position: absolute; right: calc(var(--u) * 33); width: calc(var(--u) * 24); height: calc(var(--u) * 24); fill: none; stroke: #fff; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+    .ingresar:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 18px 30px -12px rgba(63,48,95,.7), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 6px rgba(40,28,66,.35); }
+    .ingresar:hover:not(:disabled) svg { transform: translateX(3px); }
+    .ingresar:focus-visible { outline: 3px solid rgba(138,119,184,.6); outline-offset: 2px; }
+    .ingresar:disabled { opacity: .75; cursor: progress; }
 
-    .separador { display: flex; align-items: center; gap: 1rem; color: var(--tinta-suave); font-size: .9rem; margin-top: .4rem; }
-    .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: rgba(94,74,138,.25); }
-    .sociales { display: flex; justify-content: center; gap: 1.6rem; }
+    .separador { left: calc(var(--u) * 67); width: calc(var(--u) * 478); top: calc(var(--u) * 506); height: calc(var(--u) * 24); display: flex; align-items: center; gap: calc(var(--u) * 22); font-size: max(calc(var(--u) * 15), 12px); color: #7b7092; }
+    .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: rgba(110,96,145,.35); }
+
+    .sociales { left: 0; right: 0; top: calc(var(--u) * 546); height: calc(var(--u) * 70); display: flex; justify-content: center; gap: calc(var(--u) * 26); }
     .social {
-      width: 4.4rem; height: 4.2rem; border-radius: 16px; display: grid; place-items: center;
-      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.9); color: var(--lila-900);
-      transition: background .15s, transform .15s;
+      width: calc(var(--u) * 72); height: calc(var(--u) * 70); border-radius: calc(var(--u) * 20); display: grid; place-items: center; cursor: pointer;
+      background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.16)); border: 1px solid rgba(255,255,255,.7);
+      box-shadow: 0 10px 22px -14px rgba(94,74,138,.35), inset 0 1px 0 rgba(255,255,255,.85); transition: transform .2s, background .2s;
     }
-    .social:hover { background: rgba(255,255,255,.85); transform: translateY(-1px); }
-    .g { font-weight: 600; font-size: 1.7rem; color: var(--lila-800); }
-    .ms { width: 24px; height: 24px; fill: var(--lila-800); }
-    .apple { width: 26px; height: 26px; fill: var(--lila-800); }
-    .registro { text-align: center; color: var(--tinta-suave); font-size: .95rem; }
-    .info { padding: .7rem 1rem; border-radius: 14px; background: rgba(255,255,255,.6); color: var(--lila-900); font-size: .88rem; }
+    .social svg { width: calc(var(--u) * 34); height: calc(var(--u) * 34); }
+    .g { font-family: 'Figtree', sans-serif; font-weight: 700; font-size: calc(var(--u) * 34); line-height: 1; color: #4a3a6b; }
+    .social:hover { transform: translateY(-2px); background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.5)); }
+    .social:focus-visible { outline: 3px solid rgba(138,119,184,.6); outline-offset: 2px; }
 
-    @media (max-width: 960px) {
-      .escenario { grid-template-columns: 1fr; justify-items: center; }
-      .marca { padding-left: 0; justify-items: center; text-align: center; }
-      .marca soma-logo { margin-left: 0; }
-      .titular, .bajada, .linea { display: none; }
-      .tarjeta { width: 100%; max-width: 480px; }
-    }
+    .registro { left: 0; right: 0; top: calc(var(--u) * 634); margin: 0; text-align: center; font-size: max(calc(var(--u) * 16.5), 13px); color: #75698d; }
+    .registro button { border: 0; background: none; padding: 0; margin-left: calc(var(--u) * 6); font: inherit; font-weight: 600; color: #43335f; cursor: pointer; }
+
+    .cambio { position: absolute; left: 0; right: 0; top: calc(100% + 14px); border: 0; background: none; font: inherit; font-size: 13.5px; color: #4a3d66; cursor: pointer; text-shadow: 0 1px 8px rgba(255,255,255,.7); }
   `,
 })
 export class Login extends ConOperaciones {
