@@ -81,6 +81,16 @@ módulo conoce las clases internas de otro.
 `GET /api/salud` (público) muestra el estado del backend. Todos los errores tienen el mismo cuerpo:
 `{fecha, estado, error, mensaje, ruta}`. El detalle de cada ruta está en la documentación de cada módulo.
 
+## Ejecutar todo (backend + frontend) en localhost
+
+Con Docker Desktop y Node 20+ instalados, desde la raíz del proyecto (también desde la terminal de IntelliJ o VS Code):
+
+```
+iniciar-soma.bat
+```
+
+Levanta el backend en http://localhost:8080 y el frontend en http://localhost:4200 (rama `frontend/soma-web`, carpeta `frontend/soma-web`).
+
 ## Ejecutar con Docker (lo más rápido)
 
 Sólo hace falta Docker Desktop:
