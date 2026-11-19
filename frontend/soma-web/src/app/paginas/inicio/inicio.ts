@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
@@ -47,7 +48,7 @@ const ESTADOS: Record<string, string> = {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, RouterLink],
   template: `
     <section class="bienvenida cristal">
       <div>
@@ -60,8 +61,11 @@ const ESTADOS: Record<string, string> = {
               ? 'Gestiona los docentes de SOMA y los permisos de cada uno.'
               : 'Diseña casos, programa sesiones y acompaña el aprendizaje de tus estudiantes.' }}
         </p>
+        <div class="accesos">
+          @for (a of accesos(); track a.ruta) { <a class="boton-primario chico" [routerLink]="a.ruta">{{ a.texto }}</a> }
+        </div>
       </div>
-      <div class="orbes" aria-hidden="true"><span></span><span></span><span></span></div>
+      <img class="cerebro" src="logo-soma.webp" alt="" aria-hidden="true" />
     </section>
 
     <section class="resumen" aria-label="Resumen">
@@ -175,23 +179,23 @@ const ESTADOS: Record<string, string> = {
   styles: `
     :host { display: grid; gap: 1.4rem; }
     .bienvenida {
-      position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-items: center;
-      padding: 2rem 2.2rem; background: linear-gradient(120deg, rgba(255,255,255,.65), rgba(221,212,239,.55));
+      position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem;
+      padding: 2.2rem 2.4rem; min-height: 230px;
+      background: radial-gradient(90% 140% at 100% 0%, rgba(201,184,240,.75), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(236,229,250,.5));
     }
-    .bienvenida h2 { font-size: clamp(1.9rem, 2.6vw, 2.5rem); line-height: 1.05; margin: .3rem 0 .7rem; }
-    .bienvenida .suave { max-width: 34rem; line-height: 1.5; }
-    .sobre { text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; color: var(--lila-700); }
-    .orbes { position: relative; width: 220px; height: 130px; }
-    .orbes span {
-      position: absolute; border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #fff 0, rgba(226,217,243,.7) 45%, rgba(138,118,184,.55) 100%);
-      box-shadow: 0 18px 30px -14px rgba(59,45,92,.45);
-    }
-    .orbes span:nth-child(1) { width: 110px; height: 110px; left: 20px; top: 10px; }
-    .orbes span:nth-child(2) { width: 64px; height: 64px; left: 140px; top: 0; }
-    .orbes span:nth-child(3) { width: 38px; height: 38px; left: 150px; top: 84px; }
+    .bienvenida h2 { font-size: clamp(2rem, 2.8vw, 2.8rem); line-height: 1.04; margin: .3rem 0 .8rem; }
+    .bienvenida .suave { max-width: 34rem; line-height: 1.55; }
+    .sobre { text-transform: uppercase; letter-spacing: .2em; font-size: .7rem; color: var(--lila-700); }
+    .accesos { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.2rem; }
+    .chico { padding: .65rem 1.2rem; font-size: .9rem; text-decoration: none; }
+    .cerebro { width: clamp(130px, 16vw, 210px); height: auto; margin-right: .6rem; filter: drop-shadow(0 18px 22px rgba(88,68,140,.3)); animation: flota 8s ease-in-out infinite; }
+    @keyframes flota { 50% { transform: translateY(-9px) rotate(-1.5deg); } }
     .resumen { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.2rem; }
-    .kpi { padding: 1.3rem 1.4rem; display: grid; gap: .2rem; }
+    .kpi { position: relative; overflow: hidden; padding: 1.3rem 1.4rem 1.3rem 1.4rem; display: grid; gap: .2rem; transition: transform .25s, box-shadow .25s; }
+    .kpi:hover { transform: translateY(-3px); }
+    .kpi::before { content: ''; position: absolute; right: -28px; top: -28px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, var(--tono, #c9b8f0), transparent 70%); opacity: .6; }
+    .kpi::after { content: ''; position: absolute; left: 1.4rem; right: 1.4rem; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--tono, #c9b8f0), transparent); }
+    .kpi:nth-child(2) { --tono: #aebcf0; } .kpi:nth-child(3) { --tono: #e8b8dd; } .kpi:nth-child(4) { --tono: #b7e0d0; }
     .kpi .valor { font-family: var(--sans); font-weight: 300; font-variant-numeric: tabular-nums; font-size: 2.6rem; line-height: 1; color: var(--lila-950); }
     .kpi .nota { font-size: .85rem; color: var(--lila-700); }
     .aviso { padding: .9rem 1.2rem; }
@@ -202,14 +206,15 @@ const ESTADOS: Record<string, string> = {
     .lista { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
     .lista li {
       display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; border-radius: 16px;
-      background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.8);
+      background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.8); transition: transform .2s, background .2s, box-shadow .2s;
     }
+    .lista li:hover { background: rgba(255,255,255,.8); transform: translateY(-1px); box-shadow: 0 12px 22px -16px rgba(59,45,92,.5); }
     .lista .principal { flex: 1; display: grid; gap: .15rem; min-width: 0; }
     .lista strong { font-weight: 500; color: var(--lila-950); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lista .suave { font-size: .85rem; }
     .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(94,74,138,.3); border-radius: 16px; }
     .nota-final { font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.6rem; color: var(--lila-900); }
-    @media (max-width: 700px) { .orbes { display: none; } .bienvenida { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .cerebro { display: none; } .bienvenida { grid-template-columns: 1fr; } }
     .nota-final small { font-size: 1rem; color: var(--tinta-suave); }
   `,
 })
@@ -225,6 +230,16 @@ export class Inicio implements OnInit {
 
   protected readonly esEstudiante = computed(() => this.sesion.tienePermiso(Permiso.ParticiparEnCasos));
   protected readonly esAdministrador = this.sesion.esAdministrador;
+  protected readonly accesos = computed(() => {
+    const r: { ruta: string; texto: string }[] = [];
+    const p = (x: Permiso) => this.sesion.tienePermiso(x);
+    if (p(Permiso.GestionarCasos)) r.push({ ruta: '/casos', texto: 'Crear o revisar casos' });
+    if (p(Permiso.ProgramarSesiones)) r.push({ ruta: '/sesiones', texto: 'Programar sesión' });
+    if (p(Permiso.ParticiparEnCasos)) r.push({ ruta: '/mis-sesiones', texto: 'Ir a mis casos' });
+    if (p(Permiso.ConsultarResultadosPropios)) r.push({ ruta: '/mis-resultados', texto: 'Ver mis resultados' });
+    if (this.sesion.esAdministrador()) r.push({ ruta: '/docentes', texto: 'Gestionar docentes' });
+    return r;
+  });
   protected readonly publicados = computed(() => this.casos.datos().filter((c) => c.estado === 'PUBLICADO').length);
 
   protected readonly indicadores = computed(() => {

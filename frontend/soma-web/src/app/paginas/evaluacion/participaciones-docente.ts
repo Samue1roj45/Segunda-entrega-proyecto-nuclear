@@ -14,7 +14,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   imports: [DatePipe, FormsModule, RouterLink],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Participaciones</h2></div>
+      <div class="cabecera-pagina"><h2 class="sr-only">Participaciones</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
 
       <section class="cristal bloque">

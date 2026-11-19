@@ -21,7 +21,7 @@ const PERMISOS_DOCENTE: { clave: Permiso; titulo: string; ayuda: string }[] = [
   imports: [FormsModule],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Docentes</h2></div>
+      <div class="cabecera-pagina"><h2 class="sr-only">Docentes</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
 

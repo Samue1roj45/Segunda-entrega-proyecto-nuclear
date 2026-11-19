@@ -33,6 +33,7 @@ import { SesionService } from '../../core/sesion.service';
 
       <form #formulario="ngForm" class="tarjeta" [class.sacude]="sacude()" novalidate (ngSubmit)="ingresar(formulario)"
             (mousemove)="mover($event)" (mouseleave)="soltar($event)" (keydown.escape)="limpiarAvisos()">
+        <div class="vidrio" aria-hidden="true"><img src="fondo-login.svg" alt="" /></div>
         <div class="interior">
           <h2 class="titulo">Bienvenido a SOMA</h2>
           <p class="subtitulo">Inicia sesión para continuar con tu<br />experiencia de aprendizaje</p>
@@ -296,6 +297,33 @@ import { SesionService } from '../../core/sesion.service';
     .registro button { border: 0; background: none; padding: 0; margin-left: calc(var(--u) * 6); font: inherit; font-weight: 600; color: #43335f; cursor: pointer; }
 
     .cambio { position: absolute; left: 0; right: 0; top: calc(100% + 14px); border: 0; background: none; font: inherit; font-size: 13.5px; color: #4a3d66; cursor: pointer; text-shadow: 0 1px 8px rgba(255,255,255,.7); }
+    /* ---- Vidrio líquido (estilo iOS): una sola capa esmerilada que cubre las marcas del render ---- */
+    .tarjeta { background: none !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+    .tarjeta::before {
+      content: ''; position: absolute; inset: -1.2%; z-index: 1; pointer-events: none; border-radius: 7.4% / 6.4%;
+      background:
+        radial-gradient(120% 60% at 20% -10%, rgba(255,255,255,.55), transparent 55%),
+        linear-gradient(160deg, rgba(255,255,255,.46) 0%, rgba(243,238,252,.30) 48%, rgba(224,214,246,.30) 100%);
+      -webkit-backdrop-filter: blur(36px) saturate(1.9) brightness(1.07); backdrop-filter: blur(36px) saturate(1.9) brightness(1.07);
+      border: 1px solid rgba(255,255,255,.62);
+      box-shadow:
+        0 44px 80px -30px rgba(60,44,100,.48), 0 10px 24px -12px rgba(60,44,100,.22),
+        inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -1.5px 0 rgba(150,130,200,.18),
+        inset 1.5px 0 0 rgba(255,255,255,.35), inset -1.5px 0 0 rgba(255,255,255,.2);
+    }
+    .tarjeta::after { inset: -1.2%; border-radius: 7.4% / 6.4%; }
+    @media (prefers-reduced-transparency: reduce) { .tarjeta::before { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(244,240,251,.96); } }
+
+    .vidrio { display: none; }
+    @media (min-aspect-ratio: 3/2) and (min-width: 900px) {
+      .tarjeta { --W: max(100vw, 177.7778vh); }
+      .tarjeta::before { -webkit-backdrop-filter: none; backdrop-filter: none; z-index: 1; }
+      .vidrio { display: block; position: absolute; inset: -1.2%; z-index: 0; overflow: hidden; border-radius: 7.4% / 6.4%; pointer-events: none; }
+      .vidrio img { position: absolute; width: var(--W); max-width: none; height: auto; aspect-ratio: 1672 / 941;
+        left: calc(var(--W) * -920 / 1672 + 1.2%); top: calc(var(--W) * -138 / 1672 + 1.2%);
+        filter: blur(30px) saturate(1.5) brightness(1.1); transform: scale(1); }
+    }
+
   `,
 })
 export class Login extends ConOperaciones implements AfterViewInit {

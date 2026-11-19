@@ -20,7 +20,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   imports: [DatePipe, DecimalPipe, FormsModule],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Resultados</h2></div>
+      <div class="cabecera-pagina"><h2 class="sr-only">Resultados</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
 

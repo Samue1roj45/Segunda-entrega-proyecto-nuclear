@@ -11,7 +11,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   imports: [DatePipe, DecimalPipe],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Mis resultados</h2></div>
+      <div class="cabecera-pagina"><h2 class="sr-only">Mis resultados</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (cargando()) { <p class="suave">Cargando…</p> }
       @else if (lista().length === 0) { <p class="cristal vacio">Aún no tienes resultados. Aparecerán cuando termines un caso y se evalúe.</p> }

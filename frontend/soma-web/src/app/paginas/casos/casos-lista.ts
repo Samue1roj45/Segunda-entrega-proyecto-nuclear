@@ -14,7 +14,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
   template: `
     <div class="pagina">
       <div class="cabecera-pagina">
-        <h2>Casos de estudio</h2>
+        <h2 class="sr-only">Casos de estudio</h2>
         <div class="acciones">
           <button type="button" class="boton-suave" (click)="importando.set(!importando())">Importar caso (DSL)</button>
           <a routerLink="/casos/nuevo" class="boton-primario enlace-boton">Nuevo caso</a>

@@ -14,7 +14,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   template: `
     <div class="pagina">
       <div class="cabecera-pagina">
-        <h2>Mis sesiones</h2>
+        <h2 class="sr-only">Mis sesiones</h2>
         <a routerLink="/sesiones/nueva" class="boton-primario enlace-boton">Programar sesión</a>
       </div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }

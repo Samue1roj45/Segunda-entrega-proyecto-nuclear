@@ -13,7 +13,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   imports: [DatePipe],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Mis casos</h2></div>
+      <div class="cabecera-pagina"><h2 class="sr-only">Mis casos</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (cargando()) { <p class="suave">Cargando tus convocatorias…</p> }
       @else if (lista().length === 0) { <p class="cristal vacio">Todavía no tienes sesiones asignadas. Cuando tu docente te convoque, aparecerán aquí.</p> }
