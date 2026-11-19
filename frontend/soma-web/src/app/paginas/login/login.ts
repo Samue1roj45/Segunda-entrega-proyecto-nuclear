@@ -17,7 +17,15 @@ import { SesionService } from '../../core/sesion.service';
   template: `
     <div class="escena">
       <!-- Render de cristal de la referencia, sin el contenido del panel (que se dibuja abajo con campos reales). -->
-      <img class="fondo" src="fondo-login.jpg" alt="" width="1672" height="941" fetchpriority="high" />
+      <img class="fondo" src="fondo-login.svg" alt="" width="1672" height="941" fetchpriority="high" />
+      <div class="marca" aria-hidden="true">
+        <img class="isotipo" src="logo-soma.svg" alt="" />
+        <div class="nombre">SOM<svg class="a" viewBox="0 0 72 88" aria-hidden="true"><path d="M3 87 36 4l33 83" /></svg></div>
+        <div class="sub">SIMULACIONES PARA EL APRENDIZAJE<br />EN PSICOLOGÍA SOCIAL</div>
+        <div class="linea"></div>
+        <div class="lema">Explora realidades,<br />comprende personas.</div>
+        <p class="parrafo">Simulaciones interactivas para analizar,<br />reflexionar y construir soluciones<br />en contextos sociales reales.</p>
+      </div>
       <h1 class="sr-only">SOMA · Simulaciones para el aprendizaje en psicología social. Explora realidades, comprende personas.</h1>
 
       <form #formulario="ngForm" class="tarjeta" novalidate (ngSubmit)="ingresar(formulario)">
@@ -109,6 +117,27 @@ import { SesionService } from '../../core/sesion.service';
       -webkit-backdrop-filter: blur(22px) saturate(1.15); backdrop-filter: blur(22px) saturate(1.15);
       border: 1px solid rgba(255,255,255,.75);
       box-shadow: 0 30px 70px -20px rgba(74,58,107,.35), inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 40px rgba(255,255,255,.25);
+    }
+
+
+    /* Marca de la izquierda: texto y logo reales (el logo es vectorial), medidos en px de referencia. */
+    .marca { position: relative; z-index: 1; --w: min(92vw, 460px); width: var(--w); margin: 6vh auto 0; text-align: center; color: #4a3a6b; }
+    .marca .isotipo { width: 38%; height: auto; display: block; margin: 0 auto; }
+    .marca .nombre { font-family: 'Outfit', 'Figtree', sans-serif; font-weight: 300; font-size: calc(var(--w) * .26); line-height: 1; letter-spacing: .02em; color: #4a3a6b; }
+    .marca .nombre .a { display: inline-block; height: .69em; width: auto; margin-left: .04em; vertical-align: baseline; fill: none; stroke: #4a3a6b; stroke-width: 3.6; stroke-linejoin: miter; }
+    .marca .sub { font-size: calc(var(--w) * .036); letter-spacing: .12em; line-height: 1.6; color: #5b4c7c; margin-top: calc(var(--w) * .03); }
+    .marca .linea { width: 15%; height: 2px; background: #6b5a8e; margin: calc(var(--w) * .05) auto; }
+    .marca .lema { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: calc(var(--w) * .085); line-height: 1.1; color: #43335f; }
+    .marca .parrafo { margin: calc(var(--w) * .04) 0 0; font-size: calc(var(--w) * .042); line-height: 1.45; color: #5b4c7c; }
+    @media (min-aspect-ratio: 3/2) and (min-width: 900px) {
+      .marca { --W: max(100vw, 177.7778vh); --u: calc(var(--W) / 1672); position: absolute; margin: 0; width: calc(var(--u) * 360); text-align: left;
+        left: calc(50vw - var(--W) / 2 + var(--u) * 385); top: calc(50vh - var(--W) * 941 / 3344 + var(--u) * 118); }
+      .marca .isotipo { position: absolute; left: calc(var(--u) * 36); top: calc(var(--u) * -22); width: calc(var(--u) * 240); margin: 0; }
+      .marca .nombre { position: absolute; left: 0; right: 0; top: calc(var(--u) * 186); font-size: calc(var(--u) * 122); text-align: center; letter-spacing: .03em; }
+      .marca .sub { position: absolute; left: 0; right: 0; top: calc(var(--u) * 298); margin: 0; font-size: calc(var(--u) * 15.6); line-height: 1.6; text-align: center; letter-spacing: .1em; white-space: nowrap; }
+      .marca .linea { position: absolute; left: 0; top: calc(var(--u) * 354); width: calc(var(--u) * 60); margin: 0; }
+      .marca .lema { position: absolute; left: 0; top: calc(var(--u) * 372); font-size: calc(var(--u) * 40); line-height: 1.06; font-weight: 600; text-align: left; white-space: nowrap; }
+      .marca .parrafo { position: absolute; left: 0; top: calc(var(--u) * 467); margin: 0; font-size: calc(var(--u) * 20.5); line-height: 1.4; text-align: left; white-space: nowrap; }
     }
 
     /* Escritorio (≥ 3:2): el render ocupa todo el viewport y la tarjeta se posiciona sobre su panel de cristal. */
