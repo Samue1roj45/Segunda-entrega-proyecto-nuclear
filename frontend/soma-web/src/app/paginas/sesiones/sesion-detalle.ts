@@ -6,7 +6,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { claseEstado, desdeInputFecha, nombreEstado, paraInputFecha } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
-import { Convocado, Intentos, Notificacion, SesionDetalle } from '../../core/modelos/dominio';
+import { Convocado, EstudianteResumen, Intentos, Notificacion, SesionDetalle } from '../../core/modelos/dominio';
+import { ToastService } from '../../core/toast.service';
 import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
 /** Programación y administración de una sesión: condiciones, convocados, intentos extra y avisos por correo. */
@@ -30,6 +31,17 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
 
+      @if (sesion(); as s) {
+        <section class="cristal bloque">
+          <h3>Recorrido de la sesión</h3>
+          <ol class="linea-tiempo">
+            @for (p of pasos(); track p.titulo) {
+              <li [class.hecho]="p.hecho" [class.actual]="p.actual"><strong>{{ p.titulo }}</strong><small>{{ p.detalle }}</small></li>
+            }
+          </ol>
+        </section>
+      }
+
       <section class="cristal bloque">
         <form class="formulario" (ngSubmit)="guardar()">
           <h3>{{ nueva() ? 'Condiciones de la sesión' : 'Condiciones' }}</h3>
@@ -52,10 +64,27 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
           <label class="campo-f">Enlace de acceso (si es virtual)<input name="url" [(ngModel)]="form.urlAcceso" maxlength="255" [disabled]="!editable()" /></label>
           <label class="campo-f">Mensaje para los estudiantes<textarea name="msg" rows="3" [(ngModel)]="form.mensajePersonalizado" [disabled]="!editable()"></textarea></label>
           @if (nueva()) {
+            @if (estudiantes().length) {
+              <div class="campo-f selector-est">
+                <span>Estudiantes a convocar <strong>({{ seleccion().size }} elegidos)</strong></span>
+                <input class="entrada" type="search" name="buscar" placeholder="Buscar por nombre o correo…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+                <div class="lista-est" role="group" aria-label="Estudiantes disponibles">
+                  @for (e of filtrados(); track e.id) {
+                    <label class="fila-est" [class.sel]="seleccion().has(e.id)">
+                      <input type="checkbox" [checked]="seleccion().has(e.id)" (change)="alternar(e.id)" />
+                      <span class="avatar-mini" aria-hidden="true">{{ iniciales(e.nombreCompleto) }}</span>
+                      <span class="quien"><strong>{{ e.nombreCompleto }}</strong><small>{{ e.correoInstitucional }}</small></span>
+                    </label>
+                  } @empty { <p class="vacio">Ningún estudiante coincide con la búsqueda.</p> }
+                </div>
+                <div class="acciones"><button type="button" class="boton-suave boton-chico" (click)="elegirTodos()">Elegir los {{ filtrados().length }} visibles</button><button type="button" class="boton-suave boton-chico" (click)="seleccion.set(new_set())">Quitar selección</button></div>
+              </div>
+            } @else {
             <label class="campo-f">IDs de los estudiantes a convocar
               <input name="ids" [(ngModel)]="idsTexto" placeholder="Ej.: 4, 5, 6" required />
               <span class="ayuda">Separa los identificadores con comas. Cada uno debe ser un estudiante activo.</span>
             </label>
+            }
           }
           @if (editable()) { <div class="acciones"><button class="boton-primario" type="submit" [disabled]="ocupado()">{{ nueva() ? 'Programar sesión' : 'Guardar cambios' }}</button></div> }
           @else { <p class="aviso-info">La sesión finalizó, por eso sus condiciones ya no se pueden modificar.</p> }
@@ -83,10 +112,22 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
             } @empty { <li class="vacio">Esta sesión todavía no tiene estudiantes.</li> }
           </ul>
           @if (editable()) {
-            <form class="filtros" (ngSubmit)="agregar(s.idPractica)">
-              <label class="campo-f">Agregar estudiante por ID<input name="nid" type="number" min="1" [(ngModel)]="nuevoId" required /></label>
-              <button class="boton-suave" type="submit" [disabled]="ocupado() || !nuevoId">Agregar</button>
-            </form>
+            @if (disponibles().length) {
+              <form class="filtros" (ngSubmit)="agregar(s.idPractica)">
+                <label class="campo-f">Agregar estudiante
+                  <select name="nid" [(ngModel)]="nuevoId" required>
+                    <option [ngValue]="null" disabled>Elige un estudiante…</option>
+                    @for (e of disponibles(); track e.id) { <option [ngValue]="e.id">{{ e.nombreCompleto }} · {{ e.correoInstitucional }}</option> }
+                  </select>
+                </label>
+                <button class="boton-suave" type="submit" [disabled]="ocupado() || !nuevoId">Agregar</button>
+              </form>
+            } @else {
+              <form class="filtros" (ngSubmit)="agregar(s.idPractica)">
+                <label class="campo-f">Agregar estudiante por ID<input name="nid" type="number" min="1" [(ngModel)]="nuevoId" required /></label>
+                <button class="boton-suave" type="submit" [disabled]="ocupado() || !nuevoId">Agregar</button>
+              </form>
+            }
           }
         </section>
 
@@ -129,6 +170,7 @@ export class SesionDetalleVista implements OnInit {
   private readonly api = inject(SomaApiService);
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toasts = inject(ToastService);
   protected readonly nombre = nombreEstado;
   protected readonly clase = claseEstado;
 
@@ -141,6 +183,30 @@ export class SesionDetalleVista implements OnInit {
   protected readonly ocupado = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal<string | null>(null);
+  protected readonly estudiantes = signal<EstudianteResumen[]>([]);
+  protected readonly busqueda = signal('');
+  protected readonly seleccion = signal<Set<number>>(new Set());
+  protected readonly filtrados = computed(() => {
+    const q = this.busqueda().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return this.estudiantes().filter((e) => !q || `${e.nombreCompleto} ${e.correoInstitucional}`.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(q));
+  });
+  protected readonly disponibles = computed(() => {
+    const ya = new Set(this.convocados().map((c) => c.idEstudiante));
+    return this.estudiantes().filter((e) => !ya.has(e.id));
+  });
+  protected readonly pasos = computed(() => {
+    const s = this.sesion(); if (!s) return [];
+    const convoc = this.notificaciones().filter((n) => /CONVOC/i.test(n.tipo + n.asunto));
+    const publ = this.notificaciones().filter((n) => /CALIF/i.test(n.tipo + n.asunto));
+    const f = (d: string | null | undefined): string => (d ? new Date(d).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : 'Pendiente');
+    return [
+      { titulo: 'Programada', detalle: f(s.fechaInicio) + ' (inicio previsto)', hecho: true, actual: s.estado === 'SIN_INICIAR' && !convoc.length },
+      { titulo: 'Convocatoria enviada', detalle: convoc.length ? f(convoc[0].fechaCreacion) : 'Pendiente', hecho: convoc.length > 0, actual: s.estado === 'SIN_INICIAR' && convoc.length > 0 },
+      { titulo: 'Iniciada', detalle: f(s.fechaInicioReal), hecho: !!s.fechaInicioReal, actual: s.estado === 'EN_CURSO' },
+      { titulo: 'Finalizada', detalle: f(s.fechaCierreReal), hecho: s.estado === 'FINALIZADO', actual: s.estado === 'FINALIZADO' && !publ.length },
+      { titulo: 'Calificaciones publicadas', detalle: publ.length ? f(publ[0].fechaCreacion) : 'Pendiente', hecho: publ.length > 0, actual: false },
+    ];
+  });
   protected readonly editable = computed(() => this.nueva() || this.sesion()?.estado !== 'FINALIZADO');
 
   protected form = { idCaso: null as number | null, espacioAcademico: '', fechaInicio: '', fechaFin: '', tiempoMaximoMinutos: 60 as number | null, lugar: '', urlAcceso: '', mensajePersonalizado: '' };
@@ -148,14 +214,26 @@ export class SesionDetalleVista implements OnInit {
   protected nuevoId: number | null = null;
   protected motivoCambio = '';
 
+  protected iniciales(n: string): string { return n.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join(''); }
+  protected new_set(): Set<number> { return new Set(); }
+  protected alternar(id: number): void { this.seleccion.update((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; }); }
+  protected elegirTodos(): void { this.seleccion.update((s) => { const n = new Set(s); this.filtrados().forEach((e) => n.add(e.id)); return n; }); }
+
   ngOnInit(): void {
-    const id = this.ruta.snapshot.paramMap.get('id');
-    if (id === 'nueva') {
-      this.nueva.set(true);
-      this.api.casosPorEstado('PUBLICADO').subscribe({ next: (c) => this.casos.set(c), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
-      return;
-    }
-    this.cargar(Number(id));
+    this.api.estudiantes().subscribe({ next: (e) => this.estudiantes.set(e), error: () => this.estudiantes.set([]) });
+    // Se escucha el parámetro (no solo la primera lectura): al programar una sesión la ruta pasa de «nueva» a su id
+    // sin recrear la pantalla, y hay que cambiar de modo.
+    this.ruta.paramMap.subscribe((p) => {
+      const id = p.get('id');
+      this.error.set(null); this.aviso.set(null);
+      if (id === 'nueva') {
+        this.nueva.set(true); this.sesion.set(null); this.convocados.set([]); this.notificaciones.set([]);
+        this.api.casosPorEstado('PUBLICADO').subscribe({ next: (c) => this.casos.set(c), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
+        return;
+      }
+      this.nueva.set(false);
+      this.cargar(Number(id));
+    });
   }
 
   private cargar(id: number): void {
@@ -173,8 +251,8 @@ export class SesionDetalleVista implements OnInit {
   private ejecutar<T>(op: Observable<T>, mensaje: string, tras?: (r: T) => void): void {
     this.error.set(null); this.aviso.set(null); this.ocupado.set(true);
     op.subscribe({
-      next: (r) => { this.ocupado.set(false); this.aviso.set(mensaje); tras?.(r); },
-      error: (e: HttpErrorResponse) => { this.ocupado.set(false); this.error.set(mensajeDeError(e)); },
+      next: (r) => { this.ocupado.set(false); this.aviso.set(mensaje); this.toasts.ok(mensaje); tras?.(r); },
+      error: (e: HttpErrorResponse) => { this.ocupado.set(false); this.error.set(mensajeDeError(e)); this.toasts.error(mensajeDeError(e)); },
     });
   }
 
@@ -182,8 +260,8 @@ export class SesionDetalleVista implements OnInit {
     const f = this.form;
     const comun = { espacioAcademico: f.espacioAcademico, fechaInicio: desdeInputFecha(f.fechaInicio), fechaFin: desdeInputFecha(f.fechaFin), tiempoMaximoMinutos: Number(f.tiempoMaximoMinutos), lugar: f.lugar || null, mensajePersonalizado: f.mensajePersonalizado || null, urlAcceso: f.urlAcceso || null };
     if (this.nueva()) {
-      const ids = this.idsTexto.split(/[,\s]+/).map((x) => Number(x)).filter((n) => Number.isInteger(n) && n > 0);
-      if (!f.idCaso || ids.length === 0) { this.error.set('Elige un caso y escribe al menos un ID de estudiante válido.'); return; }
+      const ids = this.estudiantes().length ? [...this.seleccion()] : this.idsTexto.split(/[,\s]+/).map((x) => Number(x)).filter((n) => Number.isInteger(n) && n > 0);
+      if (!f.idCaso || ids.length === 0) { this.error.set('Elige un caso y elige al menos un estudiante.'); return; }
       this.ejecutar(this.api.agendarSesion({ ...comun, idCaso: f.idCaso, idsEstudiantes: ids }), 'Sesión programada.', (r) => void this.router.navigate(['/sesiones', r.idPractica]));
     } else {
       const id = this.sesion()!.idPractica;

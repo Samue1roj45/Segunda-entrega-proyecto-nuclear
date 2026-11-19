@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { ReportesService } from '../../core/reportes.service';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { claseEstado, nombreEstado, relojDe } from '../../compartido/formato';
@@ -32,6 +33,9 @@ import { SomaApiService } from '../../core/soma-api.service';
           <label class="campo-f">Hasta<input name="h" type="date" [(ngModel)]="f.fechaHasta" /></label>
           <button class="boton-primario" type="submit">Filtrar</button>
           <button class="boton-suave" type="button" (click)="limpiar()">Limpiar</button>
+          @if (f.practica) {
+            <button class="boton-suave" type="button" [disabled]="reportes.generando('xlsx', f.practica)" (click)="reportes.descargar('xlsx', f.practica, f.estudiante)">{{ reportes.generando('xlsx', f.practica) ? 'Generando…' : 'Exportar Excel' }}</button>
+          }
         </form>
       </section>
 
@@ -64,6 +68,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   `,
 })
 export class ParticipacionesDocente implements OnInit {
+  protected readonly reportes = inject(ReportesService);
   private readonly api = inject(SomaApiService);
   private readonly ruta = inject(ActivatedRoute);
   protected readonly lista = signal<ParticipacionLista[]>([]);

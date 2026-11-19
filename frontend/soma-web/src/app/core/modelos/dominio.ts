@@ -85,3 +85,5 @@ export interface Contexto { nombreCaso: string; contextoHistoria: string | null;
 export interface Progreso { idParticipacion: number; totalPreguntas: number; preguntasRespondidas: number; porcentajeProgreso: number }
 export interface Tiempo { idParticipacion: number; estado: string; horaInicio: string; limite: string; segundosRestantes: number; expirada: boolean }
 export interface Finalizacion { idParticipacion: number; estado: string; horaFin: string }
+
+export interface EstudianteResumen { id: number; nombreCompleto: string; correoInstitucional: string }

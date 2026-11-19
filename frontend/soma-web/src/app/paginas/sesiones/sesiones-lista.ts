@@ -1,9 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { claseEstado, nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
+import { Permiso } from '../../core/modelos/permiso';
+import { ReportesService } from '../../core/reportes.service';
+import { SesionService } from '../../core/sesion.service';
 import { SesionDetalle } from '../../core/modelos/dominio';
 import { SomaApiService } from '../../core/soma-api.service';
 
@@ -37,6 +40,10 @@ import { SomaApiService } from '../../core/soma-api.service';
                 <a [routerLink]="['/sesiones', s.idPractica]" class="boton-suave boton-chico enlace-boton">Abrir</a>
                 @if (s.accionesPermitidas.includes('INICIAR')) { <button type="button" class="boton-primario boton-chico" [disabled]="ocupado()" (click)="iniciar(s)">Iniciar</button> }
                 @if (s.accionesPermitidas.includes('FINALIZAR')) { <button type="button" class="boton-peligro boton-chico" [disabled]="ocupado()" (click)="finalizar(s)">Finalizar</button> }
+                @if (puedeReportes()) {
+                  <button type="button" class="boton-suave boton-chico" [disabled]="reportes.generando('pdf', s.idPractica)" (click)="reportes.descargar('pdf', s.idPractica)" title="Descargar reporte PDF">{{ reportes.generando('pdf', s.idPractica) ? 'Generando…' : 'PDF' }}</button>
+                  <button type="button" class="boton-suave boton-chico" [disabled]="reportes.generando('xlsx', s.idPractica)" (click)="reportes.descargar('xlsx', s.idPractica)" title="Descargar reporte Excel">{{ reportes.generando('xlsx', s.idPractica) ? 'Generando…' : 'Excel' }}</button>
+                }
               </div>
             </article>
           }
@@ -47,6 +54,8 @@ import { SomaApiService } from '../../core/soma-api.service';
 })
 export class SesionesLista implements OnInit {
   private readonly api = inject(SomaApiService);
+  protected readonly reportes = inject(ReportesService);
+  protected readonly puedeReportes = computed(() => inject(SesionService).tienePermiso(Permiso.DescargarReportes));
   protected readonly sesiones = signal<SesionDetalle[]>([]);
   protected readonly cargando = signal(true);
   protected readonly ocupado = signal(false);

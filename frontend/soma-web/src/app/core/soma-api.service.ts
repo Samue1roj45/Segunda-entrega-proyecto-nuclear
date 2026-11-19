@@ -133,6 +133,9 @@ export class SomaApiService {
   intentos(autorizacion: number): Observable<M.Intentos> { return this.http.get<M.Intentos>(`/api/autorizaciones/${autorizacion}/intentos`); }
   autorizarRepeticion(autorizacion: number, motivo: string | null): Observable<M.Intentos> { return this.http.post<M.Intentos>(`/api/autorizaciones/${autorizacion}/repeticiones`, motivo ? { motivo } : {}); }
 
+  // ---------- Estudiantes (para convocar) ----------
+  estudiantes(): Observable<M.EstudianteResumen[]> { return this.http.get<M.EstudianteResumen[]>('/api/estudiantes'); }
+
   // ---------- Notificaciones ----------
   notificaciones(practica?: number): Observable<M.Notificacion[]> { return this.http.get<M.Notificacion[]>('/api/notificaciones', { params: filtros({ practica }) }); }
   enviarConvocatoria(practica: number): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/convocatoria`, null); }

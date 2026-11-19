@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, computed, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
 import { Campana } from '../../compartido/campana';
 import { Logo } from '../../compartido/logo';
@@ -8,6 +8,7 @@ import { Paleta } from '../../compartido/paleta';
 import { Permiso } from '../../core/modelos/permiso';
 import { Rol } from '../../core/modelos/rol';
 import { SesionService } from '../../core/sesion.service';
+import { COLORES_AVATAR, PreferenciasService } from '../../core/preferencias.service';
 import { TemaService } from '../../core/tema.service';
 
 interface Seccion {
@@ -19,6 +20,8 @@ interface Seccion {
 }
 
 /** Secciones del menú lateral. Solo aparecen las que el rol tiene permitidas (RF-02). */
+const TECLAS: Record<string, string> = { '/inicio': 'i', '/casos': 'c', '/sesiones': 's', '/participaciones': 'p', '/resultados': 'r', '/docentes': 'd', '/mis-sesiones': 'm', '/mis-resultados': 'n' };
+
 const SECCIONES: readonly Seccion[] = [
   { titulo: 'Inicio', icono: 'M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z', ruta: '/inicio', permiso: null, grupo: 'General' },
   { titulo: 'Casos de estudio', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M8 13h8M8 17h5', ruta: '/casos', permiso: Permiso.GestionarCasos, grupo: 'Docencia' },
@@ -39,9 +42,15 @@ const SECCIONES: readonly Seccion[] = [
   selector: 'app-panel',
   imports: [Campana, Logo, Paleta, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
+    @if (cargandoRuta()) { <div class="progreso" aria-hidden="true"><i></i></div> }
+    @if (bienvenida()) {
+      <div class="bienvenida" (click)="bienvenida.set(false)" role="presentation">
+        <img src="logo-soma.webp" alt="" /><p class="hola">{{ saludoTexto() }}</p><p class="sub">Simulaciones para el aprendizaje en psicología social</p>
+      </div>
+    }
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><img src="logo-soma.webp" alt="" /></div>
 
-    <div class="marco">
+    <div class="marco" [class.enfoque]="enfoque()">
       <aside class="lateral">
         <a routerLink="/inicio" class="marca" aria-label="SOMA, inicio">
           <soma-logo [tamano]="52" />
@@ -61,11 +70,13 @@ const SECCIONES: readonly Seccion[] = [
         </nav>
 
         <div class="perfil">
-          <span class="avatar" aria-hidden="true">{{ iniciales() }}</span>
-          <span class="datos">
-            <strong>{{ sesion()?.nombreCompleto }}</strong>
-            <small>{{ rolLegible() }}</small>
-          </span>
+          <a routerLink="/perfil" class="enlace-perfil" aria-label="Mi perfil" title="Mi perfil">
+            <span class="avatar" [style.background]="degradado()" aria-hidden="true">{{ iniciales() }}</span>
+            <span class="datos">
+              <strong>{{ sesion()?.nombreCompleto }}</strong>
+              <small>{{ rolLegible() }}</small>
+            </span>
+          </a>
           <button type="button" class="salir" (click)="salir()" aria-label="Cerrar sesión" title="Cerrar sesión">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" /></svg>
           </button>
@@ -73,6 +84,9 @@ const SECCIONES: readonly Seccion[] = [
       </aside>
 
       <div class="contenido">
+        @if (enfoque()) {
+          <div class="barra-enfoque"><span>Modo enfoque · solo tú y el caso</span><a routerLink="/mis-sesiones" class="boton-suave boton-chico enlace-boton">Salir</a></div>
+        }
         <header class="barra">
           <div class="encabezado">
             <p class="sobre">{{ actual().grupo }}</p>
@@ -87,7 +101,7 @@ const SECCIONES: readonly Seccion[] = [
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" /></svg>
               }
             </button>
-            @if (puedeNotificaciones()) { <soma-campana /> }
+            @if (puedeNotificaciones() && prefs.campana()) { <soma-campana /> }
             <span class="chip fecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15H5zM5 9h14M9 3v4m6-4v4" /></svg>{{ hoy }}</span>
             <span class="chip rol"><i></i>{{ rolLegible() }}</span>
           </div>
@@ -110,6 +124,25 @@ const SECCIONES: readonly Seccion[] = [
     .aurora img { position: absolute; right: -6vmin; bottom: -8vmin; width: min(62vmin, 560px); opacity: .09; filter: saturate(.8); }
     @keyframes deriva { from { transform: translate3d(0,0,0) scale(1); } to { transform: translate3d(6vmax, 4vmax, 0) scale(1.18); } }
 
+    .progreso { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 300; overflow: hidden; }
+    .progreso i { display: block; height: 100%; width: 40%; border-radius: 3px; background: linear-gradient(90deg, transparent, #8b6fe0, #c3a9ff, transparent); animation: corre 1s ease-in-out infinite; }
+    @keyframes corre { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+    .bienvenida { position: fixed; inset: 0; z-index: 250; display: grid; place-content: center; justify-items: center; gap: .6rem; text-align: center; cursor: pointer;
+      background: radial-gradient(100% 80% at 50% 30%, #f3effb, #d9d0ee); animation: bv 2.1s ease both; }
+    .bienvenida img { width: 150px; animation: bv-img 1.6s cubic-bezier(.2,.8,.2,1) both; filter: drop-shadow(0 18px 24px rgba(88,68,140,.35)); }
+    .bienvenida .hola { font-family: var(--serif); font-size: clamp(2rem, 5vw, 3.2rem); color: var(--lila-950); animation: bv-tx 1.2s .3s ease both; }
+    .bienvenida .sub { color: var(--tinta-suave); letter-spacing: .12em; text-transform: uppercase; font-size: .72rem; animation: bv-tx 1.2s .5s ease both; }
+    @keyframes bv { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+    @keyframes bv-img { from { opacity: 0; transform: scale(.7) translateY(20px); filter: blur(10px); } }
+    @keyframes bv-tx { from { opacity: 0; transform: translateY(14px); } }
+    :host-context([data-tema='noche']) .bienvenida { background: radial-gradient(100% 80% at 50% 30%, #2b2150, #110d27); }
+    :host-context([data-tema='noche']) .bienvenida .hola { color: #f1ecff; }
+    .enlace-perfil { display: flex; align-items: center; gap: .65rem; flex: 1; min-width: 0; text-decoration: none; border-radius: 14px; transition: background .2s; }
+    .enlace-perfil:hover { background: rgba(255,255,255,.5); }
+    .barra-enfoque { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem .9rem; border-radius: 999px; font-size: .85rem; color: var(--lila-800);
+      background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); }
+    .marco.enfoque { grid-template-columns: 1fr; max-width: 980px; }
+    .marco.enfoque .lateral, .marco.enfoque .chips { display: none; }
     .marco { position: relative; z-index: 1; display: grid; grid-template-columns: 272px minmax(0, 1fr); gap: 1.4rem; padding: 1.2rem; min-height: 100vh; max-width: 1640px; margin: 0 auto; }
 
     /* ---- Dock lateral ---- */
@@ -137,7 +170,7 @@ const SECCIONES: readonly Seccion[] = [
 
     .perfil { display: flex; align-items: center; gap: .65rem; padding: .6rem; border-radius: 20px; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); box-shadow: inset 0 1px 0 #fff; }
     .avatar { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 600; font-size: .9rem;
-      background: linear-gradient(135deg, var(--lila-300), var(--lila-800)); box-shadow: 0 0 0 3px rgba(255,255,255,.75), 0 8px 14px -8px rgba(59,45,92,.7); }
+      box-shadow: 0 0 0 3px rgba(255,255,255,.75), 0 8px 14px -8px rgba(59,45,92,.7); }
     .datos { display: grid; line-height: 1.2; min-width: 0; flex: 1; }
     .datos strong { font-weight: 500; font-size: .88rem; color: var(--lila-950); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .datos small { color: var(--tinta-suave); font-size: .74rem; }
@@ -200,7 +233,8 @@ const SECCIONES: readonly Seccion[] = [
       .item { padding: .3rem; flex: none; }
       .item.activo::before { display: none; }
       .perfil { padding: .2rem; background: none; border: 0; box-shadow: none; }
-      .avatar { display: none; }
+      .avatar { display: none; } .enlace-perfil { flex: none; }
+      .marco.enfoque { padding-bottom: 1rem; }
     }
     @media (prefers-reduced-motion: reduce) { .aurora i, .vista { animation: none; } }
     @media (prefers-reduced-transparency: reduce) { .lateral, .chip { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(246,243,252,.96); } }
@@ -208,6 +242,9 @@ const SECCIONES: readonly Seccion[] = [
 })
 export class Panel implements OnInit, OnDestroy {
   protected readonly temas = inject(TemaService);
+  protected readonly prefs = inject(PreferenciasService);
+  protected readonly bienvenida = signal(this.debeSaludar());
+  protected readonly cargandoRuta = signal(false);
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
 
@@ -230,9 +267,16 @@ export class Panel implements OnInit, OnDestroy {
   protected readonly actual = computed(() => {
     const u = this.url();
     return SECCIONES.find((s) => s.ruta !== '/inicio' && u.startsWith(s.ruta))
-      ?? (u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' } : SECCIONES[0]);
+      ?? (u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' }
+        : u.startsWith('/perfil') ? { ...SECCIONES[0], titulo: 'Mi perfil', grupo: 'Cuenta', ruta: '/perfil' } : SECCIONES[0]);
   });
-  protected readonly destinos = computed(() => this.secciones().map((s) => ({ titulo: s.titulo, ruta: s.ruta, grupo: s.grupo, icono: s.icono })));
+  protected readonly destinos = computed(() => [
+    ...this.secciones().map((s) => ({ titulo: s.titulo, ruta: s.ruta, grupo: s.grupo, icono: s.icono, tecla: TECLAS[s.ruta] })),
+    { titulo: 'Mi perfil', ruta: '/perfil', grupo: 'Cuenta', icono: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20a8 8 0 0 1 16 0', tecla: 'u' },
+  ]);
+  protected readonly enfoque = computed(() => this.url().startsWith('/participar'));
+  protected readonly degradado = computed(() => { const c = COLORES_AVATAR[this.prefs.avatar()]; return `linear-gradient(135deg, ${c[0]}, ${c[1]})`; });
+  protected readonly saludoTexto = computed(() => `${this.saludo()}, ${this.nombreCorto()}`);
   protected readonly puedeNotificaciones = computed(() => this.sesiones.tienePermiso(Permiso.ProgramarSesiones));
   private readonly saludo = () => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; };
   protected readonly nombreCorto = computed(() => this.sesion()?.nombreCompleto.split(' ')[0] ?? '');
@@ -256,7 +300,22 @@ export class Panel implements OnInit, OnDestroy {
     }
   });
 
-  ngOnInit(): void { this.temas.aplicar(); }
+  constructor() {
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationStart) this.cargandoRuta.set(true);
+      else if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.cargandoRuta.set(false);
+    });
+  }
+
+  private debeSaludar(): boolean {
+    try {
+      if (!this.prefs.bienvenida() || sessionStorage.getItem('soma.saludado')) return false;
+      sessionStorage.setItem('soma.saludado', '1');
+      return !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    } catch { return false; }
+  }
+
+  ngOnInit(): void { this.temas.aplicar(); if (this.bienvenida()) setTimeout(() => this.bienvenida.set(false), 2100); }
   ngOnDestroy(): void { this.temas.quitar(); }
   protected cambiarTema(e: MouseEvent): void {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();

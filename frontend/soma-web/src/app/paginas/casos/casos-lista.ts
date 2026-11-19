@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { claseEstado, nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
+import { ToastService } from '../../core/toast.service';
 import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
 /** Módulo 2: casos de estudio del docente. Lista con filtro por estado e importación de un caso en formato DSL (JSON). */
@@ -65,7 +66,10 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
                 @if (c.fechaActualizacion) { <span>Actualizado {{ c.fechaActualizacion | date: 'd MMM y' }}</span> }
                 @if (c.fechaPublicacion) { <span>Publicado {{ c.fechaPublicacion | date: 'd MMM y' }}</span> }
               </div>
-              <div class="acciones"><a [routerLink]="['/casos', c.id]" class="boton-suave boton-chico enlace-boton">Abrir</a></div>
+              <div class="acciones">
+                <a [routerLink]="['/casos', c.id]" class="boton-suave boton-chico enlace-boton">Abrir</a>
+                <button type="button" class="boton-suave boton-chico" [disabled]="duplicando() === c.id" (click)="duplicar(c)" title="Crea una copia como borrador">{{ duplicando() === c.id ? 'Duplicando…' : 'Duplicar' }}</button>
+              </div>
             </article>
           }
         </div>
@@ -84,6 +88,8 @@ export class CasosLista implements OnInit {
   protected readonly estado = signal('');
   protected readonly importando = signal(false);
   protected readonly ocupado = signal(false);
+  protected readonly duplicando = signal<number | null>(null);
+  private readonly toasts = inject(ToastService);
   protected textoDsl = '';
   protected readonly nombre = nombreEstado;
   protected readonly clase = claseEstado;
@@ -97,6 +103,22 @@ export class CasosLista implements OnInit {
     this.api.casosPorEstado(this.estado() || undefined).subscribe({
       next: (c) => { this.casos.set(c); this.cargando.set(false); },
       error: (e: HttpErrorResponse) => { this.error.set(mensajeDeError(e)); this.cargando.set(false); },
+    });
+  }
+
+  /** Copia un caso (también publicado) como borrador nuevo: exporta su DSL y lo vuelve a importar con otro nombre. */
+  protected duplicar(c: CasoResumen): void {
+    this.duplicando.set(c.id);
+    this.api.exportarDsl(c.id).subscribe({
+      next: (doc) => {
+        const copia = JSON.parse(JSON.stringify(doc)) as { caso?: { nombre?: string } };
+        if (copia.caso) copia.caso.nombre = `${(copia.caso.nombre ?? c.nombre).slice(0, 185)} (copia)`;
+        this.api.importarDsl(copia).subscribe({
+          next: (r) => { this.duplicando.set(null); this.toasts.ok('Caso duplicado como borrador.'); void this.router.navigate(['/casos', r.caso.id]); },
+          error: (e: HttpErrorResponse) => { this.duplicando.set(null); this.toasts.error(mensajeDeError(e)); },
+        });
+      },
+      error: (e: HttpErrorResponse) => { this.duplicando.set(null); this.toasts.error(mensajeDeError(e)); },
     });
   }
 

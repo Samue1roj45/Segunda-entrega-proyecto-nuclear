@@ -3,8 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { guardarArchivo, nombreEstado } from '../../compartido/formato';
+import { Observable, forkJoin } from 'rxjs';
+import { Barras, Histograma } from '../../compartido/graficas';
+import { ReportesService } from '../../core/reportes.service';
+import { ToastService } from '../../core/toast.service';
+import { nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
 import { NotaOficial, ResultadoDetalle, Retroalimentacion } from '../../core/modelos/dominio';
@@ -17,7 +20,7 @@ import { SomaApiService } from '../../core/soma-api.service';
  */
 @Component({
   selector: 'app-resultados-docente',
-  imports: [DatePipe, DecimalPipe, FormsModule],
+  imports: [DatePipe, DecimalPipe, FormsModule, Histograma, Barras],
   template: `
     <div class="pagina">
       <div class="cabecera-pagina"><h2 class="sr-only">Resultados</h2></div>
@@ -35,13 +38,28 @@ import { SomaApiService } from '../../core/soma-api.service';
             <button type="button" class="boton-suave" [disabled]="ocupado()" (click)="evaluar()">Cerrar intentos pendientes</button>
             <button type="button" class="boton-suave" [disabled]="ocupado()" (click)="publicar()">Publicar calificaciones</button>
             @if (puedeReportes()) {
-              <button type="button" class="boton-suave" [disabled]="ocupado()" (click)="descargar('pdf')">Reporte PDF</button>
-              <button type="button" class="boton-suave" [disabled]="ocupado()" (click)="descargar('xlsx')">Reporte Excel</button>
+              <button type="button" class="boton-suave" [disabled]="reportes.generando('pdf', practica)" (click)="descargar('pdf')">{{ reportes.generando('pdf', practica) ? 'Generando…' : 'Reporte PDF' }}</button>
+              <button type="button" class="boton-suave" [disabled]="reportes.generando('xlsx', practica)" (click)="descargar('xlsx')">{{ reportes.generando('xlsx', practica) ? 'Generando…' : 'Reporte Excel' }}</button>
             }
           </div>
           <p class="ayuda">«Cerrar intentos pendientes» evalúa los intentos incompletos o sin responder. «Publicar calificaciones» envía la nota oficial a cada estudiante por correo.</p>
         }
       </section>
+
+      @if (resultados().length) {
+        <section class="resumen-estadistico">
+          <article class="cristal kpi"><p class="suave">Intentos evaluados</p><p class="valor">{{ resultados().length }}</p></article>
+          <article class="cristal kpi"><p class="suave">Promedio</p><p class="valor">{{ estadisticas().promedio | number: '1.1-2' }}</p></article>
+          <article class="cristal kpi"><p class="suave">Nota más alta</p><p class="valor">{{ estadisticas().maxima | number: '1.1-2' }}</p></article>
+          <article class="cristal kpi"><p class="suave">Nota más baja</p><p class="valor">{{ estadisticas().minima | number: '1.1-2' }}</p></article>
+        </section>
+        <div class="dos">
+          <section class="cristal bloque"><h3>Distribución de notas</h3><soma-histograma [valores]="proporciones()" /></section>
+          <section class="cristal bloque"><h3>Aciertos por pregunta</h3>
+            @if (aciertos().length) { <soma-barras [datos]="aciertos()" /> } @else { <p class="suave">{{ calculando() ? 'Calculando…' : 'Se mostrará cuando haya intentos con detalle.' }}</p> }
+          </section>
+        </div>
+      }
 
       @if (cargando()) { <p class="suave">Cargando…</p> }
       @else if (resultados().length === 0) { <p class="cristal vacio">No hay resultados todavía para esa búsqueda.</p> }
@@ -116,6 +134,12 @@ import { SomaApiService } from '../../core/soma-api.service';
       }
     </div>
   `,
+  styles: `
+    .resumen-estadistico { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
+    .kpi { padding: 1.1rem 1.3rem; display: grid; gap: .2rem; } .kpi .valor { font-weight: 300; font-size: 2.2rem; line-height: 1; color: var(--lila-950); font-variant-numeric: tabular-nums; }
+    :host-context([data-tema='noche']) .kpi .valor { color: #f1ecff; }
+    .dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; align-items: start; }
+  `,
 })
 export class ResultadosDocente implements OnInit {
   private readonly api = inject(SomaApiService);
@@ -135,6 +159,15 @@ export class ResultadosDocente implements OnInit {
   protected estudiante: number | null = null;
   protected textoRetro = '';
 
+  protected readonly reportes = inject(ReportesService);
+  private readonly toasts = inject(ToastService);
+  protected readonly aciertos = signal<{ etiqueta: string; valor: number }[]>([]);
+  protected readonly calculando = signal(false);
+  protected readonly proporciones = computed(() => this.resultados().map((r) => (r.escalaMaxima ? Number(r.notaFinal) / Number(r.escalaMaxima) : 0)));
+  protected readonly estadisticas = computed(() => {
+    const n = this.resultados().map((r) => Number(r.notaFinal));
+    return { promedio: n.length ? n.reduce((a, b) => a + b, 0) / n.length : 0, maxima: n.length ? Math.max(...n) : 0, minima: n.length ? Math.min(...n) : 0 };
+  });
   protected readonly puedeReportes = computed(() => this.sesiones.tienePermiso(Permiso.DescargarReportes));
   protected readonly puedeRetro = computed(() => this.sesiones.tienePermiso(Permiso.RegistrarRetroalimentacion));
   protected readonly puedeCalificar = computed(() => this.sesiones.tienePermiso(Permiso.ConsultarParticipaciones));
@@ -149,10 +182,29 @@ export class ResultadosDocente implements OnInit {
   protected buscar(): void {
     this.cargando.set(true); this.error.set(null); this.seleccionado.set(null);
     this.api.resultadosFiltrados(this.practica, this.estudiante).subscribe({
-      next: (r) => { this.resultados.set(r); this.cargando.set(false); },
+      next: (r) => { this.resultados.set(r); this.cargando.set(false); this.calcularAciertos(r); },
       error: (e: HttpErrorResponse) => { this.cargando.set(false); this.error.set(mensajeDeError(e)); },
     });
     this.api.notasOficiales(this.practica, this.estudiante).subscribe({ next: (n) => this.notas.set(n), error: () => this.notas.set([]) });
+  }
+
+  /** Porcentaje de intentos que acertó cada pregunta; lee el detalle de hasta 40 intentos. */
+  private calcularAciertos(lista: ResultadoDetalle[]): void {
+    this.aciertos.set([]);
+    if (!lista.length) return;
+    this.calculando.set(true);
+    forkJoin(lista.slice(0, 40).map((r) => this.api.resultado(r.id))).subscribe({
+      next: (detalles) => {
+        const m = new Map<number, { e: string; ok: number; n: number }>();
+        for (const d of detalles) for (const q of d.detallePreguntas) {
+          const x = m.get(q.preguntaId) ?? { e: q.enunciado, ok: 0, n: 0 };
+          x.n++; if (q.correcta) x.ok++; m.set(q.preguntaId, x);
+        }
+        this.aciertos.set([...m.values()].map((x, i) => ({ etiqueta: `${i + 1}. ${x.e}`, valor: x.n ? x.ok / x.n : 0 })));
+        this.calculando.set(false);
+      },
+      error: () => this.calculando.set(false),
+    });
   }
 
   protected abrir(r: ResultadoDetalle): void {
@@ -165,7 +217,7 @@ export class ResultadosDocente implements OnInit {
   private ejecutar<T>(op: Observable<T>, mensaje: (r: T) => string, tras?: () => void): void {
     this.error.set(null); this.aviso.set(null); this.ocupado.set(true);
     op.subscribe({
-      next: (r) => { this.ocupado.set(false); this.aviso.set(mensaje(r)); tras?.(); },
+      next: (r) => { this.ocupado.set(false); this.aviso.set(mensaje(r)); this.toasts.ok(mensaje(r)); tras?.(); },
       error: (e: HttpErrorResponse) => { this.ocupado.set(false); this.error.set(mensajeDeError(e)); },
     });
   }
@@ -191,10 +243,7 @@ export class ResultadosDocente implements OnInit {
   }
 
   protected descargar(formato: 'pdf' | 'xlsx'): void {
-    this.error.set(null); this.ocupado.set(true);
-    this.api.reporte(formato, this.practica, this.estudiante).subscribe({
-      next: (b) => { this.ocupado.set(false); guardarArchivo(b, `evaluacion.${formato}`); },
-      error: (e: HttpErrorResponse) => { this.ocupado.set(false); this.error.set(e.status === 403 ? 'No tienes permiso para descargar reportes.' : 'No se pudo generar el reporte.'); },
-    });
+    this.reportes.descargar(formato, this.practica, this.estudiante);
   }
+
 }

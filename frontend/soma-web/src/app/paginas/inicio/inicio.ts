@@ -3,10 +3,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
+import { Barras } from '../../compartido/graficas';
 import { Contar } from '../../compartido/contar';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
+import { Docente, Notificacion } from '../../core/modelos/dominio';
 import { CasoResumen, Participacion, Resultado, Sesion, SomaApiService } from '../../core/soma-api.service';
 
 /** Una lista del panel con sus estados de carga y error. */
@@ -49,7 +51,7 @@ const ESTADOS: Record<string, string> = {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [Contar, DatePipe, DecimalPipe, RouterLink],
+  imports: [Barras, Contar, DatePipe, DecimalPipe, RouterLink],
   template: `
     <section class="bienvenida cristal">
       <div>
@@ -78,6 +80,34 @@ const ESTADOS: Record<string, string> = {
         </article>
       }
     </section>
+
+    @if (esAdministrador() && docentes().length) {
+      <section class="columnas">
+        <article class="bloque cristal">
+          <header><h2>Docentes por permiso</h2><span class="suave">{{ docentes().length }} docentes</span></header>
+          <soma-barras [datos]="permisosPorDocente()" />
+        </article>
+        <article class="bloque cristal">
+          <header><h2>Estado de la plataforma</h2></header>
+          <ul class="lista">
+            <li><div class="principal"><strong>Docentes activos</strong><span class="suave">{{ activos() }} de {{ docentes().length }}</span></div><span class="etiqueta ok">{{ activos() }}</span></li>
+            <li><div class="principal"><strong>Docentes sin permisos</strong><span class="suave">Pueden iniciar sesión, pero no hacer nada todavía</span></div><span class="etiqueta" [class.mal]="sinPermisos() > 0">{{ sinPermisos() }}</span></li>
+            <li><div class="principal"><strong>Docentes inactivos</strong><span class="suave">No pueden iniciar sesión</span></div><span class="etiqueta">{{ docentes().length - activos() }}</span></li>
+          </ul>
+        </article>
+      </section>
+    }
+
+    @if (actividad().length) {
+      <section class="bloque cristal">
+        <header><h2>Actividad reciente</h2><span class="suave">últimos movimientos</span></header>
+        <ol class="feed">
+          @for (a of actividad(); track $index) {
+            <li><span class="punto-f" [class]="'punto-f ' + a.tipo"></span><div><strong>{{ a.texto }}</strong><small>{{ a.fecha | date: "EEE d MMM, h:mm a" }}</small></div></li>
+          }
+        </ol>
+      </section>
+    }
 
     @if (aviso(); as texto) { <p class="aviso cristal" role="status">{{ texto }}</p> }
 
@@ -215,6 +245,13 @@ const ESTADOS: Record<string, string> = {
     .lista .suave { font-size: .85rem; }
     .esqueleto { display: grid; gap: .6rem; } .esqueleto i { height: 3.4rem; border-radius: 16px; background: linear-gradient(100deg, rgba(255,255,255,.35) 30%, rgba(255,255,255,.85) 50%, rgba(255,255,255,.35) 70%) 0 0 / 220% 100%; animation: brilla 1.3s linear infinite; }
     @keyframes brilla { to { background-position: -220% 0; } }
+    .feed { list-style: none; margin: 0; padding: 0 0 0 .4rem; display: grid; gap: .1rem; position: relative; }
+    .feed li { display: flex; gap: .9rem; align-items: flex-start; padding: .55rem 0; position: relative; }
+    .feed li::before { content: ''; position: absolute; left: .42rem; top: 1.6rem; bottom: -.5rem; width: 2px; background: rgba(94,74,138,.16); } .feed li:last-child::before { display: none; }
+    .punto-f { flex: none; width: .9rem; height: .9rem; border-radius: 50%; margin-top: .25rem; background: var(--lila-500); box-shadow: 0 0 0 4px rgba(139,111,224,.18); position: relative; z-index: 1; }
+    .punto-f.ok, .punto-f.fin { background: #5cb88f; box-shadow: 0 0 0 4px rgba(92,184,143,.2); } .punto-f.mal { background: #d98a5b; box-shadow: 0 0 0 4px rgba(217,138,91,.22); }
+    .feed div { display: grid; gap: .1rem; min-width: 0; } .feed strong { font-weight: 500; color: var(--lila-950); font-size: .92rem; } .feed small { color: var(--tinta-suave); text-transform: capitalize; }
+    :host-context([data-tema='noche']) .feed strong { color: #f1ecff; } :host-context([data-tema='noche']) .feed li::before { background: rgba(255,255,255,.14); }
     .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(94,74,138,.3); border-radius: 16px; }
     .nota-final { font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.6rem; color: var(--lila-900); }
     @media (max-width: 700px) { .cerebro { display: none; } .bienvenida { grid-template-columns: 1fr; } }
@@ -239,6 +276,28 @@ export class Inicio implements OnInit {
   protected readonly participaciones = new Bloque<Participacion>();
   protected readonly resultados = new Bloque<Resultado>();
   protected readonly aviso = signal<string | null>(null);
+  protected readonly docentes = signal<Docente[]>([]);
+  private readonly avisosCorreo = signal<Notificacion[]>([]);
+  protected readonly activos = computed(() => this.docentes().filter((d) => d.activo).length);
+  protected readonly sinPermisos = computed(() => this.docentes().filter((d) => d.activo && d.permisos.length === 0).length);
+  protected readonly permisosPorDocente = computed(() => {
+    const n = Math.max(1, this.docentes().length); const m = new Map<string, number>();
+    for (const d of this.docentes()) for (const p of d.permisos) m.set(p, (m.get(p) ?? 0) + 1);
+    return [...m].map(([p, c]) => ({ etiqueta: p.toLowerCase().replace(/_/g, ' ').replace(/^./, (x) => x.toUpperCase()), valor: c / n }));
+  });
+  /** Movimientos recientes armados con lo que ya devuelve el servidor: sesiones, avisos enviados y participaciones. */
+  protected readonly actividad = computed(() => {
+    const e: { fecha: string; texto: string; tipo: string }[] = [];
+    for (const s of this.sesiones.datos()) {
+      const etiqueta = s.estado === 'EN_CURSO' ? 'Sesión en curso' : s.estado === 'FINALIZADO' ? 'Sesión finalizada' : 'Sesión programada';
+      e.push({ fecha: s.fechaInicio, texto: `${etiqueta}: «${s.nombreCaso}»`, tipo: s.estado === 'FINALIZADO' ? 'fin' : 'ini' });
+    }
+    for (const n of this.avisosCorreo()) e.push({ fecha: n.fechaCreacion, texto: `${n.asunto} → ${n.destinatarioCorreo}`, tipo: n.estado === 'ENVIADA' ? 'ok' : 'mal' });
+    for (const p of this.participaciones.datos()) {
+      if (p.inicio) e.push({ fecha: p.inicio, texto: `${p.estudianteNombre ? p.estudianteNombre + ' participó' : 'Participación'} en «${p.practicaNombre}» (intento ${p.numeroIntento})`, tipo: p.estado === 'FINALIZADA' ? 'fin' : 'ini' });
+    }
+    return e.filter((x) => x.fecha).sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 8);
+  });
 
   protected readonly esEstudiante = computed(() => this.sesion.tienePermiso(Permiso.ParticiparEnCasos));
   protected readonly esAdministrador = this.sesion.esAdministrador;
@@ -276,6 +335,8 @@ export class Inicio implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.sesion.esAdministrador()) this.api.docentes().subscribe({ next: (d) => this.docentes.set(d), error: () => undefined });
+    if (this.sesion.tienePermiso(Permiso.ProgramarSesiones)) this.api.notificaciones().subscribe({ next: (n) => this.avisosCorreo.set(n), error: () => undefined });
     if (this.sesion.tienePermiso(Permiso.ProgramarSesiones)) this.sesiones.cargar(this.api.sesiones());
     if (this.sesion.tienePermiso(Permiso.GestionarCasos)) this.casos.cargar(this.api.casos());
     if (this.sesion.tienePermiso(Permiso.ConsultarParticipaciones) || this.esEstudiante()) {
@@ -285,7 +346,7 @@ export class Inicio implements OnInit {
       this.resultados.cargar(this.api.resultados());
     }
     if (!this.sesiones.visible() && !this.casos.visible() && !this.participaciones.visible() && !this.resultados.visible()) {
-      this.aviso.set('Tu rol administra docentes y permisos; esa sección se integrará en este panel.');
+      this.aviso.set(this.sesion.esAdministrador() ? null : 'Tu rol todavía no tiene secciones disponibles. Pide al administrador que te asigne permisos.');
     }
   }
 

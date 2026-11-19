@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, computed, input, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
-export interface Destino { readonly titulo: string; readonly ruta: string; readonly grupo: string; readonly icono: string }
+export interface Destino { readonly titulo: string; readonly ruta: string; readonly grupo: string; readonly icono: string; readonly tecla?: string }
 
 /** Paleta de comandos (Ctrl/⌘ + K): salta a cualquier sección permitida escribiendo unas letras. */
 @Component({
@@ -12,6 +12,18 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
       <span>Ir a…</span><kbd>Ctrl K</kbd>
     </button>
 
+    @if (ayuda()) {
+      <div class="fondo" (click)="ayuda.set(false)"></div>
+      <div class="caja" role="dialog" aria-modal="true" aria-label="Atajos de teclado">
+        <h3>Atajos de teclado</h3>
+        <ul class="atajos">
+          <li><span class="t">Abrir el buscador «Ir a…»</span><span><kbd>Ctrl</kbd><kbd>K</kbd></span></li>
+          @for (d of conTecla(); track d.ruta) { <li><span class="t">Ir a {{ d.titulo }}</span><span><kbd>G</kbd><kbd>{{ d.tecla!.toUpperCase() }}</kbd></span></li> }
+          <li><span class="t">Mostrar esta ayuda</span><span><kbd>?</kbd></span></li>
+          <li><span class="t">Cerrar ventanas</span><span><kbd>Esc</kbd></span></li>
+        </ul>
+      </div>
+    }
     @if (visible()) {
       <div class="fondo" (click)="cerrar()"></div>
       <div class="caja" role="dialog" aria-modal="true" aria-label="Ir a una sección">
@@ -50,6 +62,8 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
     li.sel .ico { background: linear-gradient(145deg, var(--lila-500), var(--lila-900)); color: #fff; }
     .ico svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
     .t { flex: 1; } small { color: var(--tinta-suave); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; }
+    h3 { font-size: 1.4rem; padding: .3rem .5rem .6rem; }
+    .atajos { margin: 0; } .atajos li { cursor: default; justify-content: space-between; }
     .pie { font-size: .75rem; color: var(--tinta-suave); padding: .4rem .5rem 0; }
     @keyframes pal-f { from { opacity: 0; } } @keyframes pal-c { from { opacity: 0; transform: translate(-50%, 14px) scale(.98); } }
     @media (max-width: 1000px) { .abrir span, .abrir kbd { display: none; } .abrir { padding: .55rem; } }
@@ -71,6 +85,9 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
 export class Paleta {
   readonly destinos = input.required<readonly Destino[]>();
   protected readonly visible = signal(false);
+  protected readonly ayuda = signal(false);
+  private esperandoG = 0;
+  protected readonly conTecla = computed(() => this.destinos().filter((d) => d.tecla));
   protected readonly consulta = signal('');
   protected readonly indice = signal(0);
   private readonly entrada = viewChild<ElementRef<HTMLInputElement>>('entrada');
@@ -85,7 +102,16 @@ export class Paleta {
   @HostListener('document:keydown', ['$event'])
   protected global(e: KeyboardEvent): void {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.visible() ? this.cerrar() : this.abrir(); }
-    else if (e.key === 'Escape' && this.visible()) { this.cerrar(); }
+    else if (e.key === 'Escape') { this.cerrar(); this.ayuda.set(false); }
+    else if (!e.ctrlKey && !e.metaKey && !e.altKey && !this.escribiendo(e)) {
+      if (e.key === '?') { this.ayuda.update((v) => !v); return; }
+      const k = e.key.toLowerCase();
+      if (this.esperandoG && Date.now() - this.esperandoG < 1200) {
+        this.esperandoG = 0;
+        const d = this.destinos().find((x) => x.tecla === k);
+        if (d) { e.preventDefault(); this.ir(d); }
+      } else if (k === 'g') { this.esperandoG = Date.now(); }
+    }
   }
 
   protected abrir(): void {
@@ -101,5 +127,6 @@ export class Paleta {
     else if (e.key === 'Enter') { const d = this.resultados()[this.indice()]; if (d) this.ir(d); }
   }
   protected ir(d: Destino): void { this.cerrar(); void this.router.navigateByUrl(d.ruta); }
+  private escribiendo(e: KeyboardEvent): boolean { const t = e.target as HTMLElement | null; return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); }
   private normal(s: string): string { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 }

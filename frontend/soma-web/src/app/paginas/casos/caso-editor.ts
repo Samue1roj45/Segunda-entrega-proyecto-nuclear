@@ -24,8 +24,33 @@ type Pestana = 'datos' | 'contenido' | 'rubrica' | 'herramientas' | 'publicacion
       <p class="migas"><a routerLink="/casos">Casos de estudio</a> / {{ caso()?.nombre ?? 'Nuevo caso' }}</p>
       <div class="cabecera-pagina">
         <h2>{{ caso()?.nombre ?? 'Nuevo caso' }}</h2>
-        @if (caso(); as c) { <span [class]="'etiqueta ' + clase(c.estado)">{{ nombre(c.estado) }}</span> }
+        <div class="acciones">
+          @if (caso(); as c) {
+            <span [class]="'etiqueta ' + clase(c.estado)">{{ nombre(c.estado) }}</span>
+            <button type="button" class="boton-suave boton-chico" (click)="vista.set(true)">Vista previa</button>
+          }
+        </div>
       </div>
+
+      @if (vista() && caso(); as c) {
+        <div class="modal-fondo" (click)="vista.set(false)"></div>
+        <div class="modal" role="dialog" aria-modal="true" aria-label="Vista previa del caso">
+          <header><div><p class="sobre-modal">Así lo verá el estudiante</p><h3>{{ c.nombre }}</h3></div><button type="button" class="boton-suave boton-chico" (click)="vista.set(false)">Cerrar</button></header>
+          <div class="cuerpo-modal">
+            @if (c.contextoHistoria) { <p class="historia">{{ c.contextoHistoria }}</p> }
+            @if (c.desarrolloSituacional) { <p class="historia">{{ c.desarrolloSituacional }}</p> }
+            @for (e of c.escenarios; track e.id) {
+              <section class="esc"><h4>Escenario {{ e.orden }} · {{ e.nombre }}</h4><p class="suave">{{ e.contexto }}</p>
+                @for (p of e.preguntas; track p.id) {
+                  <div class="preg"><p><strong>{{ p.orden }}. {{ p.enunciado }}</strong></p>
+                    @for (r of p.respuestas; track r.id) { <label class="opc"><input type="radio" [name]="'vp' + p.id" disabled /><span><span class="codigo">{{ r.codigo }}</span> {{ r.texto }}</span></label> }
+                  </div>
+                }
+              </section>
+            } @empty { <p class="suave">Este caso todavía no tiene escenarios.</p> }
+          </div>
+        </div>
+      }
 
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
@@ -291,6 +316,7 @@ type Pestana = 'datos' | 'contenido' | 'rubrica' | 'herramientas' | 'publicacion
 })
 export class CasoEditor implements OnInit {
   protected readonly api = inject(SomaApiService);
+  protected readonly vista = signal(false);
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -324,9 +350,13 @@ export class CasoEditor implements OnInit {
   private abiertoClave: string | null = null;
 
   ngOnInit(): void {
-    const id = this.ruta.snapshot.paramMap.get('id');
-    if (id === null || id === 'nuevo') { this.nuevo.set(true); return; }
-    this.cargar(Number(id));
+    // Se escucha el parámetro: al crear el caso la ruta pasa de «nuevo» a su id sin recrear la pantalla.
+    this.ruta.paramMap.subscribe((p) => {
+      const id = p.get('id');
+      if (id === null || id === 'nuevo') { this.nuevo.set(true); this.caso.set(null); return; }
+      this.nuevo.set(false);
+      this.cargar(Number(id));
+    });
   }
 
   private get id(): number { return this.caso()!.id; }
