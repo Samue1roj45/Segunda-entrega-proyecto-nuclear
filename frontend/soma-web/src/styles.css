@@ -147,3 +147,53 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .barra-progreso { height: 10px; border-radius: 999px; background: rgba(94,74,138,.15); overflow: hidden; }
 .barra-progreso > span { display: block; height: 100%; background: linear-gradient(90deg, var(--lila-500), var(--lila-800)); transition: width .4s ease; }
 .pagina .bloque { display: grid; gap: .9rem; align-content: start; }
+
+/* ---------- Transiciones de vista (login → panel, cambio de tema) ---------- */
+::view-transition-old(root) { animation: vt-sale .45s cubic-bezier(.4,0,.6,1) both; }
+::view-transition-new(root) { animation: vt-entra .6s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes vt-sale { to { opacity: 0; transform: scale(1.04); filter: blur(10px); } }
+@keyframes vt-entra { from { opacity: 0; transform: scale(.975) translateY(8px); filter: blur(10px); } }
+.cambiando-tema::view-transition-old(root), .cambiando-tema::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.cambiando-tema::view-transition-old(root) { z-index: 1; }
+.cambiando-tema::view-transition-new(root) { z-index: 2; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; } }
+
+/* ---------- Modo noche (se activa solo dentro del panel: html[data-tema="noche"]) ---------- */
+:root[data-tema='noche'] {
+  --tinta: #e6e0f5; --tinta-suave: #a99fc7;
+  --lila-700: #b7a5ef; --lila-800: #a692ea; --lila-900: #e8e1fb;
+  --borde-cristal: rgba(190,170,240,.22);
+  color-scheme: dark;
+}
+[data-tema='noche'] body { background: #14102a; color: var(--tinta); }
+[data-tema='noche'] h1, [data-tema='noche'] h2, [data-tema='noche'] h3, [data-tema='noche'] h4 { color: #f1ecff; }
+[data-tema='noche'] a { color: #c3b3f5; }
+[data-tema='noche'] .cristal {
+  background: linear-gradient(160deg, rgba(76,60,130,.5), rgba(30,24,62,.46));
+  border-color: rgba(190,170,240,.22);
+  box-shadow: 0 28px 50px -30px rgba(0,0,0,.75), inset 0 1.5px 0 rgba(255,255,255,.13), inset 0 -1px 0 rgba(0,0,0,.25);
+}
+[data-tema='noche'] .boton-primario { background: linear-gradient(180deg, #8b6fe0, #5a3fb0); box-shadow: 0 12px 26px -12px rgba(90,63,176,.8), inset 0 1px 0 rgba(255,255,255,.28); }
+[data-tema='noche'] .boton-suave, [data-tema='noche'] .pestanas { background: rgba(255,255,255,.09); border-color: rgba(190,170,240,.22); color: #eee8ff; }
+[data-tema='noche'] .boton-suave:hover { background: rgba(255,255,255,.18); }
+[data-tema='noche'] .pestanas button { color: #cfc6ee; }
+[data-tema='noche'] .pestanas button.activa { background: linear-gradient(180deg, #8b6fe0, #5a3fb0); color: #fff; }
+[data-tema='noche'] .campo-f input, [data-tema='noche'] .campo-f select, [data-tema='noche'] .campo-f textarea, [data-tema='noche'] .entrada { background: rgba(255,255,255,.07); border-color: rgba(190,170,240,.28); color: #f1ecff; }
+[data-tema='noche'] .campo-f input:focus, [data-tema='noche'] .campo-f select:focus, [data-tema='noche'] .campo-f textarea:focus, [data-tema='noche'] .entrada:focus { background: rgba(255,255,255,.13); }
+[data-tema='noche'] option { background: #231b45; color: #f1ecff; }
+[data-tema='noche'] .bloque-interno, [data-tema='noche'] .fila-item, [data-tema='noche'] .pre-json { background: rgba(255,255,255,.06); border-color: rgba(190,170,240,.16); color: var(--tinta); }
+[data-tema='noche'] .tabla td { border-color: rgba(190,170,240,.14); }
+[data-tema='noche'] .tabla tr:hover td { background: rgba(255,255,255,.05); }
+[data-tema='noche'] .codigo { background: rgba(190,170,240,.18); color: #e6defb; }
+[data-tema='noche'] .barra-progreso { background: rgba(255,255,255,.12); }
+[data-tema='noche'] .barra-progreso > span { background: linear-gradient(90deg, #8b6fe0, #c3a9ff); }
+[data-tema='noche'] .etiqueta { background: rgba(190,170,240,.2); color: #e2d9fb; }
+[data-tema='noche'] .etiqueta.en-curso, [data-tema='noche'] .etiqueta.publicado, [data-tema='noche'] .etiqueta.ok { background: rgba(92,184,143,.2); color: #8fe0bb; }
+[data-tema='noche'] .etiqueta.borrador, [data-tema='noche'] .etiqueta.incompleta { background: rgba(224,176,80,.2); color: #f0cd86; }
+[data-tema='noche'] .etiqueta.sin-iniciar { background: rgba(110,140,230,.22); color: #b4c6ff; }
+[data-tema='noche'] .etiqueta.finalizado, [data-tema='noche'] .etiqueta.finalizada, [data-tema='noche'] .etiqueta.archivado { background: rgba(255,255,255,.1); color: #bdb3d9; }
+[data-tema='noche'] .etiqueta.mal { background: rgba(224,110,90,.2); color: #ffab9a; }
+[data-tema='noche'] .alerta-error { background: rgba(224,110,90,.14); color: #ffab9a; border-color: rgba(224,110,90,.3); }
+[data-tema='noche'] .aviso-ok { background: rgba(92,184,143,.14); color: #8fe0bb; border-color: rgba(92,184,143,.3); }
+[data-tema='noche'] .aviso-info { background: rgba(190,170,240,.14); color: #e2d9fb; border-color: rgba(190,170,240,.25); }
+[data-tema='noche'] .vacio { color: var(--tinta-suave); }

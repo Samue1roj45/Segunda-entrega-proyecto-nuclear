@@ -1,11 +1,14 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
+import { Campana } from '../../compartido/campana';
 import { Logo } from '../../compartido/logo';
+import { Paleta } from '../../compartido/paleta';
 import { Permiso } from '../../core/modelos/permiso';
 import { Rol } from '../../core/modelos/rol';
 import { SesionService } from '../../core/sesion.service';
+import { TemaService } from '../../core/tema.service';
 
 interface Seccion {
   readonly titulo: string;
@@ -34,7 +37,7 @@ const SECCIONES: readonly Seccion[] = [
  */
 @Component({
   selector: 'app-panel',
-  imports: [Logo, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [Campana, Logo, Paleta, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i><img src="logo-soma.webp" alt="" /></div>
 
@@ -76,6 +79,15 @@ const SECCIONES: readonly Seccion[] = [
             <h1>{{ titulo() }}</h1>
           </div>
           <div class="chips">
+            <soma-paleta [destinos]="destinos()" />
+            <button type="button" class="tema" (click)="cambiarTema($event)" [attr.aria-label]="temas.tema() === 'noche' ? 'Cambiar a modo día' : 'Cambiar a modo noche'" [title]="temas.tema() === 'noche' ? 'Modo día' : 'Modo noche'">
+              @if (temas.tema() === 'noche') {
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V2m0 20v-2M4 12H2m20 0h-2M6 6 4.6 4.6m14.8 14.8L18 18M6 18l-1.4 1.4M19.4 4.6 18 6m-6 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" /></svg>
+              }
+            </button>
+            @if (puedeNotificaciones()) { <soma-campana /> }
             <span class="chip fecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15H5zM5 9h14M9 3v4m6-4v4" /></svg>{{ hoy }}</span>
             <span class="chip rol"><i></i>{{ rolLegible() }}</span>
           </div>
@@ -138,15 +150,45 @@ const SECCIONES: readonly Seccion[] = [
     .barra { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; padding: .2rem .3rem 0; }
     .sobre { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--lila-700); margin-bottom: .2rem; }
     h1 { font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1; }
-    .chips { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .chips { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
     .chip { display: inline-flex; align-items: center; gap: .45rem; padding: .5rem .9rem; border-radius: 999px; font-size: .85rem; color: var(--lila-900);
       background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(59,45,92,.5);
       -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
     .chip.fecha::first-letter { text-transform: uppercase; }
+    .tema { width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.8); background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(59,45,92,.5); transition: background .2s, transform .3s; }
+    .tema:hover { background: #fff; transform: rotate(18deg) scale(1.06); }
+    .tema svg { width: 19px; height: 19px; fill: none; stroke: var(--lila-800); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .chip svg { width: 16px; height: 16px; fill: none; stroke: var(--lila-700); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .chip.rol i { width: 8px; height: 8px; border-radius: 50%; background: #5cb88f; box-shadow: 0 0 0 3px rgba(92,184,143,.25); }
     .vista { display: grid; gap: 1.2rem; min-width: 0; animation: aparece .45s cubic-bezier(.2,.7,.2,1) both; }
     @keyframes aparece { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+
+    /* ---- Modo noche ---- */
+    :host-context([data-tema='noche']) { background: #14102a; }
+    :host-context([data-tema='noche']) .aurora { background: radial-gradient(120% 90% at 12% 0%, #2b2150 0%, #1a1438 50%, #110d27 100%); }
+    :host-context([data-tema='noche']) .aurora i { opacity: .5; mix-blend-mode: screen; }
+    :host-context([data-tema='noche']) .aurora i:nth-child(1) { background: radial-gradient(circle, #6a4fc2, transparent 65%); }
+    :host-context([data-tema='noche']) .aurora i:nth-child(2) { background: radial-gradient(circle, #3b55b8, transparent 65%); }
+    :host-context([data-tema='noche']) .aurora i:nth-child(3) { background: radial-gradient(circle, #9b3f8f, transparent 65%); opacity: .35; }
+    :host-context([data-tema='noche']) .aurora img { opacity: .1; filter: brightness(1.6) saturate(.9); }
+    :host-context([data-tema='noche']) .lateral { background: linear-gradient(170deg, rgba(70,56,120,.55), rgba(28,22,58,.55) 60%, rgba(50,38,96,.5)); border-color: rgba(190,170,240,.22); box-shadow: 0 34px 60px -30px rgba(0,0,0,.7), inset 0 1.5px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(0,0,0,.3); }
+    :host-context([data-tema='noche']) .marca { border-color: rgba(190,170,240,.16); }
+    :host-context([data-tema='noche']) .marca strong, :host-context([data-tema='noche']) .datos strong { color: #f1ecff; }
+    :host-context([data-tema='noche']) .marca small, :host-context([data-tema='noche']) .datos small { color: #a89dc9; }
+    :host-context([data-tema='noche']) .item { color: #d8d0ef; }
+    :host-context([data-tema='noche']) .ico { background: rgba(255,255,255,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: #c6b9ee; }
+    :host-context([data-tema='noche']) .item:hover { background: rgba(255,255,255,.07); }
+    :host-context([data-tema='noche']) .item.activo { background: linear-gradient(100deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); color: #fff; box-shadow: 0 12px 26px -14px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.2); }
+    :host-context([data-tema='noche']) .item.activo .ico { background: linear-gradient(145deg, #9b83e6, #5a3fb0); color: #fff; }
+    :host-context([data-tema='noche']) .item.activo::before { background: #b49cf5; box-shadow: 0 0 14px #8a6fe0; }
+    :host-context([data-tema='noche']) .grupo { color: #8c7fbd; }
+    :host-context([data-tema='noche']) .perfil { background: rgba(255,255,255,.07); border-color: rgba(190,170,240,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
+    :host-context([data-tema='noche']) .salir, :host-context([data-tema='noche']) .tema, :host-context([data-tema='noche']) .chip { background: rgba(255,255,255,.09); border-color: rgba(190,170,240,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: #e2daf7; }
+    :host-context([data-tema='noche']) .salir:hover, :host-context([data-tema='noche']) .tema:hover { background: rgba(255,255,255,.18); }
+    :host-context([data-tema='noche']) .salir svg, :host-context([data-tema='noche']) .tema svg, :host-context([data-tema='noche']) .chip svg { stroke: #d6cbf5; }
+    :host-context([data-tema='noche']) .sobre { color: #a996e6; }
+    :host-context([data-tema='noche']) .avatar { box-shadow: 0 0 0 3px rgba(255,255,255,.16), 0 8px 14px -8px rgba(0,0,0,.7); }
 
     @media (max-width: 1000px) {
       .marco { grid-template-columns: 1fr; padding: .8rem .8rem 6.2rem; }
@@ -164,7 +206,8 @@ const SECCIONES: readonly Seccion[] = [
     @media (prefers-reduced-transparency: reduce) { .lateral, .chip { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(246,243,252,.96); } }
   `,
 })
-export class Panel {
+export class Panel implements OnInit, OnDestroy {
+  protected readonly temas = inject(TemaService);
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
 
@@ -189,9 +232,12 @@ export class Panel {
     return SECCIONES.find((s) => s.ruta !== '/inicio' && u.startsWith(s.ruta))
       ?? (u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' } : SECCIONES[0]);
   });
+  protected readonly destinos = computed(() => this.secciones().map((s) => ({ titulo: s.titulo, ruta: s.ruta, grupo: s.grupo, icono: s.icono })));
+  protected readonly puedeNotificaciones = computed(() => this.sesiones.tienePermiso(Permiso.ProgramarSesiones));
+  private readonly saludo = () => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; };
   protected readonly nombreCorto = computed(() => this.sesion()?.nombreCompleto.split(' ')[0] ?? '');
   protected readonly titulo = computed(() =>
-    this.actual() === SECCIONES[0] ? `Hola, ${this.nombreCorto()}` : this.actual().titulo,
+    this.actual() === SECCIONES[0] ? `${this.saludo()}, ${this.nombreCorto()}` : this.actual().titulo,
   );
   protected readonly iniciales = computed(() =>
     (this.sesion()?.nombreCompleto ?? '')
@@ -209,6 +255,13 @@ export class Panel {
       default: return '';
     }
   });
+
+  ngOnInit(): void { this.temas.aplicar(); }
+  ngOnDestroy(): void { this.temas.quitar(); }
+  protected cambiarTema(e: MouseEvent): void {
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    this.temas.alternar({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  }
 
   protected salir(): void {
     this.sesiones.cerrar();

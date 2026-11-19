@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
+import { Contar } from '../../compartido/contar';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
@@ -48,7 +49,7 @@ const ESTADOS: Record<string, string> = {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [Contar, DatePipe, DecimalPipe, RouterLink],
   template: `
     <section class="bienvenida cristal">
       <div>
@@ -72,7 +73,7 @@ const ESTADOS: Record<string, string> = {
       @for (k of indicadores(); track k.titulo) {
         <article class="kpi cristal">
           <p class="suave">{{ k.titulo }}</p>
-          <p class="valor">{{ k.valor }}</p>
+          <p class="valor" [somaContar]="k.valor"></p>
           <p class="nota">{{ k.nota }}</p>
         </article>
       }
@@ -83,7 +84,7 @@ const ESTADOS: Record<string, string> = {
     @if (sesiones.visible()) {
       <section id="sesiones" class="bloque cristal">
         <header><h2>Mis sesiones</h2><span class="suave">{{ sesiones.datos().length }} programadas</span></header>
-        @if (sesiones.cargando()) { <p class="suave">Cargando sesiones…</p> }
+        @if (sesiones.cargando()) { <div class="esqueleto" aria-label="Cargando sesiones"><i></i><i></i></div> }
         @else if (sesiones.error(); as e) { <p class="alerta-error">{{ e }}</p> }
         @else if (!sesiones.datos().length) { <p class="vacio">Aún no tienes sesiones programadas.</p> }
         @else {
@@ -112,7 +113,7 @@ const ESTADOS: Record<string, string> = {
       @if (casos.visible()) {
         <section id="casos" class="bloque cristal">
           <header><h2>Casos de estudio</h2><span class="suave">{{ publicados() }} publicados</span></header>
-          @if (casos.cargando()) { <p class="suave">Cargando casos…</p> }
+          @if (casos.cargando()) { <div class="esqueleto" aria-label="Cargando casos"><i></i><i></i></div> }
           @else if (casos.error(); as e) { <p class="alerta-error">{{ e }}</p> }
           @else if (!casos.datos().length) { <p class="vacio">Todavía no has creado casos.</p> }
           @else {
@@ -134,7 +135,7 @@ const ESTADOS: Record<string, string> = {
       @if (participaciones.visible()) {
         <section id="participaciones" class="bloque cristal">
           <header><h2>{{ esEstudiante() ? 'Mis participaciones' : 'Participaciones' }}</h2></header>
-          @if (participaciones.cargando()) { <p class="suave">Cargando participaciones…</p> }
+          @if (participaciones.cargando()) { <div class="esqueleto" aria-label="Cargando participaciones"><i></i><i></i></div> }
           @else if (participaciones.error(); as e) { <p class="alerta-error">{{ e }}</p> }
           @else if (!participaciones.datos().length) { <p class="vacio">Sin participaciones registradas.</p> }
           @else {
@@ -156,7 +157,7 @@ const ESTADOS: Record<string, string> = {
       @if (resultados.visible()) {
         <section id="resultados" class="bloque cristal">
           <header><h2>Resultados</h2></header>
-          @if (resultados.cargando()) { <p class="suave">Cargando resultados…</p> }
+          @if (resultados.cargando()) { <div class="esqueleto" aria-label="Cargando resultados"><i></i><i></i></div> }
           @else if (resultados.error(); as e) { <p class="alerta-error">{{ e }}</p> }
           @else if (!resultados.datos().length) { <p class="vacio">Aún no hay calificaciones.</p> }
           @else {
@@ -212,10 +213,21 @@ const ESTADOS: Record<string, string> = {
     .lista .principal { flex: 1; display: grid; gap: .15rem; min-width: 0; }
     .lista strong { font-weight: 500; color: var(--lila-950); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lista .suave { font-size: .85rem; }
+    .esqueleto { display: grid; gap: .6rem; } .esqueleto i { height: 3.4rem; border-radius: 16px; background: linear-gradient(100deg, rgba(255,255,255,.35) 30%, rgba(255,255,255,.85) 50%, rgba(255,255,255,.35) 70%) 0 0 / 220% 100%; animation: brilla 1.3s linear infinite; }
+    @keyframes brilla { to { background-position: -220% 0; } }
     .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(94,74,138,.3); border-radius: 16px; }
     .nota-final { font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.6rem; color: var(--lila-900); }
     @media (max-width: 700px) { .cerebro { display: none; } .bienvenida { grid-template-columns: 1fr; } }
     .nota-final small { font-size: 1rem; color: var(--tinta-suave); }
+    :host-context([data-tema='noche']) .bienvenida { background: radial-gradient(90% 140% at 100% 0%, rgba(120,90,210,.5), transparent 60%), linear-gradient(120deg, rgba(70,56,120,.6), rgba(28,22,58,.5)); }
+    :host-context([data-tema='noche']) .cerebro { filter: drop-shadow(0 0 26px rgba(160,130,240,.55)) brightness(1.25); }
+    :host-context([data-tema='noche']) .sobre, :host-context([data-tema='noche']) .kpi .nota { color: #a996e6; }
+    :host-context([data-tema='noche']) .kpi .valor, :host-context([data-tema='noche']) .lista strong, :host-context([data-tema='noche']) .nota-final { color: #f1ecff; }
+    :host-context([data-tema='noche']) .lista li { background: rgba(255,255,255,.06); border-color: rgba(190,170,240,.16); }
+    :host-context([data-tema='noche']) .lista li:hover { background: rgba(255,255,255,.12); box-shadow: 0 12px 22px -16px #000; }
+    :host-context([data-tema='noche']) .vacio { border-color: rgba(190,170,240,.3); }
+    :host-context([data-tema='noche']) .esqueleto i { background: linear-gradient(100deg, rgba(255,255,255,.05) 30%, rgba(255,255,255,.16) 50%, rgba(255,255,255,.05) 70%) 0 0 / 220% 100%; }
+
   `,
 })
 export class Inicio implements OnInit {
