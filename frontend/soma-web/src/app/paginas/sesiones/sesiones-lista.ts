@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { claseEstado, nombreEstado } from '../../compartido/formato';
+import { DialogoService } from '../../core/dialogo.service';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
 import { ReportesService } from '../../core/reportes.service';
@@ -18,6 +19,7 @@ import { SomaApiService } from '../../core/soma-api.service';
     <div class="pagina">
       <div class="cabecera-pagina">
         <h2 class="sr-only">Mis sesiones</h2>
+        <a routerLink="/sesiones/calendario" class="boton-suave enlace-boton">Ver calendario</a>
         <a routerLink="/sesiones/nueva" class="boton-primario enlace-boton">Programar sesión</a>
       </div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
@@ -54,6 +56,7 @@ import { SomaApiService } from '../../core/soma-api.service';
 })
 export class SesionesLista implements OnInit {
   private readonly api = inject(SomaApiService);
+  private readonly dialogos = inject(DialogoService);
   protected readonly reportes = inject(ReportesService);
   protected readonly puedeReportes = computed(() => inject(SesionService).tienePermiso(Permiso.DescargarReportes));
   protected readonly sesiones = signal<SesionDetalle[]>([]);
@@ -75,7 +78,9 @@ export class SesionesLista implements OnInit {
   }
 
   protected iniciar(s: SesionDetalle): void { this.mover(s, true); }
-  protected finalizar(s: SesionDetalle): void { if (confirm(`¿Finalizar la sesión «${s.nombreCaso}»? Los estudiantes en curso quedarán cerrados.`)) { this.mover(s, false); } }
+  protected finalizar(s: SesionDetalle): void {
+    void this.dialogos.confirmar({ titulo: 'Finalizar la sesión', mensaje: `«${s.nombreCaso}»: los estudiantes que estén en curso quedarán cerrados.`, confirmar: 'Finalizar', peligro: true }).then((ok) => { if (ok) this.mover(s, false); });
+  }
 
   private mover(s: SesionDetalle, iniciar: boolean): void {
     this.ocupado.set(true); this.error.set(null);

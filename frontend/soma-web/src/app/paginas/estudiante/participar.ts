@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { relojDe } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Contexto, Herramienta, Progreso } from '../../core/modelos/dominio';
+import { DialogoService } from '../../core/dialogo.service';
 import { ToastService } from '../../core/toast.service';
 import { SomaApiService } from '../../core/soma-api.service';
 
@@ -43,6 +44,19 @@ import { SomaApiService } from '../../core/soma-api.service';
         @if (c.contextoHistoria) { <section class="cristal bloque"><h3>Contexto</h3><p class="texto-largo">{{ c.contextoHistoria }}</p></section> }
         @if (c.desarrolloSituacional) { <section class="cristal bloque"><h3>Desarrollo de la situación</h3><p class="texto-largo">{{ c.desarrolloSituacional }}</p></section> }
 
+        @if (!cerrada() && total() > 0) {
+          <nav class="cristal bloque mapa" aria-label="Mapa de preguntas">
+            <h3>Mapa de preguntas</h3>
+            <ol class="casillas">
+              @for (q of preguntasPlanas(); track q.id) {
+                <li><a [href]="'#pregunta-' + q.id" class="casilla" [class.hecha]="q.hecha" [class.revisar]="marcadasRevision()[q.id]"
+                       [attr.aria-label]="'Pregunta ' + q.n + (q.hecha ? ', respondida' : ', sin responder') + (marcadasRevision()[q.id] ? ', marcada para revisar' : '')" (click)="ir($event, q.id)">{{ q.n }}</a></li>
+              }
+            </ol>
+            <p class="ayuda"><span class="punto hecha"></span> respondida <span class="punto"></span> pendiente <span class="punto revisar"></span> para revisar</p>
+          </nav>
+        }
+
         @if (herramientas().length) {
           <section class="cristal bloque">
             <h3>Herramientas de apoyo</h3>
@@ -62,7 +76,7 @@ import { SomaApiService } from '../../core/soma-api.service';
             <h3>Escenario {{ e.orden }} · {{ e.nombre }}</h3>
             <p class="texto-largo suave">{{ e.contexto }}</p>
             @for (p of e.preguntas; track p.idPregunta) {
-              <fieldset class="bloque-interno pregunta">
+              <fieldset class="bloque-interno pregunta" [id]="'pregunta-' + p.idPregunta" [class.por-revisar]="marcadasRevision()[p.idPregunta]">
                 <legend>{{ p.orden }}. {{ p.enunciado }}</legend>
                 @for (o of p.opciones; track o.idRespuesta) {
                   <label class="opcion" [class.elegida]="elegida(p.idPregunta, p.idRespuestaSeleccionada) === o.idRespuesta">
@@ -70,6 +84,10 @@ import { SomaApiService } from '../../core/soma-api.service';
                            [disabled]="cerrada()" (change)="responder(p.idPregunta, o.idRespuesta)" />
                     <span class="codigo">{{ o.codigo }}</span> <span>{{ o.texto }}</span>
                   </label>
+                }
+                @if (!cerrada()) {
+                  <button type="button" class="boton-suave marca" [attr.aria-pressed]="!!marcadasRevision()[p.idPregunta]" (click)="alternarRevision(p.idPregunta)">
+                    {{ marcadasRevision()[p.idPregunta] ? '★ Marcada para revisar' : '☆ Marcar para revisar' }}</button>
                 }
               </fieldset>
             }
@@ -89,6 +107,15 @@ import { SomaApiService } from '../../core/soma-api.service';
     </div>
   `,
   styles: `
+    .casillas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+    .casilla { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 10px; text-decoration: none; font-weight: 500; color: var(--lila-900);
+      background: rgba(255,255,255,.55); border: 1px solid rgba(94,74,138,.25); }
+    .casilla.hecha { background: var(--lila-700); color: #fff; border-color: transparent; }
+    .casilla.revisar { outline: 2.5px solid #e0a43c; outline-offset: 2px; }
+    .punto { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin: 0 .25rem 0 .8rem; border: 1px solid rgba(94,74,138,.4); vertical-align: middle; }
+    .punto.hecha { background: var(--lila-700); margin-left: 0; } .punto.revisar { outline: 2px solid #e0a43c; }
+    .marca { margin-top: .6rem; width: fit-content; font-size: .85rem; } fieldset.por-revisar { border-color: #e0a43c; }
+    :host-context([data-tema='noche']) .casilla { background: rgba(255,255,255,.08); color: #efe9ff; } :host-context([data-tema='noche']) .casilla.hecha { background: #8b6fe0; }
     :host-context([data-tema='noche']) .reloj .pista { stroke: rgba(255,255,255,.14); } :host-context([data-tema='noche']) .reloj strong { color: #f1ecff; }
     :host-context([data-tema='noche']) .guardado { background: rgba(92,184,143,.22); color: #8fe0bb; }
     :host-context([data-tema='noche']) .opcion { background: rgba(255,255,255,.06); } :host-context([data-tema='noche']) .opcion:hover { background: rgba(255,255,255,.12); }
@@ -122,6 +149,7 @@ export class Participar implements OnInit, OnDestroy {
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toasts = inject(ToastService);
+  private readonly dialogos = inject(DialogoService);
   private id = 0;
   private totalSeg = 0;
   private avisado5 = false;
@@ -145,8 +173,26 @@ export class Participar implements OnInit, OnDestroy {
   private readonly marcadas = signal<Record<number, number>>({});
   protected readonly total = computed(() => this.contexto()?.escenarios.reduce((n, e) => n + e.preguntas.length, 0) ?? 0);
 
+  protected readonly marcadasRevision = signal<Record<number, boolean>>({});
+  protected readonly preguntasPlanas = computed(() => {
+    let n = 0;
+    return (this.contexto()?.escenarios ?? []).flatMap((e) => e.preguntas).map((p) => ({ id: p.idPregunta, n: ++n, hecha: this.elegida(p.idPregunta, p.idRespuestaSeleccionada) != null }));
+  });
+  private get claveRevision(): string { return `soma.revisar.${this.id}`; }
+
+  protected alternarRevision(pregunta: number): void {
+    this.marcadasRevision.update((m) => { const s = { ...m }; if (s[pregunta]) delete s[pregunta]; else s[pregunta] = true; return s; });
+    try { sessionStorage.setItem(this.claveRevision, JSON.stringify(this.marcadasRevision())); } catch { /* sin almacenamiento */ }
+  }
+  protected ir(e: Event, pregunta: number): void {
+    e.preventDefault();
+    const el = document.getElementById(`pregunta-${pregunta}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); el?.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true });
+  }
+
   ngOnInit(): void {
     this.id = Number(this.ruta.snapshot.paramMap.get('id'));
+    try { this.marcadasRevision.set(JSON.parse(sessionStorage.getItem(this.claveRevision) ?? '{}')); } catch { /* sin marcas */ }
     this.api.contexto(this.id).subscribe({
       next: (c) => { this.contexto.set(c); this.cargando.set(false); },
       error: (e: HttpErrorResponse) => { this.cargando.set(false); this.error.set(mensajeDeError(e)); },
@@ -194,10 +240,17 @@ export class Participar implements OnInit, OnDestroy {
   }
 
   protected finalizar(): void {
-    const p = this.progreso();
-    const faltan = p ? p.totalPreguntas - p.preguntasRespondidas : 0;
-    const texto = faltan > 0 ? `Te faltan ${faltan} pregunta(s) por responder. ¿Finalizar de todos modos?` : '¿Finalizar tu intento?';
-    if (!confirm(texto)) { return; }
+    const planas = this.preguntasPlanas();
+    const sin = planas.filter((q) => !q.hecha).map((q) => q.n);
+    const rev = planas.filter((q) => this.marcadasRevision()[q.id]).map((q) => q.n);
+    const detalle = [`${planas.length - sin.length} de ${planas.length} preguntas respondidas`];
+    if (sin.length) detalle.push(`Sin responder: ${sin.join(', ')}`);
+    if (rev.length) detalle.push(`Marcadas para revisar: ${rev.join(', ')}`);
+    void this.dialogos.confirmar({ titulo: 'Antes de finalizar', mensaje: sin.length ? 'Todavía tienes preguntas sin responder. Al finalizar ya no podrás cambiar nada.' : 'Al finalizar ya no podrás cambiar tus respuestas.', detalle, confirmar: 'Finalizar intento', cancelar: 'Seguir revisando', peligro: sin.length > 0 })
+      .then((ok) => { if (ok) this.enviarFinal(); });
+  }
+
+  private enviarFinal(): void {
     this.ocupado.set(true); this.error.set(null);
     this.api.finalizarParticipacion(this.id).subscribe({
       next: () => { this.ocupado.set(false); this.cerrada.set(true); clearInterval(this.reloj$); void this.router.navigate(['/mis-resultados']); },

@@ -1,0 +1,79 @@
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { DialogoService } from './dialogo.service';
+import { PreferenciasService } from './preferencias.service';
+import { cacheInterceptor, limpiarCache, reintentoInterceptor } from './red';
+import { RegistroErroresService } from './registro-errores.service';
+import { TemaService } from './tema.service';
+
+describe('DialogoService', () => {
+  it('confirmar resuelve true al aceptar y false al cancelar', async () => {
+    const d = TestBed.inject(DialogoService);
+    const a = d.confirmar({ titulo: 'x' }); expect(d.actual()?.titulo).toBe('x'); d.cerrar(true);
+    expect(await a).toBe(true); expect(d.actual()).toBeNull();
+    const b = d.confirmar({ titulo: 'y' }); d.cerrar(false);
+    expect(await b).toBe(false);
+  });
+  it('pedirTexto devuelve el texto o null', async () => {
+    const d = TestBed.inject(DialogoService);
+    const a = d.pedirTexto({ titulo: 't' }); d.cerrar('hola'); expect(await a).toBe('hola');
+    const b = d.pedirTexto({ titulo: 't' }); d.cerrar(null); expect(await b).toBeNull();
+  });
+});
+
+describe('PreferenciasService', () => {
+  beforeEach(() => { localStorage.clear(); document.documentElement.removeAttribute('style'); document.documentElement.removeAttribute('data-contraste'); });
+  it('aplica y recuerda tamaño de letra y contraste', () => {
+    const p = TestBed.inject(PreferenciasService);
+    p.fijarLetra(2); p.fijarContraste(true);
+    expect(document.documentElement.style.fontSize).toBe('125%');
+    expect(document.documentElement.hasAttribute('data-contraste')).toBe(true);
+    expect(localStorage.getItem('soma.pref.letra')).toBe('2');
+  });
+});
+
+describe('TemaService', () => {
+  beforeEach(() => localStorage.clear());
+  it('alterna entre día y noche y lo aplica al documento', () => {
+    const t = TestBed.inject(TemaService);
+    t.tema.set('dia'); t.alternar();
+    expect(t.tema()).toBe('noche'); expect(document.documentElement.dataset['tema']).toBe('noche');
+    t.quitar(); expect(document.documentElement.dataset['tema']).toBeUndefined();
+  });
+});
+
+describe('RegistroErroresService', () => {
+  beforeEach(() => localStorage.clear());
+  it('guarda como máximo 50 errores y genera un informe', () => {
+    const r = TestBed.inject(RegistroErroresService);
+    for (let i = 0; i < 60; i++) r.registrar('interfaz', `fallo ${i}`);
+    expect(r.leer().length).toBe(50); expect(r.informe()).toContain('fallo 59');
+    r.borrar(); expect(r.leer()).toEqual([]);
+  });
+});
+
+describe('interceptores de red', () => {
+  beforeEach(() => {
+    limpiarCache();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(withInterceptors([cacheInterceptor, reintentoInterceptor])), provideHttpClientTesting()] });
+  });
+  it('en listas muestra lo guardado y refresca por detrás; un POST vacía la memoria', () => {
+    const http = TestBed.inject(HttpClient), ctl = TestBed.inject(HttpTestingController);
+    const vistos: unknown[] = [];
+    http.get('/api/casos').subscribe((v) => vistos.push(v)); ctl.expectOne('/api/casos').flush(['a']);
+    http.get('/api/casos').subscribe((v) => vistos.push(v)); ctl.expectOne('/api/casos').flush(['a', 'b']);
+    expect(vistos).toEqual([['a'], ['a'], ['a', 'b']]);
+    http.post('/api/casos', {}).subscribe(); ctl.expectOne({ method: 'POST', url: '/api/casos' }).flush({});
+    const tras: unknown[] = [];
+    http.get('/api/casos').subscribe((v) => tras.push(v)); ctl.expectOne('/api/casos').flush(['c']);
+    expect(tras).toEqual([['c']]);
+  });
+  it('no guarda en memoria las rutas que no son listas', () => {
+    const http = TestBed.inject(HttpClient), ctl = TestBed.inject(HttpTestingController);
+    http.get('/api/casos/7').subscribe(); ctl.expectOne('/api/casos/7').flush({});
+    const n: unknown[] = [];
+    http.get('/api/casos/7').subscribe((v) => n.push(v)); ctl.expectOne('/api/casos/7').flush({ x: 1 });
+    expect(n.length).toBe(1);
+  });
+});

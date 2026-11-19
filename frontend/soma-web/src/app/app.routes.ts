@@ -24,6 +24,7 @@ export const routes: Routes = [
         path: 'sesiones', canActivate: [guardiaPermiso(Permiso.ProgramarSesiones)],
         children: [
           { path: '', loadComponent: () => import('./paginas/sesiones/sesiones-lista').then((m) => m.SesionesLista), title: 'Sesiones · SOMA' },
+          { path: 'calendario', loadComponent: () => import('./paginas/sesiones/sesiones-calendario').then((m) => m.SesionesCalendario), title: 'Calendario · SOMA' },
           { path: ':id', loadComponent: () => import('./paginas/sesiones/sesion-detalle').then((m) => m.SesionDetalleVista), title: 'Sesión · SOMA' },
         ],
       },
@@ -46,6 +47,10 @@ export const routes: Routes = [
       {
         path: 'mis-resultados', canActivate: [guardiaPermiso(Permiso.ConsultarResultadosPropios)],
         loadComponent: () => import('./paginas/estudiante/mis-resultados').then((m) => m.MisResultados), title: 'Mis resultados · SOMA',
+      },
+      {
+        path: 'componentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        loadComponent: () => import('./paginas/admin/componentes').then((m) => m.Componentes), title: 'Componentes · SOMA',
       },
       {
         path: 'docentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],

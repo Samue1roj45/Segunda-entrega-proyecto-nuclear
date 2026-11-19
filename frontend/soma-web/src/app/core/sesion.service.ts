@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { limpiarCache } from './red';
 import { Permiso } from './modelos/permiso';
 import { Rol } from './modelos/rol';
 import { SesionUsuario } from './modelos/sesion-usuario';
@@ -42,6 +43,7 @@ export class SesionService {
   }
 
   cerrar(): void {
+    limpiarCache();
     try {
       sessionStorage.removeItem(CLAVE_ALMACEN);
       localStorage.removeItem(CLAVE_ALMACEN);

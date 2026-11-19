@@ -45,8 +45,9 @@ test('recorrido completo docente → estudiante → docente', async ({ page }) =
   // 5) Responde (se ve «Respuesta guardada» y el progreso) y finaliza
   await page.getByLabel(/Mantiene su postura/).check();
   await expect(page.getByText('Respuesta guardada')).toBeVisible();
-  page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Finalizar intento' }).click();
+  await expect(page.getByRole('alertdialog')).toContainText('Antes de finalizar');
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Finalizar intento' }).click();
   await expect(page).toHaveURL(/\/mis-resultados$/);
   await expect(page.locator('.destacado')).toContainText('5,0');
 
@@ -60,8 +61,8 @@ test('recorrido completo docente → estudiante → docente', async ({ page }) =
   await page.getByRole('button', { name: 'Detalle' }).click();
   await page.getByRole('button', { name: 'Elegir como nota oficial' }).click();
   await expect.poll(() => estado.oficial).toBe(true);
-  page.once('dialog', (d) => void d.accept());
   await page.getByRole('button', { name: 'Publicar calificaciones' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Publicar' }).click();
   await expect.poll(() => estado.publicada).toBe(true);
   await expect(page.locator('.toast').last()).toContainText('Calificaciones publicadas');
 });

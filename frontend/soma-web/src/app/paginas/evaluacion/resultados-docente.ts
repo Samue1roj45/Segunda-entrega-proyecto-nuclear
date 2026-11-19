@@ -1,13 +1,14 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable, forkJoin } from 'rxjs';
 import { Barras, Histograma } from '../../compartido/graficas';
+import { DialogoService } from '../../core/dialogo.service';
 import { ReportesService } from '../../core/reportes.service';
 import { ToastService } from '../../core/toast.service';
-import { nombreEstado } from '../../compartido/formato';
+import { guardarArchivo, nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
 import { NotaOficial, ResultadoDetalle, Retroalimentacion } from '../../core/modelos/dominio';
@@ -54,9 +55,9 @@ import { SomaApiService } from '../../core/soma-api.service';
           <article class="cristal kpi"><p class="suave">Nota más baja</p><p class="valor">{{ estadisticas().minima | number: '1.1-2' }}</p></article>
         </section>
         <div class="dos">
-          <section class="cristal bloque"><h3>Distribución de notas</h3><soma-histograma [valores]="proporciones()" /></section>
+          <section class="cristal bloque"><h3>Distribución de notas</h3>@defer (on idle) { <soma-histograma [valores]="proporciones()" /> } @placeholder { <p class="suave">Cargando gráfica…</p> }</section>
           <section class="cristal bloque"><h3>Aciertos por pregunta</h3>
-            @if (aciertos().length) { <soma-barras [datos]="aciertos()" /> } @else { <p class="suave">{{ calculando() ? 'Calculando…' : 'Se mostrará cuando haya intentos con detalle.' }}</p> }
+            @if (aciertos().length) { @defer (on idle) { <soma-barras [datos]="aciertos()" /> } @placeholder { <p class="suave">Cargando gráfica…</p> } } @else { <p class="suave">{{ calculando() ? 'Calculando…' : 'Se mostrará cuando haya intentos con detalle.' }}</p> }
           </section>
         </div>
       }
@@ -65,12 +66,23 @@ import { SomaApiService } from '../../core/soma-api.service';
       @else if (resultados().length === 0) { <p class="cristal vacio">No hay resultados todavía para esa búsqueda.</p> }
       @else {
         <section class="cristal bloque">
+          <div class="barra-tabla">
+            <label class="campo-f buscador">Buscar en la tabla<input type="search" [ngModel]="busqueda()" (ngModelChange)="buscarTexto($event)" name="bq" placeholder="Nombre o correo" /></label>
+            <span class="ayuda">{{ filas().length }} de {{ resultados().length }} intentos</span>
+            <button type="button" class="boton-suave boton-chico" [disabled]="!filas().length" (click)="exportarCsv()">Exportar lo filtrado (CSV)</button>
+          </div>
           <div class="tabla-envoltorio">
             <table class="tabla">
-              <thead><tr><th>Estudiante</th><th>Sesión</th><th class="num">Intento</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">Sin responder</th><th class="num">Nota</th><th></th></tr></thead>
+              <thead><tr>
+                <th [attr.aria-sort]="aria('estudiante')"><button type="button" class="orden" (click)="ordenar('estudiante')">Estudiante {{ flecha('estudiante') }}</button></th>
+                <th>Sesión</th>
+                <th class="num" [attr.aria-sort]="aria('intento')"><button type="button" class="orden" (click)="ordenar('intento')">Intento {{ flecha('intento') }}</button></th>
+                <th class="num" [attr.aria-sort]="aria('correctas')"><button type="button" class="orden" (click)="ordenar('correctas')">Correctas {{ flecha('correctas') }}</button></th>
+                <th class="num">Incorrectas</th><th class="num">Sin responder</th>
+                <th class="num" [attr.aria-sort]="aria('nota')"><button type="button" class="orden" (click)="ordenar('nota')">Nota {{ flecha('nota') }}</button></th><th></th></tr></thead>
               <tbody>
-                @for (r of resultados(); track r.id) {
-                  <tr>
+                @for (r of visibles(); track r.id) {
+                  <tr [class.activa]="seleccionado()?.id === r.id">
                     <td><strong>{{ r.estudianteNombre }}</strong><br /><span class="ayuda">{{ r.estudianteCorreo }}</span></td>
                     <td>{{ r.practicaNombre }}</td>
                     <td class="num">{{ r.numeroIntento }}</td>
@@ -79,16 +91,28 @@ import { SomaApiService } from '../../core/soma-api.service';
                       @if (r.oficial) { <br /><span class="etiqueta ok">Oficial</span> }</td>
                     <td><button type="button" class="boton-suave boton-chico" (click)="abrir(r)">{{ seleccionado()?.id === r.id ? 'Cerrar' : 'Detalle' }}</button></td>
                   </tr>
-                }
+                } @empty { <tr><td colspan="8" class="suave">Ningún intento coincide con la búsqueda.</td></tr> }
               </tbody>
             </table>
           </div>
+          @if (paginas() > 1) {
+            <div class="paginacion">
+              <button type="button" class="boton-suave boton-chico" [disabled]="pagina() === 1" (click)="pagina.set(pagina() - 1)">← Anterior</button>
+              <span>Página {{ pagina() }} de {{ paginas() }}</span>
+              <button type="button" class="boton-suave boton-chico" [disabled]="pagina() === paginas()" (click)="pagina.set(pagina() + 1)">Siguiente →</button>
+            </div>
+          }
         </section>
       }
 
       @if (seleccionado(); as r) {
         <section class="cristal bloque">
-          <h3>{{ r.estudianteNombre }} · intento {{ r.numeroIntento }}</h3>
+          <div class="nav-calificar">
+            <button type="button" class="boton-suave boton-chico" [disabled]="indiceActual() <= 0" (click)="mover(-1)" aria-label="Estudiante anterior">←</button>
+            <h3>{{ r.estudianteNombre }} · intento {{ r.numeroIntento }}</h3>
+            <span class="ayuda">{{ indiceActual() + 1 }} de {{ filas().length }} · Alt + ← / →</span>
+            <button type="button" class="boton-suave boton-chico" [disabled]="indiceActual() >= filas().length - 1" (click)="mover(1)" aria-label="Estudiante siguiente">→</button>
+          </div>
           <p class="meta">
             <span>Peso obtenido {{ r.pesoObtenido }} de {{ r.pesoTotal }}</span>
             <span>Calculado {{ r.fechaCalculo | date: 'd MMM y, HH:mm' }}</span>
@@ -110,6 +134,14 @@ import { SomaApiService } from '../../core/soma-api.service';
             <form class="formulario bloque-interno" (ngSubmit)="retroalimentar(r)">
               <h4>Retroalimentación para el estudiante</h4>
               @for (t of retros(); track t.id) { <div class="fila-item"><span class="texto">{{ t.texto }}</span><span class="ayuda">{{ t.fechaCreacion | date: 'd MMM, HH:mm' }}</span></div> }
+              <div class="plantillas">
+                <label class="campo-f">Usar una plantilla
+                  <select (change)="usarPlantilla($any($event.target).value); $any($event.target).value = ''" aria-label="Plantilla de mensaje">
+                    <option value="">Elegir…</option>
+                    @for (pl of plantillas(); track pl) { <option [value]="pl">{{ pl.length > 60 ? pl.slice(0, 60) + '…' : pl }}</option> }
+                  </select></label>
+                <button type="button" class="boton-suave boton-chico" [disabled]="!textoRetro.trim()" (click)="guardarPlantilla()">Guardar este texto como plantilla</button>
+              </div>
               <label class="campo-f">Nueva retroalimentación<textarea name="rt" rows="3" [(ngModel)]="textoRetro" required></textarea></label>
               <div class="acciones"><button class="boton-primario boton-chico" type="submit" [disabled]="ocupado() || !textoRetro.trim()">Enviar retroalimentación</button></div>
             </form>
@@ -138,11 +170,18 @@ import { SomaApiService } from '../../core/soma-api.service';
     .resumen-estadistico { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
     .kpi { padding: 1.1rem 1.3rem; display: grid; gap: .2rem; } .kpi .valor { font-weight: 300; font-size: 2.2rem; line-height: 1; color: var(--lila-950); font-variant-numeric: tabular-nums; }
     :host-context([data-tema='noche']) .kpi .valor { color: #f1ecff; }
+    .barra-tabla { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; align-items: flex-end; margin-bottom: .8rem; } .buscador { min-width: 240px; }
+    .orden { all: unset; cursor: pointer; font-weight: 600; } .orden:focus-visible { outline: 3px solid #7a5fd0; border-radius: 4px; }
+    tr.activa { background: rgba(139,111,224,.14); }
+    .paginacion { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: .9rem; }
+    .nav-calificar { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; } .nav-calificar h3 { margin: 0; }
+    .plantillas { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }
     .dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; align-items: start; }
   `,
 })
 export class ResultadosDocente implements OnInit {
   private readonly api = inject(SomaApiService);
+  private readonly dialogos = inject(DialogoService);
   private readonly ruta = inject(ActivatedRoute);
   private readonly sesiones = inject(SesionService);
   protected readonly nombre = nombreEstado;
@@ -168,6 +207,62 @@ export class ResultadosDocente implements OnInit {
     const n = this.resultados().map((r) => Number(r.notaFinal));
     return { promedio: n.length ? n.reduce((a, b) => a + b, 0) / n.length : 0, maxima: n.length ? Math.max(...n) : 0, minima: n.length ? Math.min(...n) : 0 };
   });
+  protected readonly busqueda = signal('');
+  protected readonly orden = signal<{ col: 'estudiante' | 'intento' | 'correctas' | 'nota'; asc: boolean } | null>(null);
+  protected readonly pagina = signal(1);
+  private readonly tamano = 10;
+  protected readonly filas = computed(() => {
+    const q = this.busqueda().trim().toLowerCase();
+    let f = this.resultados().filter((r) => !q || `${r.estudianteNombre} ${r.estudianteCorreo}`.toLowerCase().includes(q));
+    const o = this.orden();
+    if (o) {
+      const v = (r: ResultadoDetalle): number | string => o.col === 'estudiante' ? r.estudianteNombre.toLowerCase() : o.col === 'intento' ? r.numeroIntento : o.col === 'correctas' ? r.correctas : Number(r.notaFinal);
+      f = [...f].sort((a, b) => (v(a) < v(b) ? -1 : v(a) > v(b) ? 1 : 0) * (o.asc ? 1 : -1));
+    }
+    return f;
+  });
+  protected readonly paginas = computed(() => Math.max(1, Math.ceil(this.filas().length / this.tamano)));
+  protected readonly visibles = computed(() => this.filas().slice((Math.min(this.pagina(), this.paginas()) - 1) * this.tamano, Math.min(this.pagina(), this.paginas()) * this.tamano));
+  protected readonly indiceActual = computed(() => this.filas().findIndex((r) => r.id === this.seleccionado()?.id));
+
+  protected buscarTexto(v: string): void { this.busqueda.set(v); this.pagina.set(1); }
+  protected ordenar(col: 'estudiante' | 'intento' | 'correctas' | 'nota'): void {
+    const o = this.orden(); this.orden.set(o?.col === col ? { col, asc: !o.asc } : { col, asc: true }); this.pagina.set(1);
+  }
+  protected aria(col: string): 'ascending' | 'descending' | 'none' { const o = this.orden(); return o?.col === col ? (o.asc ? 'ascending' : 'descending') : 'none'; }
+  protected flecha(col: string): string { const o = this.orden(); return o?.col === col ? (o.asc ? '▲' : '▼') : ''; }
+
+  /** Calificación rápida: pasa al estudiante anterior o siguiente sin volver a la tabla. */
+  protected mover(delta: number): void {
+    const i = this.indiceActual() + delta, f = this.filas();
+    if (i < 0 || i >= f.length) return;
+    this.cargarDetalle(f[i]); this.pagina.set(Math.floor(i / this.tamano) + 1);
+  }
+  @HostListener('document:keydown', ['$event'])
+  protected teclas(e: KeyboardEvent): void {
+    if (!this.seleccionado() || !e.altKey) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); this.mover(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); this.mover(-1); }
+  }
+
+  protected exportarCsv(): void {
+    const celda = (v: unknown): string => { const s = String(v ?? ''); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const filas = [['Estudiante', 'Correo', 'Sesión', 'Intento', 'Correctas', 'Incorrectas', 'Sin responder', 'Nota', 'Escala', 'Oficial'],
+      ...this.filas().map((r) => [r.estudianteNombre, r.estudianteCorreo, r.practicaNombre, r.numeroIntento, r.correctas, r.incorrectas, r.noRespondidas, r.notaFinal, r.escalaMaxima, r.oficial ? 'Sí' : 'No'])];
+    guardarArchivo(new Blob(['\ufeff' + filas.map((f) => f.map(celda).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), 'resultados-filtrados.csv');
+    this.toasts.ok(`Exportadas ${this.filas().length} fila(s).`);
+  }
+
+  private static readonly BASE = ['Buen trabajo: tu análisis del caso fue claro y bien argumentado.', 'Revisa las preguntas incorrectas y vuelve a leer el contexto del caso; te servirá para la próxima sesión.', 'Tu resultado es el esperado para esta sesión. Si tienes dudas, escríbeme.'];
+  protected readonly plantillas = signal<string[]>(this.leerPlantillas());
+  private leerPlantillas(): string[] { try { return [...ResultadosDocente.BASE, ...JSON.parse(localStorage.getItem('soma.plantillas.retro') ?? '[]')]; } catch { return [...ResultadosDocente.BASE]; } }
+  protected usarPlantilla(texto: string): void { if (texto) this.textoRetro = texto; }
+  protected guardarPlantilla(): void {
+    const texto = this.textoRetro.trim(); if (!texto || this.plantillas().includes(texto)) return;
+    const propias = this.plantillas().filter((p) => !ResultadosDocente.BASE.includes(p)).concat(texto);
+    try { localStorage.setItem('soma.plantillas.retro', JSON.stringify(propias)); } catch { /* sin almacenamiento */ }
+    this.plantillas.set([...ResultadosDocente.BASE, ...propias]); this.toasts.ok('Plantilla guardada en este navegador.');
+  }
+
   protected readonly puedeReportes = computed(() => this.sesiones.tienePermiso(Permiso.DescargarReportes));
   protected readonly puedeRetro = computed(() => this.sesiones.tienePermiso(Permiso.RegistrarRetroalimentacion));
   protected readonly puedeCalificar = computed(() => this.sesiones.tienePermiso(Permiso.ConsultarParticipaciones));
@@ -209,6 +304,10 @@ export class ResultadosDocente implements OnInit {
 
   protected abrir(r: ResultadoDetalle): void {
     if (this.seleccionado()?.id === r.id) { this.seleccionado.set(null); return; }
+    this.cargarDetalle(r);
+  }
+
+  private cargarDetalle(r: ResultadoDetalle): void {
     this.error.set(null); this.textoRetro = '';
     this.api.resultado(r.id).subscribe({ next: (d) => this.seleccionado.set(d), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
     this.api.retroalimentaciones(r.practicaId, r.participacionId).subscribe({ next: (t) => this.retros.set(t), error: () => this.retros.set([]) });
@@ -231,8 +330,10 @@ export class ResultadosDocente implements OnInit {
   }
 
   protected publicar(): void {
-    if (!confirm('¿Publicar las calificaciones? Se enviará un correo a cada estudiante.')) { return; }
-    this.ejecutar(this.api.publicarCalificaciones(this.practica!), (r) => `Calificaciones publicadas: ${r.enviadas} enviada(s), ${r.omitidasDuplicado} ya enviada(s), ${r.errores} con error.`);
+    void this.dialogos.confirmar({ titulo: 'Publicar calificaciones', mensaje: 'Se enviará un correo a cada estudiante con su nota oficial.', confirmar: 'Publicar' }).then((ok) => {
+      if (!ok) return;
+      this.ejecutar(this.api.publicarCalificaciones(this.practica!), (r) => `Calificaciones publicadas: ${r.enviadas} enviada(s), ${r.omitidasDuplicado} ya enviada(s), ${r.errores} con error.`);
+    });
   }
 
   protected retroalimentar(r: ResultadoDetalle): void {

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { claseEstado, desdeInputFecha, nombreEstado, paraInputFecha } from '../../compartido/formato';
+import { DialogoService } from '../../core/dialogo.service';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Convocado, EstudianteResumen, Intentos, Notificacion, SesionDetalle } from '../../core/modelos/dominio';
 import { ToastService } from '../../core/toast.service';
@@ -168,6 +169,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 })
 export class SesionDetalleVista implements OnInit {
   private readonly api = inject(SomaApiService);
+  private readonly dialogos = inject(DialogoService);
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly toasts = inject(ToastService);
@@ -271,21 +273,25 @@ export class SesionDetalleVista implements OnInit {
 
   protected mover(iniciar: boolean): void {
     const id = this.sesion()!.idPractica;
-    if (!iniciar && !confirm('¿Finalizar la sesión? Los estudiantes en curso quedarán cerrados.')) { return; }
-    this.ejecutar(iniciar ? this.api.iniciarSesion(id) : this.api.finalizarSesion(id), iniciar ? 'Sesión iniciada.' : 'Sesión finalizada.', () => this.cargar(id));
+    const hacer = (): void => this.ejecutar(iniciar ? this.api.iniciarSesion(id) : this.api.finalizarSesion(id), iniciar ? 'Sesión iniciada.' : 'Sesión finalizada.', () => this.cargar(id));
+    if (iniciar) { hacer(); return; }
+    void this.dialogos.confirmar({ titulo: 'Finalizar la sesión', mensaje: 'Los estudiantes que estén en curso quedarán cerrados.', confirmar: 'Finalizar', peligro: true }).then((ok) => { if (ok) hacer(); });
   }
 
   protected agregar(id: number): void { this.ejecutar(this.api.agregarConvocado(id, this.nuevoId!), 'Estudiante agregado.', () => { this.nuevoId = null; this.cargar(id); }); }
-  protected retirar(id: number, c: Convocado): void { if (confirm(`¿Retirar a ${c.nombre} de la sesión?`)) { this.ejecutar(this.api.retirarConvocado(id, c.idEstudiante), 'Estudiante retirado.', () => this.cargar(id)); } }
+  protected retirar(id: number, c: Convocado): void {
+    void this.dialogos.confirmar({ titulo: 'Retirar estudiante', mensaje: `¿Retirar a ${c.nombre} de la sesión? Su historial se conserva.`, confirmar: 'Retirar', peligro: true }).then((ok) => { if (ok) { this.ejecutar(this.api.retirarConvocado(id, c.idEstudiante), 'Estudiante retirado.', () => this.cargar(id)); } });
+  }
 
   protected verIntentos(c: Convocado): void {
     this.api.intentos(c.idAutorizacion).subscribe({ next: (i) => this.intentos.update((m) => ({ ...m, [c.idAutorizacion]: i })), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
   }
 
   protected repetir(c: Convocado): void {
-    const motivo = prompt(`Motivo para autorizar un intento adicional a ${c.nombre} (opcional):`);
-    if (motivo === null) { return; }
-    this.ejecutar(this.api.autorizarRepeticion(c.idAutorizacion, motivo.trim() || null), 'Intento adicional autorizado.', (i) => this.intentos.update((m) => ({ ...m, [c.idAutorizacion]: i })));
+    void this.dialogos.pedirTexto({ titulo: 'Autorizar un intento adicional', mensaje: `Para ${c.nombre}.`, confirmar: 'Autorizar', campo: { etiqueta: 'Motivo (opcional)', placeholder: 'Ej.: falla de conexión durante el intento' } }).then((motivo) => {
+      if (motivo === null) return;
+      this.ejecutar(this.api.autorizarRepeticion(c.idAutorizacion, motivo.trim() || null), 'Intento adicional autorizado.', (i) => this.intentos.update((m) => ({ ...m, [c.idAutorizacion]: i })));
+    });
   }
 
   protected convocatoria(id: number): void {

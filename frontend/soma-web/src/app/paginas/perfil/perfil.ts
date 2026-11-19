@@ -44,6 +44,11 @@ const NOMBRES: Record<string, string> = {
             </div>
           </div>
           <label class="fila interruptor"><span>Animación de bienvenida al entrar</span><input type="checkbox" [checked]="prefs.bienvenida()" (change)="prefs.fijarBienvenida($any($event.target).checked)" /></label>
+          <label class="fila"><span>Tamaño de letra</span>
+            <select [value]="prefs.letra()" (change)="prefs.fijarLetra(+$any($event.target).value)" aria-label="Tamaño de letra">
+              <option value="0">Normal</option><option value="1">Grande</option><option value="2">Muy grande</option></select></label>
+          <label class="fila interruptor"><span>Alto contraste</span><input type="checkbox" [checked]="prefs.contraste()" (change)="prefs.fijarContraste($any($event.target).checked)" /></label>
+          <label class="fila interruptor"><span>Reducir animaciones</span><input type="checkbox" [checked]="prefs.sinMovimiento()" (change)="prefs.fijarSinMovimiento($any($event.target).checked)" /></label>
           <label class="fila interruptor"><span>Mostrar la campana de notificaciones</span><input type="checkbox" [checked]="prefs.campana()" (change)="prefs.fijarCampana($any($event.target).checked)" /></label>
           <p class="ayuda">Estas preferencias se guardan solo en este navegador.</p>
         </section>

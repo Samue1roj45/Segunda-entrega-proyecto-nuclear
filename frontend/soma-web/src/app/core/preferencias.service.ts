@@ -10,6 +10,24 @@ export class PreferenciasService {
   readonly avatar = signal(this.leer('avatar', 0));
   readonly bienvenida = signal(this.leer('bienvenida', 1) === 1);
   readonly campana = signal(this.leer('campana', 1) === 1);
+  /** 0 = normal, 1 = grande, 2 = muy grande. */
+  readonly letra = signal(this.leer('letra', 0));
+  readonly contraste = signal(this.leer('contraste', 0) === 1);
+  readonly sinMovimiento = signal(this.leer('quieto', 0) === 1);
+
+  constructor() { this.aplicar(); }
+
+  fijarLetra(n: number): void { this.letra.set(n); this.guardar('letra', n); this.aplicar(); }
+  fijarContraste(v: boolean): void { this.contraste.set(v); this.guardar('contraste', v ? 1 : 0); this.aplicar(); }
+  fijarSinMovimiento(v: boolean): void { this.sinMovimiento.set(v); this.guardar('quieto', v ? 1 : 0); this.aplicar(); }
+
+  /** Las preferencias de accesibilidad valen en todo el sitio, también en el inicio de sesión. */
+  private aplicar(): void {
+    const d = document.documentElement;
+    d.style.fontSize = ['', '112.5%', '125%'][this.letra()] ?? '';
+    d.toggleAttribute('data-contraste', this.contraste());
+    d.toggleAttribute('data-quieto', this.sinMovimiento());
+  }
 
   fijarAvatar(i: number): void { this.avatar.set(i); this.guardar('avatar', i); }
   fijarBienvenida(v: boolean): void { this.bienvenida.set(v); this.guardar('bienvenida', v ? 1 : 0); }

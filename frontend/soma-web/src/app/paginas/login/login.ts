@@ -18,7 +18,7 @@ import { SesionService } from '../../core/sesion.service';
     <div class="escena">
       <a class="saltar" href="#correo-login" (click)="enfocar('correo', $event)">Saltar al formulario</a>
       <!-- Render de cristal de la referencia, sin el contenido del panel (que se dibuja abajo con campos reales). -->
-      <img class="fondo" src="fondo-login.svg" alt="" width="1672" height="941" fetchpriority="high" decoding="async" (load)="listo.set(true)" [class.listo]="listo()" />
+      <img class="fondo" src="fondo-login.webp" alt="" width="1672" height="941" fetchpriority="high" decoding="async" (load)="listo.set(true)" [class.listo]="listo()" />
       <div class="marca" aria-hidden="true">
         <img class="isotipo" src="logo-soma.webp" alt="" />
         <img class="nombre" src="soma-letras.svg" alt="" />
@@ -33,7 +33,7 @@ import { SesionService } from '../../core/sesion.service';
 
       <form #formulario="ngForm" class="tarjeta" [class.sacude]="sacude()" novalidate (ngSubmit)="ingresar(formulario)"
             (mousemove)="mover($event)" (mouseleave)="soltar($event)" (keydown.escape)="limpiarAvisos()">
-        <div class="vidrio" aria-hidden="true"><img src="fondo-login.svg" alt="" /></div>
+        <div class="vidrio" aria-hidden="true"><img src="fondo-login.webp" alt="" /></div>
         <div class="interior">
           <h2 class="titulo">Bienvenido a SOMA</h2>
           <p class="subtitulo">Inicia sesión para continuar con tu<br />experiencia de aprendizaje</p>

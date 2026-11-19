@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { claseEstado, guardarArchivo, nombreEstado } from '../../compartido/formato';
+import { DialogoService } from '../../core/dialogo.service';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { CasoDetalle, Herramienta, InformeValidacion, Pregunta, TipoHerramienta } from '../../core/modelos/dominio';
 import { SomaApiService } from '../../core/soma-api.service';
@@ -316,6 +317,7 @@ type Pestana = 'datos' | 'contenido' | 'rubrica' | 'herramientas' | 'publicacion
 })
 export class CasoEditor implements OnInit {
   protected readonly api = inject(SomaApiService);
+  private readonly dialogos = inject(DialogoService);
   protected readonly vista = signal(false);
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -398,7 +400,7 @@ export class CasoEditor implements OnInit {
   }
 
   protected borrar(operacion: Observable<unknown>, mensaje: string, confirmacion: string): void {
-    if (confirm(confirmacion)) { this.guardar(operacion, mensaje); }
+    void this.dialogos.confirmar({ titulo: 'Confirmar', mensaje: confirmacion, confirmar: 'Eliminar', peligro: true }).then((ok) => { if (ok) this.guardar(operacion, mensaje); });
   }
 
   protected guardarDatos(): void {
@@ -459,8 +461,10 @@ export class CasoEditor implements OnInit {
   }
 
   protected quitarHerramienta(caso: number, h: Herramienta): void {
-    if (!confirm(`¿Quitar la herramienta «${h.nombre}»?`)) { return; }
-    this.api.quitarHerramienta(caso, h.idHerramienta).subscribe({ next: () => this.cargarHerramientas(), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
+    void this.dialogos.confirmar({ titulo: 'Quitar herramienta', mensaje: `¿Quitar la herramienta «${h.nombre}» del caso?`, confirmar: 'Quitar', peligro: true }).then((ok) => {
+      if (!ok) return;
+      this.api.quitarHerramienta(caso, h.idHerramienta).subscribe({ next: () => this.cargarHerramientas(), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
+    });
   }
 
   // ----- publicación -----
@@ -472,8 +476,12 @@ export class CasoEditor implements OnInit {
     });
   }
 
-  protected publicar(caso: number): void { if (confirm('¿Publicar el caso? Después ya no podrás editarlo.')) { this.guardar(this.api.publicarCaso(caso), 'Caso publicado.'); } }
-  protected archivar(caso: number): void { if (confirm('¿Archivar el caso?')) { this.guardar(this.api.archivarCaso(caso), 'Caso archivado.'); } }
+  protected publicar(caso: number): void {
+    void this.dialogos.confirmar({ titulo: 'Publicar el caso', mensaje: 'Después de publicarlo ya no podrás editarlo. Podrás duplicarlo para hacer una versión nueva.', confirmar: 'Publicar' }).then((ok) => { if (ok) this.guardar(this.api.publicarCaso(caso), 'Caso publicado.'); });
+  }
+  protected archivar(caso: number): void {
+    void this.dialogos.confirmar({ titulo: 'Archivar el caso', mensaje: 'El caso dejará de estar disponible para programar sesiones nuevas.', confirmar: 'Archivar' }).then((ok) => { if (ok) this.guardar(this.api.archivarCaso(caso), 'Caso archivado.'); });
+  }
 
   protected exportar(c: CasoDetalle): void {
     this.api.exportarDsl(c.id).subscribe({
