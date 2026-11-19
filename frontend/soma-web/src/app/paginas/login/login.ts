@@ -20,7 +20,7 @@ import { SesionService } from '../../core/sesion.service';
       <!-- Render de cristal de la referencia, sin el contenido del panel (que se dibuja abajo con campos reales). -->
       <img class="fondo" src="fondo-login.svg" alt="" width="1672" height="941" fetchpriority="high" decoding="async" (load)="listo.set(true)" [class.listo]="listo()" />
       <div class="marca" aria-hidden="true">
-        <img class="isotipo" src="logo-soma.svg" alt="" />
+        <img class="isotipo" src="logo-soma.webp" alt="" />
         <img class="nombre" src="soma-letras.svg" alt="" />
         <div class="sub">SIMULACIONES PARA EL APRENDIZAJE<br />EN PSICOLOGÍA SOCIAL</div>
         <div class="linea"></div>
@@ -197,7 +197,7 @@ import { SesionService } from '../../core/sesion.service';
 
     /* Marca de la izquierda: texto y logo reales (el logo es vectorial), medidos en px de referencia. */
     .marca { position: relative; z-index: 1; --w: min(92vw, 460px); width: var(--w); margin: 6vh auto 0; text-align: center; color: #4a3a6b; }
-    .marca .isotipo { width: 38%; height: auto; display: block; margin: 0 auto; }
+    .marca .isotipo { width: 44%; height: auto; display: block; margin: 0 auto; }
     .marca .nombre { display: block; width: 80%; height: auto; margin: 0 auto; }
     .marca .sub { font-size: calc(var(--w) * .036); letter-spacing: .12em; line-height: 1.6; color: #5b4c7c; margin-top: calc(var(--w) * .03); }
     .marca .linea { width: 15%; height: 2px; background: #6b5a8e; margin: calc(var(--w) * .05) auto; }
@@ -206,7 +206,7 @@ import { SesionService } from '../../core/sesion.service';
     @media (min-aspect-ratio: 3/2) and (min-width: 900px) {
       .marca { --W: max(100vw, 177.7778vh); --u: calc(var(--W) / 1672); position: absolute; margin: 0; width: calc(var(--u) * 360); text-align: left;
         left: calc(50vw - var(--W) / 2 + var(--u) * 385); top: calc(50vh - var(--W) * 941 / 3344 + var(--u) * 118); }
-      .marca .isotipo { position: absolute; left: calc(var(--u) * 40); top: calc(var(--u) * -12); width: calc(var(--u) * 230); margin: 0; }
+      .marca .isotipo { position: absolute; left: calc(var(--u) * 52); top: calc(var(--u) * -14); width: calc(var(--u) * 206); margin: 0; }
         .marca .nombre { position: absolute; left: calc(var(--u) * -5); top: calc(var(--u) * 194); width: calc(var(--u) * 372); margin: 0; }
       .marca .sub { position: absolute; left: 0; right: 0; top: calc(var(--u) * 298); margin: 0; font-size: calc(var(--u) * 15.6); line-height: 1.6; text-align: center; letter-spacing: .1em; white-space: nowrap; }
       .marca .linea { position: absolute; left: 0; top: calc(var(--u) * 354); width: calc(var(--u) * 60); margin: 0; }
