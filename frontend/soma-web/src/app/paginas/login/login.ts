@@ -335,7 +335,7 @@ export class Login extends ConOperaciones implements AfterViewInit {
 
   ngAfterViewInit(): void {
     // En pantallas grandes se deja el cursor listo en el primer campo vacío (en móvil no, para no abrir el teclado).
-    if (window.matchMedia('(min-width: 900px) and (pointer: fine)').matches) {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(min-width: 900px) and (pointer: fine)')?.matches) {
       this.enfocar(this.correo ? (this.esEstudiante() ? 'codigo' : 'clave') : 'correo');
     }
   }
