@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -16,6 +16,7 @@ import { SesionService } from '../../core/sesion.service';
   imports: [FormsModule],
   template: `
     <div class="escena">
+      <a class="saltar" href="#correo-login" (click)="enfocar('correo', $event)">Saltar al formulario</a>
       <!-- Render de cristal de la referencia, sin el contenido del panel (que se dibuja abajo con campos reales). -->
       <img class="fondo" src="fondo-login.svg" alt="" width="1672" height="941" fetchpriority="high" decoding="async" (load)="listo.set(true)" [class.listo]="listo()" />
       <div class="marca" aria-hidden="true">
@@ -28,19 +29,23 @@ import { SesionService } from '../../core/sesion.service';
       </div>
       <h1 class="sr-only">SOMA · Simulaciones para el aprendizaje en psicología social. Explora realidades, comprende personas.</h1>
 
-      <form #formulario="ngForm" class="tarjeta" novalidate (ngSubmit)="ingresar(formulario)">
+      <div class="chispas" aria-hidden="true">@for (c of chispas; track $index) { <i [style.left.%]="c.x" [style.top.%]="c.y" [style.--t]="c.t + 's'" [style.--d]="c.d + 's'" [style.--s]="c.s + 'px'"></i> }</div>
+
+      <form #formulario="ngForm" class="tarjeta" [class.sacude]="sacude()" novalidate (ngSubmit)="ingresar(formulario)"
+            (mousemove)="mover($event)" (mouseleave)="soltar($event)" (keydown.escape)="limpiarAvisos()">
         <div class="interior">
           <h2 class="titulo">Bienvenido a SOMA</h2>
           <p class="subtitulo">Inicia sesión para continuar con tu<br />experiencia de aprendizaje</p>
 
-          @if (error(); as mensaje) { <p class="aviso error" role="alert">{{ mensaje }}</p> }
-          @else if (info(); as mensaje) { <p class="aviso" role="status">{{ mensaje }}</p> }
+          @if (error(); as mensaje) { <p class="aviso error" id="aviso-login" role="alert">{{ mensaje }}</p> }
+          @else if (info(); as mensaje) { <p class="aviso" id="aviso-login" role="status">{{ mensaje }}</p> }
+          @else if (mayusculas()) { <p class="aviso" id="aviso-login" role="status">Bloq Mayús está activado.</p> }
 
           <label class="campo c1" [class.invalido]="enviado() && campoCorreo.invalid">
             <span class="sr-only">Correo institucional</span>
             <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" /><path d="m4 7.5 8 5.5 8-5.5" /></svg>
-            <input type="email" name="correo" placeholder="Correo institucional" autocomplete="username" required
-                   maxlength="150" [(ngModel)]="correo" #campoCorreo="ngModel" />
+            <input type="email" id="correo-login" name="correo" placeholder="Correo institucional" autocomplete="username" required email
+                   inputmode="email" autocapitalize="none" spellcheck="false" maxlength="150" [attr.aria-invalid]="enviado() && campoCorreo.invalid" aria-describedby="aviso-login" [(ngModel)]="correo" #campoCorreo="ngModel" />
           </label>
           @if (enviado() && campoCorreo.invalid) { <span class="sr-only" role="alert">Escribe tu correo institucional.</span> }
 
@@ -48,7 +53,7 @@ import { SesionService } from '../../core/sesion.service';
             <label class="campo c2" [class.invalido]="enviado() && campoCodigo.invalid">
               <span class="sr-only">Código de acceso</span>
               <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4" /><path d="M12 12h9m-3 0v3m-3-3v2" /></svg>
-              <input name="codigo" placeholder="Código de acceso" autocomplete="one-time-code" required maxlength="64"
+              <input id="codigo-login" name="codigo" placeholder="Código de acceso" autocomplete="one-time-code" required autocapitalize="none" spellcheck="false" maxlength="64" [attr.aria-invalid]="enviado() && campoCodigo.invalid" aria-describedby="aviso-login"
                      [(ngModel)]="codigo" #campoCodigo="ngModel" />
             </label>
             @if (enviado() && campoCodigo.invalid) { <span class="sr-only" role="alert">Escribe el código que recibiste por correo.</span> }
@@ -56,9 +61,10 @@ import { SesionService } from '../../core/sesion.service';
             <label class="campo c2" [class.invalido]="enviado() && campoClave.invalid">
               <span class="sr-only">Contraseña</span>
               <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2.2" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></svg>
-              <input [type]="verClave() ? 'text' : 'password'" name="clave" placeholder="Contraseña" autocomplete="current-password"
-                     required maxlength="100" [(ngModel)]="clave" #campoClave="ngModel" />
-              <button type="button" class="ojo" (click)="verClave.set(!verClave())"
+              <input [type]="verClave() ? 'text' : 'password'" id="clave-login" name="clave" placeholder="Contraseña" autocomplete="current-password"
+                     required maxlength="100" (keydown)="vigilarMayusculas($event)" (keyup)="vigilarMayusculas($event)" (blur)="mayusculas.set(false)"
+                     [attr.aria-invalid]="enviado() && campoClave.invalid" aria-describedby="aviso-login" [(ngModel)]="clave" #campoClave="ngModel" />
+              <button type="button" class="ojo" (mousedown)="$event.preventDefault()" (click)="verClave.set(!verClave())" [attr.aria-pressed]="verClave()"
                       [attr.aria-label]="verClave() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
@@ -76,7 +82,8 @@ import { SesionService } from '../../core/sesion.service';
           </label>
           <button type="button" class="olvido" (click)="noDisponible('recuperar')">¿Olvidaste tu contraseña?</button>
 
-          <button type="submit" class="ingresar" [disabled]="ocupado()">
+          <button type="submit" class="ingresar" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
+            @if (ocupado()) { <span class="rueda" aria-hidden="true"></span> }
             <span>{{ ocupado() ? 'Ingresando…' : 'Ingresar' }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5" /></svg>
           </button>
@@ -128,7 +135,12 @@ import { SesionService } from '../../core/sesion.service';
     .marca .isotipo { animation: entra .9s cubic-bezier(.2,.7,.2,1) both, flota 7s ease-in-out 1s infinite; filter: drop-shadow(0 14px 18px rgba(88,68,140,.25)); }
     .marca .nombre { animation-delay: .12s; } .marca .sub { animation-delay: .22s; } .marca .linea { animation-delay: .3s; }
     .marca .lema { animation-delay: .38s; } .marca .parrafo { animation-delay: .46s; }
-    .tarjeta { animation: tarjeta 1s cubic-bezier(.2,.7,.2,1) .1s both; }
+    .tarjeta { animation: tarjeta 1s cubic-bezier(.2,.7,.2,1) .1s backwards; transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .35s ease-out; will-change: transform; }
+    .tarjeta.sacude { animation: sacude .5s cubic-bezier(.36,.07,.19,.97) both; }
+    .tarjeta .interior::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,.34), transparent 46%); opacity: 0; transition: opacity .3s; }
+    .tarjeta:hover .interior::before { opacity: 1; }
+    .interior > * { z-index: 1; }
     .tarjeta::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
       background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.38) 48%, rgba(255,255,255,.1) 54%, transparent 65%);
       background-size: 250% 100%; background-position: 160% 0; animation: brillo 9s ease-in-out 1.5s infinite; mix-blend-mode: soft-light; }
@@ -143,11 +155,45 @@ import { SesionService } from '../../core/sesion.service';
     .ingresar:active:not(:disabled) { transform: translateY(0) scale(.99); }
     .social { transition: transform .25s ease, box-shadow .25s ease, background .25s ease; }
     .social:hover { transform: translateY(-3px); box-shadow: 0 14px 26px -10px rgba(88,68,140,.5); background: rgba(255,255,255,.85); }
+    @keyframes sacude { 10%,90% { transform: translateX(-2px); } 20%,80% { transform: translateX(4px); } 30%,50%,70% { transform: translateX(-7px); } 40%,60% { transform: translateX(7px); } }
+    @keyframes brota { 0%,100% { opacity: 0; transform: translateY(0) scale(.6); } 20%,80% { opacity: .95; } 50% { transform: translateY(-34px) scale(1); } }
+    @keyframes marcar { from { opacity: 0; transform: translateY(-8%) rotate(45deg) scale(.4); } to { opacity: 1; transform: translateY(-8%) rotate(45deg) scale(1); } }
+    @keyframes gira { to { transform: rotate(360deg); } }
     @keyframes entra { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
     @keyframes tarjeta { from { opacity: 0; transform: translateY(20px) scale(.985); } to { opacity: 1; transform: none; } }
     @keyframes flota { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @keyframes brillo { 0%,55% { background-position: 160% 0; } 85%,100% { background-position: -60% 0; } }
-    @media (prefers-reduced-motion: reduce) { .marca > *, .tarjeta, .tarjeta::after, .marca .isotipo { animation: none !important; } .fondo { transition: none; } }
+    /* Destellos sobre el agua */
+    .chispas { position: absolute; inset: 0; pointer-events: none; z-index: 0; display: none; }
+    .chispas i { position: absolute; width: var(--s); height: var(--s); border-radius: 50%; background: radial-gradient(circle, #fff, rgba(255,255,255,0) 70%); opacity: 0; mix-blend-mode: screen; animation: brota var(--t) ease-in-out var(--d) infinite; }
+    .rueda { width: calc(var(--u) * 20); height: calc(var(--u) * 20); min-width: 14px; min-height: 14px; margin-right: .6em; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; animation: gira .7s linear infinite; }
+
+    /* Accesibilidad y detalles de calidad */
+    .saltar { position: absolute; left: 12px; top: -60px; z-index: 10; background: #43335f; color: #fff; padding: 10px 16px; border-radius: 10px; font-size: 14px; text-decoration: none; transition: top .2s; }
+    .saltar:focus { top: 12px; }
+    ::selection { background: rgba(139,116,196,.35); }
+    button, label, a { -webkit-tap-highlight-color: transparent; }
+    .campo input::placeholder { color: #6f6490; }
+    .campo input:-webkit-autofill, .campo input:-webkit-autofill:focus { -webkit-text-fill-color: #3f3257; transition: background-color 9999s ease-out; box-shadow: 0 0 0 100px rgba(246,242,252,.95) inset; border-radius: 999px; }
+    .lema, .subtitulo { text-wrap: balance; }
+    .campo.invalido { box-shadow: 0 0 0 2px rgba(194,122,138,.35); }
+    .recordar, .social, .ingresar, .cambio, .olvido { user-select: none; }
+    .recordar input:checked + .caja::after { animation: marcar .2s ease-out both; }
+    .olvido, .registro button, .cambio { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .25s ease; text-decoration: none !important; }
+    .olvido:hover, .registro button:hover, .cambio:hover, .olvido:focus-visible, .registro button:focus-visible, .cambio:focus-visible { background-size: 100% 1px; }
+    .campo input:focus-visible { outline: none; }
+    @media (min-aspect-ratio: 3/2) and (min-width: 900px) { .chispas { display: block; } }
+    @media (hover: none) { .tarjeta { transform: none !important; } .tarjeta .interior::before { display: none; } .campo:hover, .social:hover, .ingresar:hover { transform: none !important; } }
+    @media (max-width: 899px) {
+      .campo input { font-size: 16px; }
+      .escena { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    }
+    @media (max-height: 520px) and (max-width: 899px) { .marca .isotipo { width: 22%; } .marca { margin-top: 2vh; } }
+    @media (prefers-contrast: more) { .campo, .social, .tarjeta { border-color: #43335f !important; } .campo input::placeholder { color: #43335f; } }
+    @media (forced-colors: active) { .ingresar, .campo, .social { border: 1px solid ButtonText; } .ingresar:focus-visible, .campo:focus-within { outline: 2px solid Highlight; } }
+    @media (prefers-reduced-transparency: reduce) { .tarjeta { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(244,240,251,.96); } }
+    @media print { .escena { display: none; } }
+    @media (prefers-reduced-motion: reduce) { .marca > *, .tarjeta, .tarjeta::after, .marca .isotipo, .chispas i, .rueda { animation: none !important; } .tarjeta { transform: none !important; } .fondo { transition: none; } .chispas { display: none !important; } }
 
     /* Marca de la izquierda: texto y logo reales (el logo es vectorial), medidos en px de referencia. */
     .marca { position: relative; z-index: 1; --w: min(92vw, 460px); width: var(--w); margin: 6vh auto 0; text-align: center; color: #4a3a6b; }
@@ -188,7 +234,7 @@ import { SesionService } from '../../core/sesion.service';
     .interior > * { position: absolute; }
     .titulo { left: 0; right: 0; top: calc(var(--u) * 73); margin: 0; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: max(calc(var(--u) * 48), 26px); line-height: 1.1; color: #43335f; letter-spacing: 0; }
     .subtitulo { left: 0; right: 0; top: calc(var(--u) * 136); margin: 0; text-align: center; font-size: max(calc(var(--u) * 19.5), 14px); line-height: 1.37; color: #6a5d86; font-weight: 400; }
-    .aviso { left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 190); margin: 0; text-align: center; font-size: calc(var(--u) * 13.5); line-height: 1.25; color: #4a3a6b; }
+    .aviso { left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 193); margin: 0; text-align: center; font-size: calc(var(--u) * 13.5); line-height: 1.25; color: #4a3a6b; }
     .aviso.error { color: #9b3b4e; }
 
     .campo {
@@ -252,8 +298,21 @@ import { SesionService } from '../../core/sesion.service';
     .cambio { position: absolute; left: 0; right: 0; top: calc(100% + 14px); border: 0; background: none; font: inherit; font-size: 13.5px; color: #4a3d66; cursor: pointer; text-shadow: 0 1px 8px rgba(255,255,255,.7); }
   `,
 })
-export class Login extends ConOperaciones {
+export class Login extends ConOperaciones implements AfterViewInit {
   protected readonly listo = signal(false);
+  protected readonly sacude = signal(false);
+  protected readonly mayusculas = signal(false);
+  private readonly anfitrion = inject(ElementRef<HTMLElement>);
+  private temporizadorInfo: ReturnType<typeof setTimeout> | undefined;
+  private static readonly CLAVE_CORREO = 'soma.ultimoCorreo';
+
+  /** Destellos decorativos que flotan sobre el agua (posiciones fijas para que no cambien entre cargas). */
+  protected readonly chispas = [
+    { x: 8, y: 78, s: 5, t: 7, d: 0 }, { x: 14, y: 64, s: 3, t: 9, d: 1.2 }, { x: 22, y: 86, s: 4, t: 8, d: 2.1 },
+    { x: 31, y: 72, s: 6, t: 10, d: .6 }, { x: 38, y: 58, s: 3, t: 8, d: 3 }, { x: 45, y: 82, s: 5, t: 9, d: 1.8 },
+    { x: 52, y: 68, s: 4, t: 11, d: 2.6 }, { x: 58, y: 88, s: 3, t: 7, d: .3 }, { x: 24, y: 40, s: 3, t: 12, d: 4 },
+    { x: 41, y: 34, s: 4, t: 10, d: 2.4 }, { x: 12, y: 30, s: 5, t: 9, d: 3.4 }, { x: 62, y: 76, s: 3, t: 8, d: 1.5 },
+  ];
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
 
@@ -266,8 +325,60 @@ export class Login extends ConOperaciones {
   protected codigo = '';
   protected recordar = false;
 
+  constructor() {
+    super();
+    try {
+      const guardado = localStorage.getItem(Login.CLAVE_CORREO);
+      if (guardado) { this.correo = guardado; this.recordar = true; }
+    } catch { /* almacenamiento no disponible: se ignora */ }
+  }
+
+  ngAfterViewInit(): void {
+    // En pantallas grandes se deja el cursor listo en el primer campo vacío (en móvil no, para no abrir el teclado).
+    if (window.matchMedia('(min-width: 900px) and (pointer: fine)').matches) {
+      this.enfocar(this.correo ? (this.esEstudiante() ? 'codigo' : 'clave') : 'correo');
+    }
+  }
+
+  protected enfocar(campo: 'correo' | 'clave' | 'codigo', evento?: Event): void {
+    evento?.preventDefault();
+    setTimeout(() => (this.anfitrion.nativeElement as HTMLElement).querySelector<HTMLInputElement>(`#${campo}-login`)?.focus());
+  }
+
+  protected vigilarMayusculas(evento: KeyboardEvent): void {
+    this.mayusculas.set(evento.getModifierState?.('CapsLock') ?? false);
+  }
+
+  /** Brillo y leve inclinación de la tarjeta según el cursor (solo con mouse). */
+  protected mover(evento: MouseEvent): void {
+    const tarjeta = evento.currentTarget as HTMLElement;
+    const r = tarjeta.getBoundingClientRect();
+    const x = (evento.clientX - r.left) / r.width;
+    const y = (evento.clientY - r.top) / r.height;
+    tarjeta.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`);
+    tarjeta.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
+    tarjeta.style.setProperty('--ry', `${((x - .5) * 2.4).toFixed(2)}deg`);
+    tarjeta.style.setProperty('--rx', `${((.5 - y) * 2).toFixed(2)}deg`);
+  }
+
+  protected soltar(evento: MouseEvent): void {
+    const tarjeta = evento.currentTarget as HTMLElement;
+    for (const v of ['--ry', '--rx']) { tarjeta.style.setProperty(v, '0deg'); }
+  }
+
+  protected limpiarAvisos(): void {
+    this.error.set(null);
+    this.info.set(null);
+  }
+
+  private sacudir(): void {
+    this.sacude.set(true);
+    setTimeout(() => this.sacude.set(false), 520);
+  }
+
   protected alternarTipo(): void {
     this.esEstudiante.set(!this.esEstudiante());
+    this.enfocar(this.correo ? (this.esEstudiante() ? 'codigo' : 'clave') : 'correo');
     this.enviado.set(false);
     this.error.set(null);
     this.info.set(null);
@@ -276,6 +387,8 @@ export class Login extends ConOperaciones {
   /** Funciones del diseño que el backend todavía no ofrece: se avisa en lugar de fallar en silencio. */
   protected noDisponible(que: 'recuperar' | 'social' | 'registro'): void {
     this.error.set(null);
+    clearTimeout(this.temporizadorInfo);
+    this.temporizadorInfo = setTimeout(() => this.info.set(null), 7000);
     this.info.set(
       que === 'recuperar'
         ? 'Para restablecer tu contraseña, comunícate con el administrador de SOMA.'
@@ -289,12 +402,36 @@ export class Login extends ConOperaciones {
     this.enviado.set(true);
     this.info.set(null);
     if (formulario.invalid) {
+      const controles = formulario.controls;
+      const primero = controles['correo']?.invalid ? 'correo' : this.esEstudiante() ? 'codigo' : 'clave';
+      this.error.set(
+        primero === 'correo'
+          ? (controles['correo']?.errors?.['email'] ? 'Escribe un correo válido, por ejemplo nombre@universidad.edu.co.' : 'Escribe tu correo institucional.')
+          : primero === 'codigo' ? 'Escribe el código de acceso que recibiste por correo.' : 'Escribe tu contraseña.',
+      );
+      this.sacudir();
+      this.enfocar(primero);
       return;
     }
-    const correo = this.correo.trim();
+    const correo = this.correo.trim().toLowerCase();
     const peticion: Observable<SesionUsuario> = this.esEstudiante()
       ? this.sesiones.iniciarEstudiante(correo, this.codigo.trim(), this.recordar)
       : this.sesiones.iniciar(correo, this.clave, this.recordar);
-    this.operar(peticion, () => void this.router.navigate(['/inicio']));
+    this.operar(
+      peticion,
+      () => {
+        this.guardarCorreo(correo);
+        void this.router.navigate(['/inicio']);
+      },
+      undefined,
+      () => this.sacudir(),
+    );
+  }
+
+  /** Solo con «Recordarme» marcado se conserva el correo (nunca la contraseña ni el código) en este navegador. */
+  private guardarCorreo(correo: string): void {
+    try {
+      if (this.recordar) { localStorage.setItem(Login.CLAVE_CORREO, correo); } else { localStorage.removeItem(Login.CLAVE_CORREO); }
+    } catch { /* se ignora */ }
   }
 }
