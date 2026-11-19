@@ -9,19 +9,20 @@ import { SesionService } from '../../core/sesion.service';
 interface Seccion {
   readonly titulo: string;
   readonly icono: string;
-  readonly ancla: string | null;
+  readonly ruta: string;
   readonly permiso: Permiso | null;
 }
 
 /** Secciones del menú lateral. Solo aparecen las que el rol tiene permitidas (RF-02). */
 const SECCIONES: readonly Seccion[] = [
-  { titulo: 'Inicio', icono: 'M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z', ancla: null, permiso: null },
-  { titulo: 'Mis sesiones', icono: 'M5 5h14v15H5zM5 9h14M9 3v4m6-4v4', ancla: 'sesiones', permiso: Permiso.ProgramarSesiones },
-  { titulo: 'Casos de estudio', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M8 13h8M8 17h5', ancla: 'casos', permiso: Permiso.GestionarCasos },
-  { titulo: 'Participaciones', icono: 'M4 19c1.5-4 4.2-6 8-6s6.5 2 8 6M12 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z', ancla: 'participaciones', permiso: Permiso.ConsultarParticipaciones },
-  { titulo: 'Mis casos', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M9 14l2 2 4-4', ancla: 'participaciones', permiso: Permiso.ParticiparEnCasos },
-  { titulo: 'Resultados', icono: 'M5 20V10m7 10V4m7 16v-7', ancla: 'resultados', permiso: Permiso.ConsultarResultadosPropios },
-  { titulo: 'Reportes', icono: 'M6 3h9l4 4v14H6zM9 13h7M9 17h7M9 9h3', ancla: 'resultados', permiso: Permiso.DescargarReportes },
+  { titulo: 'Inicio', icono: 'M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z', ruta: '/inicio', permiso: null },
+  { titulo: 'Casos de estudio', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M8 13h8M8 17h5', ruta: '/casos', permiso: Permiso.GestionarCasos },
+  { titulo: 'Mis sesiones', icono: 'M5 5h14v15H5zM5 9h14M9 3v4m6-4v4', ruta: '/sesiones', permiso: Permiso.ProgramarSesiones },
+  { titulo: 'Participaciones', icono: 'M4 19c1.5-4 4.2-6 8-6s6.5 2 8 6M12 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z', ruta: '/participaciones', permiso: Permiso.ConsultarParticipaciones },
+  { titulo: 'Resultados y reportes', icono: 'M5 20V10m7 10V4m7 16v-7', ruta: '/resultados', permiso: Permiso.ConsultarParticipaciones },
+  { titulo: 'Docentes', icono: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20a8 8 0 0 1 16 0', ruta: '/docentes', permiso: Permiso.AdministrarDocentes },
+  { titulo: 'Mis casos', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M9 14l2 2 4-4', ruta: '/mis-sesiones', permiso: Permiso.ParticiparEnCasos },
+  { titulo: 'Mis resultados', icono: 'M5 20V10m7 10V4m7 16v-7', ruta: '/mis-resultados', permiso: Permiso.ConsultarResultadosPropios },
 ];
 
 /**
@@ -47,9 +48,8 @@ const SECCIONES: readonly Seccion[] = [
 
         <nav aria-label="Secciones">
           @for (s of secciones(); track s.titulo) {
-            <a [routerLink]="'/inicio'" [fragment]="s.ancla ?? undefined"
-               routerLinkActive="activo"
-               [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'exact' }" class="item">
+            <a [routerLink]="s.ruta" routerLinkActive="activo"
+               [routerLinkActiveOptions]="{ exact: s.ruta === '/inicio' }" class="item">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="s.icono" /></svg>
               {{ s.titulo }}
             </a>
