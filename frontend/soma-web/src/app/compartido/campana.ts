@@ -1,27 +1,27 @@
 import { DatePipe } from '@angular/common';
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
-import { Notificacion } from '../core/modelos/dominio';
+import { Component, HostListener, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Aviso } from '../core/modelos/dominio';
 import { SomaApiService } from '../core/soma-api.service';
 
-/** Campana con las últimas notificaciones enviadas por el sistema (convocatorias y cambios de sesión). */
+/** Campana con los avisos de la plataforma (ingresos de estudiantes, bloqueos, casos eliminados, cambios de permisos…). */
 @Component({
   selector: 'soma-campana',
   imports: [DatePipe],
   template: `
-    <button type="button" class="campana" (click)="alternar()" [attr.aria-expanded]="abierta()" aria-label="Notificaciones">
+    <button type="button" class="campana" (click)="alternar()" [attr.aria-expanded]="abierta()" [attr.aria-label]="'Avisos' + (noLeidos() ? ' (' + noLeidos() + ' sin leer)' : '')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 1 1 12 0v6l1.5 2h-15zM10 21h4" /></svg>
-      @if (datos().length) { <i>{{ datos().length > 9 ? '9+' : datos().length }}</i> }
+      @if (noLeidos()) { <i>{{ noLeidos() > 9 ? '9+' : noLeidos() }}</i> }
     </button>
     @if (abierta()) {
       <div class="fondo" (click)="abierta.set(false)"></div>
-      <section class="menu" aria-label="Notificaciones recientes">
-        <h3>Notificaciones</h3>
+      <section class="menu" aria-label="Avisos recientes">
+        <h3>Avisos @if (noLeidos()) { <button type="button" class="todos" (click)="leerTodos()">Marcar como leídos</button> }</h3>
         @for (n of datos(); track n.id) {
-          <article>
-            <span class="punto" [class.mal]="n.estado !== 'ENVIADA'"></span>
-            <div><strong>{{ n.asunto }}</strong><small>{{ n.destinatarioCorreo }} · {{ n.fechaCreacion | date: 'd MMM, h:mm a' }}</small></div>
+          <article [class.nuevo]="!n.leido" (click)="leer(n)">
+            <span class="punto" [class.mal]="n.tipo === 'SEGURIDAD'"></span>
+            <div><strong>{{ n.titulo }}</strong><span class="texto">{{ n.mensaje }}</span><small>{{ n.fecha | date: 'd MMM, h:mm a' }}</small></div>
           </article>
-        } @empty { <p class="vacio">No hay notificaciones todavía.</p> }
+        } @empty { <p class="vacio">No hay avisos todavía.</p> }
       </section>
     }
   `,
@@ -40,6 +40,8 @@ import { SomaApiService } from '../core/soma-api.service';
     h3 { font-size: 1.3rem; margin-bottom: .2rem; }
     article { display: flex; gap: .65rem; align-items: flex-start; padding: .6rem .7rem; border-radius: 14px; background: rgba(255,255,255,.6); }
     article div { display: grid; gap: .1rem; min-width: 0; } strong { font-weight: 500; font-size: .88rem; color: var(--lila-950); }
+    article { cursor: pointer; } article.nuevo { background: rgba(255,255,255,.9); box-shadow: inset 3px 0 0 var(--lila-500); }
+    .texto { font-size: .8rem; color: var(--tinta); line-height: 1.35; } .todos { float: right; font-size: .72rem; color: var(--lila-700); background: none; border: 0; text-decoration: underline; cursor: pointer; }
     small { color: var(--tinta-suave); font-size: .75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .punto { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: .4rem; background: #5cb88f; box-shadow: 0 0 0 3px rgba(92,184,143,.22); }
     .punto.mal { background: #d98a5b; box-shadow: 0 0 0 3px rgba(217,138,91,.25); }
@@ -55,12 +57,34 @@ import { SomaApiService } from '../core/soma-api.service';
 
   `,
 })
-export class Campana implements OnInit {
+export class Campana implements OnInit, OnDestroy {
   private readonly api = inject(SomaApiService);
-  protected readonly datos = signal<Notificacion[]>([]);
+  protected readonly datos = signal<Aviso[]>([]);
+  protected readonly noLeidos = signal(0);
   protected readonly abierta = signal(false);
+  private reloj?: ReturnType<typeof setInterval>;
 
-  ngOnInit(): void { this.api.notificaciones().subscribe({ next: (n) => this.datos.set(n.slice(0, 8)), error: () => this.datos.set([]) }); }
+  ngOnInit(): void {
+    this.cargar();
+    // Se actualiza sola mientras la pestaña está a la vista.
+    this.reloj = setInterval(() => { if (!document.hidden) this.cargar(); }, 30000);
+  }
+  ngOnDestroy(): void { clearInterval(this.reloj); }
+
+  private cargar(): void {
+    this.api.avisos().subscribe({ next: (r) => { this.datos.set(r.avisos); this.noLeidos.set(r.noLeidos); }, error: () => { /* sin conexión: se conserva lo último */ } });
+  }
   protected alternar(): void { this.abierta.update((v) => !v); }
+  protected leer(a: Aviso): void {
+    if (a.leido) return;
+    this.datos.update((l) => l.map((x) => (x.id === a.id ? { ...x, leido: true } : x)));
+    this.noLeidos.update((n) => Math.max(0, n - 1));
+    this.api.marcarAvisoLeido(a.id).subscribe({ error: () => this.cargar() });
+  }
+  protected leerTodos(): void {
+    this.datos.update((l) => l.map((x) => ({ ...x, leido: true })));
+    this.noLeidos.set(0);
+    this.api.marcarAvisosLeidos().subscribe({ error: () => this.cargar() });
+  }
   @HostListener('document:keydown.escape') protected cerrar(): void { this.abierta.set(false); }
 }

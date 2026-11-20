@@ -29,6 +29,7 @@ const SECCIONES: readonly Seccion[] = [
   { titulo: 'Participaciones', icono: 'M4 19c1.5-4 4.2-6 8-6s6.5 2 8 6M12 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z', ruta: '/participaciones', permiso: Permiso.ConsultarParticipaciones, grupo: 'Evaluación' },
   { titulo: 'Resultados y reportes', icono: 'M5 20V10m7 10V4m7 16v-7', ruta: '/resultados', permiso: Permiso.ConsultarParticipaciones, grupo: 'Evaluación' },
   { titulo: 'Docentes', icono: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 20a8 8 0 0 1 16 0', ruta: '/docentes', permiso: Permiso.AdministrarDocentes, grupo: 'Administración' },
+  { titulo: 'Auditoría', icono: 'M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6zM9 12l2 2 4-4', ruta: '/auditoria', permiso: Permiso.AdministrarDocentes, grupo: 'Administración' },
   { titulo: 'Componentes', icono: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z', ruta: '/componentes', permiso: Permiso.AdministrarDocentes, grupo: 'Administración' },
   { titulo: 'Mis casos', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M9 14l2 2 4-4', ruta: '/mis-sesiones', permiso: Permiso.ParticiparEnCasos, grupo: 'Mi aprendizaje' },
   { titulo: 'Mis resultados', icono: 'M5 20V10m7 10V4m7 16v-7', ruta: '/mis-resultados', permiso: Permiso.ConsultarResultadosPropios, grupo: 'Mi aprendizaje' },
@@ -103,7 +104,7 @@ const SECCIONES: readonly Seccion[] = [
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" /></svg>
               }
             </button>
-            @if (puedeNotificaciones() && prefs.campana()) { @defer (on immediate) { <soma-campana /> } }
+            @if (prefs.campana()) { @defer (on immediate) { <soma-campana /> } }
             <span class="chip fecha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15H5zM5 9h14M9 3v4m6-4v4" /></svg>{{ hoy }}</span>
             <span class="chip rol"><i></i>{{ rolLegible() }}</span>
           </div>
@@ -291,7 +292,6 @@ export class Panel implements OnInit, OnDestroy {
   protected readonly enfoque = computed(() => this.url().startsWith('/participar'));
   protected readonly degradado = computed(() => { const c = COLORES_AVATAR[this.prefs.avatar()]; return `linear-gradient(135deg, ${c[0]}, ${c[1]})`; });
   protected readonly saludoTexto = computed(() => `${this.saludo()}, ${this.nombreCorto()}`);
-  protected readonly puedeNotificaciones = computed(() => this.sesiones.tienePermiso(Permiso.ProgramarSesiones));
   private readonly saludo = () => { const h = new Date().getHours(); return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'; };
   protected readonly nombreCorto = computed(() => this.sesion()?.nombreCompleto.split(' ')[0] ?? '');
   protected readonly titulo = computed(() =>

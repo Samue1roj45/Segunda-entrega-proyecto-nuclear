@@ -88,6 +88,24 @@ test('el docente con el permiso adicional elimina un caso desde la lista', async
   await expect(page.locator('.vacio')).toBeVisible();
 });
 
+test('la campana muestra los avisos y los marca como leídos', async ({ page }) => {
+  const estado = new Estado();
+  await instalarServidorSimulado(page, estado);
+  await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));
+  await page.goto('/login');
+  await page.fill('#correo-login', 'carlos.gomez@institucion.edu.co');
+  await page.fill('#clave-login', 'Clave-Docente-01');
+  await page.click('button.ingresar');
+  await page.waitForURL(/\/inicio/);
+  const campana = page.locator('button.campana');
+  await expect(campana).toHaveAttribute('aria-label', /1 sin leer/);
+  await campana.click();
+  await expect(page.getByText('Ana Pérez ingresó a la plataforma.')).toBeVisible();
+  await page.getByRole('button', { name: 'Marcar como leídos' }).click();
+  await expect.poll(() => estado.avisosLeidos).toBe(true);
+  await expect(campana).toHaveAttribute('aria-label', 'Avisos');
+});
+
 test('Ctrl+K abre el buscador y lleva a la sección elegida', async ({ page }) => {
   await instalarServidorSimulado(page, new Estado());
   await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));

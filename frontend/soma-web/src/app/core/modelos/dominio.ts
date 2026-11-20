@@ -87,3 +87,7 @@ export interface Tiempo { idParticipacion: number; estado: string; horaInicio: s
 export interface Finalizacion { idParticipacion: number; estado: string; horaFin: string }
 
 export interface EstudianteResumen { id: number; nombreCompleto: string; correoInstitucional: string }
+
+/** Aviso dentro de la plataforma (campana). */
+export interface Aviso { id: number; tipo: string; titulo: string; mensaje: string; leido: boolean; fecha: string }
+export interface EntradaAuditoria { id: number; fecha: string; actorCorreo: string | null; accion: string; detalle: string }

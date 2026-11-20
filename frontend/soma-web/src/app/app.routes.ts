@@ -49,6 +49,10 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/estudiante/mis-resultados').then((m) => m.MisResultados), title: 'Mis resultados · SOMA',
       },
       {
+        path: 'auditoria', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        loadComponent: () => import('./paginas/admin/auditoria').then((m) => m.Auditoria), title: 'Auditoría · SOMA',
+      },
+      {
         path: 'componentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
         loadComponent: () => import('./paginas/admin/componentes').then((m) => m.Componentes), title: 'Componentes · SOMA',
       },

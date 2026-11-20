@@ -8,6 +8,7 @@ export class Estado {
   oficial = false;
   publicada = false;
   casoEliminado = false;
+  avisosLeidos = false;
   llamadas: string[] = [];
 }
 
@@ -37,6 +38,8 @@ export async function instalarServidorSimulado(page: Page, e: Estado): Promise<v
     e.llamadas.push(`${m} ${ruta}`);
     if (ruta === '/api/auth/personal/login') return json(r, DOCENTE);
     if (ruta === '/api/auth/estudiantes/login') return json(r, ESTUDIANTE);
+    if (ruta === '/api/avisos' && m === 'GET') return json(r, { noLeidos: e.avisosLeidos ? 0 : 1, avisos: [{ id: 1, tipo: 'INGRESO_ESTUDIANTE', titulo: 'Un estudiante ingresó', mensaje: 'Ana Pérez ingresó a la plataforma.', leido: e.avisosLeidos, fecha: '2026-11-19T10:00:00' }] });
+    if (ruta === '/api/avisos/leidos' && m === 'POST') { e.avisosLeidos = true; return r.fulfill({ status: 204 }); }
     if (ruta === '/api/estudiantes') return json(r, ESTUDIANTES);
     if (ruta === '/api/casos' && m === 'GET') return json(r, e.casoEliminado ? [] : [CASO]);
     if (ruta === '/api/casos/1' && m === 'DELETE') { e.casoEliminado = true; return r.fulfill({ status: 204 }); }

@@ -138,6 +138,10 @@ export class SomaApiService {
   estudiantes(): Observable<M.EstudianteResumen[]> { return this.http.get<M.EstudianteResumen[]>('/api/estudiantes'); }
 
   // ---------- Notificaciones ----------
+  avisos(): Observable<{ avisos: M.Aviso[]; noLeidos: number }> { return this.http.get<{ avisos: M.Aviso[]; noLeidos: number }>('/api/avisos'); }
+  marcarAvisoLeido(id: number): Observable<unknown> { return this.http.post(`/api/avisos/${id}/leido`, null); }
+  marcarAvisosLeidos(): Observable<unknown> { return this.http.post('/api/avisos/leidos', null); }
+  auditoria(limite = 100): Observable<M.EntradaAuditoria[]> { return this.http.get<M.EntradaAuditoria[]>('/api/auditoria', { params: { limite } }); }
   notificaciones(practica?: number): Observable<M.Notificacion[]> { return this.http.get<M.Notificacion[]>('/api/notificaciones', { params: filtros({ practica }) }); }
   enviarConvocatoria(practica: number): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/convocatoria`, null); }
   notificarCambio(practica: number, motivo: string): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/cambio`, { motivo }); }
