@@ -9,6 +9,7 @@ import { DialogoService } from '../../core/dialogo.service';
 import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
 import { ToastService } from '../../core/toast.service';
+import { CasoEliminado } from '../../core/modelos/dominio';
 import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
 /** Módulo 2: casos de estudio del docente. Lista con filtro por estado e importación de un caso en formato DSL (JSON). */
@@ -78,6 +79,30 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
           }
         </div>
       }
+
+      @if (puedeEliminar()) {
+        <section class="cristal papelera" aria-label="Papelera de casos">
+          <button type="button" class="boton-secundario boton-chico" id="papelera-toggle" [attr.aria-expanded]="papeleraAbierta()" (click)="alternarPapelera()">
+            Papelera ({{ papelera().length }})
+          </button>
+          @if (papeleraAbierta()) {
+            @if (papelera().length === 0) { <p class="vacio">La papelera está vacía.</p> }
+            @else {
+              <ul class="lista-papelera">
+                @for (p of papelera(); track p.id) {
+                  <li>
+                    <span><strong>{{ p.nombre || '(sin nombre)' }}</strong> · eliminado {{ p.fechaEliminacion | date: 'd MMM y, HH:mm' }}</span>
+                    <span class="acciones">
+                      <button type="button" class="boton-secundario boton-chico" [disabled]="trabajandoPapelera() === p.id" (click)="restaurar(p)">Restaurar</button>
+                      <button type="button" class="boton-peligro boton-chico" [disabled]="trabajandoPapelera() === p.id" (click)="borrarParaSiempre(p)">Borrar para siempre</button>
+                    </span>
+                  </li>
+                }
+              </ul>
+            }
+          }
+        </section>
+      }
     </div>
   `,
 })
@@ -102,7 +127,7 @@ export class CasosLista implements OnInit {
   protected readonly nombre = nombreEstado;
   protected readonly clase = claseEstado;
 
-  ngOnInit(): void { this.cargar(); }
+  ngOnInit(): void { this.cargar(); this.cargarPapelera(); }
 
   protected cambiarEstado(valor: string): void { this.estado.set(valor); this.cargar(); }
 
@@ -132,12 +157,42 @@ export class CasosLista implements OnInit {
 
   /** Permiso adicional que da el administrador. El servidor lo vuelve a comprobar y rechaza casos con sesiones. */
   protected eliminar(c: CasoResumen): void {
-    void this.dialogos.confirmar({ titulo: 'Eliminar el caso', mensaje: `«${c.nombre}» se borrará con sus escenarios, preguntas y rúbrica.`, detalle: ['Esta acción no se puede deshacer.'], confirmar: 'Eliminar', peligro: true }).then((ok) => {
+    void this.dialogos.confirmar({ titulo: 'Eliminar el caso', mensaje: `«${c.nombre}» se moverá a la papelera.`, detalle: ['Podrás restaurarlo desde la papelera.'], confirmar: 'Eliminar', peligro: true }).then((ok) => {
       if (!ok) { return; }
       this.eliminando.set(c.id);
       this.api.eliminarCaso(c.id).subscribe({
-        next: () => { this.eliminando.set(null); this.casos.update((l) => l.filter((x) => x.id !== c.id)); this.toasts.ok('Caso eliminado.'); },
+        next: () => { this.eliminando.set(null); this.casos.update((l) => l.filter((x) => x.id !== c.id)); this.toasts.ok('Caso movido a la papelera.'); this.cargarPapelera(); },
         error: (e: HttpErrorResponse) => { this.eliminando.set(null); this.toasts.error(mensajeDeError(e)); },
+      });
+    });
+  }
+
+  protected readonly papelera = signal<CasoEliminado[]>([]);
+  protected readonly papeleraAbierta = signal(false);
+  protected readonly trabajandoPapelera = signal<number | null>(null);
+
+  protected alternarPapelera(): void { this.papeleraAbierta.update((v) => !v); }
+
+  private cargarPapelera(): void {
+    if (!this.puedeEliminar()) { return; }
+    this.api.papeleraCasos().subscribe({ next: (l) => this.papelera.set(l), error: () => this.papelera.set([]) });
+  }
+
+  protected restaurar(c: CasoEliminado): void {
+    this.trabajandoPapelera.set(c.id);
+    this.api.restaurarCaso(c.id).subscribe({
+      next: () => { this.trabajandoPapelera.set(null); this.toasts.ok('Caso restaurado.'); this.cargarPapelera(); this.cargar(); },
+      error: (e: HttpErrorResponse) => { this.trabajandoPapelera.set(null); this.toasts.error(mensajeDeError(e)); },
+    });
+  }
+
+  protected borrarParaSiempre(c: CasoEliminado): void {
+    void this.dialogos.confirmar({ titulo: 'Borrar para siempre', mensaje: `«${c.nombre}» se borrará con sus escenarios, preguntas y rúbrica.`, detalle: ['Esta acción no se puede deshacer.'], confirmar: 'Borrar para siempre', peligro: true }).then((ok) => {
+      if (!ok) { return; }
+      this.trabajandoPapelera.set(c.id);
+      this.api.eliminarCasoDefinitivo(c.id).subscribe({
+        next: () => { this.trabajandoPapelera.set(null); this.toasts.ok('Caso borrado definitivamente.'); this.cargarPapelera(); },
+        error: (e: HttpErrorResponse) => { this.trabajandoPapelera.set(null); this.toasts.error(mensajeDeError(e)); },
       });
     });
   }

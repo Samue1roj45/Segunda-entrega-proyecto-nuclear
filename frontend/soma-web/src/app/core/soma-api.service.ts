@@ -95,6 +95,9 @@ export class SomaApiService {
   publicarCaso(id: number): Observable<M.CasoDetalle> { return this.http.post<M.CasoDetalle>(`/api/casos/${id}/publicacion`, null); }
   archivarCaso(id: number): Observable<M.CasoDetalle> { return this.http.post<M.CasoDetalle>(`/api/casos/${id}/archivo`, null); }
   eliminarCaso(id: number): Observable<unknown> { return this.http.delete(`/api/casos/${id}`); }
+  papeleraCasos(): Observable<M.CasoEliminado[]> { return this.http.get<M.CasoEliminado[]>('/api/casos/papelera'); }
+  restaurarCaso(id: number): Observable<unknown> { return this.http.post(`/api/casos/${id}/restauracion`, null); }
+  eliminarCasoDefinitivo(id: number): Observable<unknown> { return this.http.delete(`/api/casos/${id}/definitivo`); }
   exportarDsl(id: number): Observable<unknown> { return this.http.get<unknown>(`/api/casos/${id}/dsl`); }
   importarDsl(documento: unknown): Observable<M.ResultadoImportacion> { return this.http.post<M.ResultadoImportacion>('/api/casos/importacion-dsl', documento); }
 

@@ -322,3 +322,9 @@ html[data-quieto] .esqueleto i { animation: none; }
   .cristal { box-shadow: none !important; background: #fff !important; border: 1px solid #ccc !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; break-inside: avoid; }
   * { color: #111 !important; animation: none !important; }
 }
+
+/* Papelera de casos */
+.papelera { margin-top: 1.25rem; padding: 1rem 1.25rem; }
+.lista-papelera { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.lista-papelera li { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; }
+.lista-papelera .acciones { display: flex; gap: .5rem; }

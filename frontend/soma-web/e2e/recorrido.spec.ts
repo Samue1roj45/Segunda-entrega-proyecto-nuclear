@@ -82,10 +82,14 @@ test('el docente con el permiso adicional elimina un caso desde la lista', async
   await page.waitForURL(/\/inicio/);
   await page.goto('/casos');
   await page.getByRole('button', { name: 'Eliminar' }).click();
-  await expect(page.getByRole('alertdialog')).toContainText('no se puede deshacer');
+  await expect(page.getByRole('alertdialog')).toContainText('papelera');
   await page.getByRole('alertdialog').getByRole('button', { name: 'Eliminar' }).click();
   await expect.poll(() => estado.casoEliminado).toBe(true);
-  await expect(page.locator('.vacio')).toBeVisible();
+  await expect(page.locator('.vacio').first()).toBeVisible();
+  await page.locator('#papelera-toggle').click();
+  await expect(page.locator('.lista-papelera')).toContainText('eliminado');
+  await page.getByRole('button', { name: 'Restaurar' }).click();
+  await expect.poll(() => estado.casoEliminado).toBe(false);
 });
 
 test('la campana muestra los avisos y los marca como leídos', async ({ page }) => {

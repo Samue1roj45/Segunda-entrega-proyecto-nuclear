@@ -19,6 +19,7 @@ export interface DatosCaso {
 }
 export interface Incumplimiento { regla: string; mensaje: string; seccion: string | null; ubicacion: string | null }
 export interface InformeValidacion { valido: boolean; incumplimientos: Incumplimiento[] }
+export interface CasoEliminado { id: number; nombre: string; estado: string; fechaEliminacion: string }
 export interface ResultadoImportacion { caso: CasoDetalle; advertencias: string[] }
 
 export type TipoHerramienta = 'CALCULADORA' | 'TABLA' | 'DOCUMENTO' | 'ENLACE' | 'OTRA';

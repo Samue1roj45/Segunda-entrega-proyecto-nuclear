@@ -43,6 +43,8 @@ export async function instalarServidorSimulado(page: Page, e: Estado): Promise<v
     if (ruta === '/api/estudiantes') return json(r, ESTUDIANTES);
     if (ruta === '/api/casos' && m === 'GET') return json(r, e.casoEliminado ? [] : [CASO]);
     if (ruta === '/api/casos/1' && m === 'DELETE') { e.casoEliminado = true; return r.fulfill({ status: 204 }); }
+    if (ruta === '/api/casos/papelera' && m === 'GET') return json(r, e.casoEliminado ? [{ id: 1, nombre: CASO.nombre, estado: 'BORRADOR', fechaEliminacion: '2026-11-19T10:00:00' }] : []);
+    if (ruta === '/api/casos/1/restauracion' && m === 'POST') { e.casoEliminado = false; return r.fulfill({ status: 204 }); }
     if (ruta === '/api/sesiones' && m === 'GET') return json(r, e.sesionCreada ? [sesion()] : []);
     if (ruta === '/api/sesiones' && m === 'POST') { e.sesionCreada = true; return json(r, { idPractica: 1, convocados: [] }, 201); }
     if (ruta === '/api/sesiones/1') return json(r, sesion());
