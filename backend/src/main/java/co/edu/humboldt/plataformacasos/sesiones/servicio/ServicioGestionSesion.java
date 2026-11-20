@@ -47,7 +47,11 @@ public class ServicioGestionSesion {
                 throw new ReglaNegocioException("Estado inválido. Use SIN_INICIAR, EN_CURSO o FINALIZADO");
             }
         }
-        return repo.listarPorDocente(idDocente, filtro).stream().map(this::aDto).toList();
+        // Una sesión por caso suele repetirse: el nombre se consulta una sola vez por caso, no una vez por sesión.
+        java.util.Map<Long, String> nombres = new java.util.HashMap<>();
+        return repo.listarPorDocente(idDocente, filtro).stream()
+                .map(p -> aDto(p, nombres.computeIfAbsent(p.idCaso(), id -> casos.resumen(id).nombre())))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -91,7 +95,11 @@ public class ServicioGestionSesion {
     }
 
     private SesionDto aDto(Practica p) {
-        return new SesionDto(p.id(), p.idCaso(), casos.resumen(p.idCaso()).nombre(), p.espacioAcademico(),
+        return aDto(p, casos.resumen(p.idCaso()).nombre());
+    }
+
+    private SesionDto aDto(Practica p, String nombreCaso) {
+        return new SesionDto(p.id(), p.idCaso(), nombreCaso, p.espacioAcademico(),
                 p.fechaInicio(), p.fechaFin(), p.tiempoMaximoMinutos(), p.lugar(), p.mensajePersonalizado(),
                 p.urlAcceso(), p.estado(), p.fechaInicioReal(), p.fechaCierreReal(), p.tipoCierre(),
                 EstadosSesion.de(p.estado()).accionesPermitidas());
