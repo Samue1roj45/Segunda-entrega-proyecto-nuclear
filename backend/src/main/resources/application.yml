@@ -50,6 +50,9 @@ app:
     origenes: ${CORS_ORIGENES:http://localhost:4200}
   mail:
     from: ${MAIL_FROM:no-reply@institucion.edu.co}
+  avisos:
+    # Cada aviso de la campana también se envía al correo institucional del destinatario.
+    correo: ${AVISOS_CORREO:true}
   sesiones:
     # RF-22: "mitad" (mitad del tiempo máximo) o "porcentaje" (porcentaje_limite_ingreso_tardio de la sesión).
     politica-ingreso-tardio: ${POLITICA_INGRESO_TARDIO:mitad}

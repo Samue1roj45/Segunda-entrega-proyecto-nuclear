@@ -18,6 +18,9 @@ spring:
     port: 25
 
 app:
+  avisos:
+    # En las pruebas no se envía correo real.
+    correo: false
   autenticacion:
     dominio-institucional: institucion.edu.co
   mail:

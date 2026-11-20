@@ -4,6 +4,7 @@ import co.edu.humboldt.plataformacasos.autenticacion.dominio.IntentoAutenticacio
 import co.edu.humboldt.plataformacasos.autenticacion.dominio.SolicitudAutenticacion;
 import co.edu.humboldt.plataformacasos.autenticacion.token.EmisorToken;
 import co.edu.humboldt.plataformacasos.autenticacion.token.SesionUsuario;
+import co.edu.humboldt.plataformacasos.avisos.ServicioAvisos;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.SolicitudInvalidaException;
 import co.edu.humboldt.plataformacasos.compartido.validacion.ResultadoValidacion;
 import co.edu.humboldt.plataformacasos.compartido.validacion.Validador;
@@ -25,11 +26,15 @@ public class ServicioAutenticacion {
     private final Validador<IntentoAutenticacion> validacionCredenciales;
     private final UsuarioRepositorio usuarioRepositorio;
     private final EmisorToken emisorToken;
+    private final ControlAcceso control;
+    private final ServicioAvisos avisos;
 
     public ServicioAutenticacion(Validador<SolicitudAutenticacion> validacionFormatoAutenticacion,
                                  Validador<IntentoAutenticacion> validacionCredencialesEstudiante,
                                  UsuarioRepositorio usuarioRepositorio,
-                                 EmisorToken emisorToken) {
+                                 EmisorToken emisorToken, ControlAcceso control, ServicioAvisos avisos) {
+        this.control = control;
+        this.avisos = avisos;
         this.validacionFormato = validacionFormatoAutenticacion;
         this.validacionCredenciales = validacionCredencialesEstudiante;
         this.usuarioRepositorio = usuarioRepositorio;
@@ -46,9 +51,17 @@ public class ServicioAutenticacion {
         Optional<Usuario> usuario = usuarioRepositorio.findByCorreoInstitucional(
                 Usuario.normalizarCorreo(solicitud.correoInstitucional()));
         IntentoAutenticacion intento = new IntentoAutenticacion(usuario, solicitud.codigoAutorizacion());
+        control.exigirLibre(solicitud.correoInstitucional());
         if (!validacionCredenciales.validar(intento).aprobado()) {
+            control.registrarFallo(solicitud.correoInstitucional());
             throw new CredencialesInvalidasException();
         }
-        return emisorToken.emitir(usuario.orElseThrow());
+        Usuario estudiante = usuario.orElseThrow();
+        control.registrarExito(solicitud.correoInstitucional());
+        avisos.registrar("INGRESO", estudiante.getId(), estudiante.getCorreoInstitucional(),
+                estudiante.getNombreCompleto() + " ingresó a la plataforma (ESTUDIANTE).");
+        avisos.avisar(avisos.docentesDelEstudiante(estudiante.getId()), "INGRESO_ESTUDIANTE", "Un estudiante ingresó",
+                estudiante.getNombreCompleto() + " ingresó a la plataforma.");
+        return emisorToken.emitir(estudiante);
     }
 }

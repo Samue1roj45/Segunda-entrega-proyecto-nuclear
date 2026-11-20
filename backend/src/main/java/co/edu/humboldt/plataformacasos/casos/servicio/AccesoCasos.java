@@ -24,6 +24,10 @@ public class AccesoCasos {
         this.autorizacion = autorizacion;
     }
 
+    public co.edu.humboldt.plataformacasos.autorizacion.UsuarioAutenticado actor() {
+        return autorizacion.verificarIdentidad();
+    }
+
     public Long idDocenteActual() {
         return autorizacion.verificarIdentidad().id();
     }

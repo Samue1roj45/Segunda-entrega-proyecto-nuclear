@@ -7,6 +7,9 @@ import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 import co.edu.humboldt.plataformacasos.usuarios.dominio.Rol;
 import co.edu.humboldt.plataformacasos.usuarios.dominio.Usuario;
 import co.edu.humboldt.plataformacasos.usuarios.repositorio.UsuarioRepositorio;
+import co.edu.humboldt.plataformacasos.autorizacion.ServicioAutorizacion;
+import co.edu.humboldt.plataformacasos.avisos.ServicioAvisos;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +34,27 @@ public class ServicioAdministracionDocentesImpl implements ServicioAdministracio
         this.usuarioRepositorio = usuarioRepositorio;
     }
 
+    // Opcionales: las pruebas unitarias crean el servicio sin ellos.
+    @Autowired(required = false)
+    private ServicioAvisos avisos;
+    @Autowired(required = false)
+    private ServicioAutorizacion autorizacion;
+
+    private void dejarConstancia(String accion, String detalle, Long docenteAfectado, String avisoParaDocente) {
+        if (avisos == null) { return; }
+        Long actorId = null;
+        String actorCorreo = null;
+        if (autorizacion != null) {
+            try { var yo = autorizacion.verificarIdentidad(); actorId = yo.id(); actorCorreo = yo.correoInstitucional(); }
+            catch (RuntimeException e) { /* sin sesión: se registra sin autor */ }
+        }
+        avisos.registrar(accion, actorId, actorCorreo, detalle);
+        avisos.avisarAdministradores("ADMINISTRACION", "Cambio en docentes", detalle + ".");
+        if (docenteAfectado != null && avisoParaDocente != null) {
+            avisos.avisar(java.util.List.of(docenteAfectado), "PERMISOS", "Tu cuenta cambió", avisoParaDocente);
+        }
+    }
+
     @Override
     @Transactional
     public DocenteDTO crearDocente(CrearDocenteRequest datos) {
@@ -51,6 +75,7 @@ public class ServicioAdministracionDocentesImpl implements ServicioAdministracio
             throw new ConflictoException(MensajesAdministracion.CORREO_DUPLICADO);
         }
         Usuario docente = usuarioRepositorio.save(Usuario.nuevoDocente(correoNormalizado, nombre));
+        dejarConstancia("DOCENTE_CREADO", "Se creó el docente " + docente.getNombreCompleto() + " (" + correoNormalizado + ")", null, null);
         return DocenteDTO.de(docente);
     }
 
@@ -76,6 +101,9 @@ public class ServicioAdministracionDocentesImpl implements ServicioAdministracio
         } catch (IllegalArgumentException e) {
             throw new SolicitudInvalidaException(e.getMessage());
         }
+        dejarConstancia("PERMISOS_ACTUALIZADOS", "Se actualizaron los permisos de " + docente.getNombreCompleto()
+                + ": " + (permisos.isEmpty() ? "ninguno" : permisos.stream().map(Enum::name).sorted().collect(java.util.stream.Collectors.joining(", "))),
+                docente.getId(), "El administrador actualizó tus permisos. Cierra y vuelve a abrir la sesión si no ves los cambios.");
         return DocenteDTO.de(docente);
     }
 }

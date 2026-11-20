@@ -56,6 +56,11 @@ public class ManejadorErroresApi {
         return responder(HttpStatus.BAD_REQUEST, "Valor no válido para '" + e.getName() + "'.", solicitud);
     }
 
+    @ExceptionHandler(co.edu.humboldt.plataformacasos.autenticacion.servicio.CuentaBloqueadaException.class)
+    ResponseEntity<ErrorApi> cuentaBloqueada(co.edu.humboldt.plataformacasos.autenticacion.servicio.CuentaBloqueadaException e, HttpServletRequest solicitud) {
+        return responder(HttpStatus.TOO_MANY_REQUESTS, e.getMessage(), solicitud);
+    }
+
     @ExceptionHandler(NoAutenticadoException.class)
     ResponseEntity<ErrorApi> noAutenticado(NoAutenticadoException e, HttpServletRequest solicitud) {
         return responder(HttpStatus.UNAUTHORIZED, e.getMessage(), solicitud);

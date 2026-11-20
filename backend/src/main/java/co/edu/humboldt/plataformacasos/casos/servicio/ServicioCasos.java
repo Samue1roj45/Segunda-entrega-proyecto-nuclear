@@ -10,6 +10,7 @@ import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
+import co.edu.humboldt.plataformacasos.avisos.ServicioAvisos;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +24,10 @@ public class ServicioCasos implements GestionCasos {
     private final CasoEstudioRepositorio casos;
     private final AccesoCasos acceso;
     private final ImportadorDsl importador;
+    private final ServicioAvisos avisos;
 
-    public ServicioCasos(CasoEstudioRepositorio casos, AccesoCasos acceso, ImportadorDsl importador) {
+    public ServicioCasos(CasoEstudioRepositorio casos, AccesoCasos acceso, ImportadorDsl importador, ServicioAvisos avisos) {
+        this.avisos = avisos;
         this.casos = casos;
         this.acceso = acceso;
         this.importador = importador;
@@ -72,12 +75,18 @@ public class ServicioCasos implements GestionCasos {
     @Override
     public void eliminar(Long idCaso) {
         CasoEstudio caso = acceso.paraModificar(idCaso);
+        String nombre = caso.getNombre() == null || caso.getNombre().isBlank() ? "(sin nombre)" : caso.getNombre();
         try {
             casos.delete(caso);
             casos.flush();
         } catch (DataIntegrityViolationException e) {
             throw new ConflictoException("No se puede eliminar: el caso ya tiene sesiones o participaciones asociadas.");
         }
+        var actor = acceso.actor();
+        String detalle = actor.nombreCompleto() + " eliminó el caso «" + nombre + "»";
+        avisos.registrar("CASO_ELIMINADO", actor.id(), actor.correoInstitucional(), detalle);
+        avisos.avisarAdministradores("CASO_ELIMINADO", "Caso eliminado", detalle + ".");
+        avisos.avisar(java.util.List.of(actor.id()), "CASO_ELIMINADO", "Eliminaste un caso", "Eliminaste el caso «" + nombre + "».");
     }
 
     /** Las herramientas son de RF-28, ajeno a este módulo: se avisa en vez de perderlas en silencio. */
