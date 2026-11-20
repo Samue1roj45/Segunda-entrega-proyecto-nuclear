@@ -36,7 +36,7 @@ const PERMISOS_DOCENTE: { clave: Permiso; titulo: string; ayuda: string }[] = [
         </form>
       </section>
 
-      @if (cargando()) { <p class="suave">Cargando docentes…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando docentes"><i></i><i></i><i></i></div> }
       @else if (docentes().length === 0) { <p class="cristal vacio">Todavía no hay docentes registrados.</p> }
       @for (d of docentes(); track d.id) {
         <section class="cristal bloque">

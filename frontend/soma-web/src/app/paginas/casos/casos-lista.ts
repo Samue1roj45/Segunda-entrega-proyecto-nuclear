@@ -53,7 +53,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
         </div>
       </section>
 
-      @if (cargando()) { <p class="suave">Cargando casos…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando casos"><i></i><i></i><i></i></div> }
       @else if (casos().length === 0) { <p class="cristal vacio">Todavía no hay casos{{ estado() ? ' en este estado' : '' }}. Crea el primero con «Nuevo caso».</p> }
       @else {
         <div class="tarjetas">

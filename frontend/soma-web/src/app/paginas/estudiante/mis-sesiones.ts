@@ -15,7 +15,7 @@ import { SomaApiService } from '../../core/soma-api.service';
     <div class="pagina">
       <div class="cabecera-pagina"><h2 class="sr-only">Mis casos</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
-      @if (cargando()) { <p class="suave">Cargando tus convocatorias…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando tus convocatorias"><i></i><i></i><i></i></div> }
       @else if (lista().length === 0) { <p class="cristal vacio">Todavía no tienes sesiones asignadas. Cuando tu docente te convoque, aparecerán aquí.</p> }
       @else {
         <div class="tarjetas">

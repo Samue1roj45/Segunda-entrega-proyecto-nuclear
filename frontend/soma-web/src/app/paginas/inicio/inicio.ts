@@ -246,8 +246,6 @@ const ESTADOS: Record<string, string> = {
     .lista .principal { flex: 1; display: grid; gap: .15rem; min-width: 0; }
     .lista strong { font-weight: 500; color: var(--lila-950); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lista .suave { font-size: .85rem; }
-    .esqueleto { display: grid; gap: .6rem; } .esqueleto i { height: 3.4rem; border-radius: 16px; background: linear-gradient(100deg, rgba(255,255,255,.35) 30%, rgba(255,255,255,.85) 50%, rgba(255,255,255,.35) 70%) 0 0 / 220% 100%; animation: brilla 1.3s linear infinite; }
-    @keyframes brilla { to { background-position: -220% 0; } }
     .feed { list-style: none; margin: 0; padding: 0 0 0 .4rem; display: grid; gap: .1rem; position: relative; }
     .feed li { display: flex; gap: .9rem; align-items: flex-start; padding: .55rem 0; position: relative; }
     .feed li::before { content: ''; position: absolute; left: .42rem; top: 1.6rem; bottom: -.5rem; width: 2px; background: rgba(var(--d-94_74_138),.16); } .feed li:last-child::before { display: none; }

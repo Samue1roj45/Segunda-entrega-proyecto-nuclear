@@ -40,7 +40,7 @@ import { SomaApiService } from '../../core/soma-api.service';
       </section>
 
       <section class="cristal bloque">
-        @if (cargando()) { <p class="suave">Cargando…</p> }
+        @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando"><i></i><i></i><i></i></div> }
         @else if (lista().length === 0) { <p class="vacio">No hay participaciones con esos filtros.</p> }
         @else {
           <div class="tabla-envoltorio">

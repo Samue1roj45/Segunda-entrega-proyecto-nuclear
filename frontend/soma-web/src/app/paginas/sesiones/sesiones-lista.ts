@@ -24,7 +24,7 @@ import { SomaApiService } from '../../core/soma-api.service';
       </div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
-      @if (cargando()) { <p class="suave">Cargando sesiones…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando sesiones"><i></i><i></i><i></i></div> }
       @else if (sesiones().length === 0) { <p class="cristal vacio">Aún no has programado sesiones. Elige un caso publicado y convoca a tus estudiantes.</p> }
       @else {
         <div class="tarjetas">

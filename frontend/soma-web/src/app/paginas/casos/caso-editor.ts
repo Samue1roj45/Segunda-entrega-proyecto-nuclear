@@ -55,7 +55,7 @@ type Pestana = 'datos' | 'contenido' | 'rubrica' | 'herramientas' | 'publicacion
 
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
-      @if (cargando()) { <p class="suave">Cargando…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando"><i></i><i></i><i></i></div> }
 
       @if (!nuevo()) {
         <div class="pestanas" role="tablist">

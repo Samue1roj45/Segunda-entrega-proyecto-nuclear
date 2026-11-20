@@ -44,7 +44,7 @@ import { SomaApiService } from '../../core/soma-api.service';
         </section>
       }
 
-      @if (cargando()) { <p class="suave">Cargando…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando"><i></i><i></i><i></i></div> }
       @else if (lista().length === 0) { <p class="cristal vacio">Aún no tienes resultados. Aparecerán cuando termines un caso y se evalúe.</p> }
       @else {
         <div class="tarjetas">

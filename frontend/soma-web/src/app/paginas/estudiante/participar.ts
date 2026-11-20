@@ -21,7 +21,7 @@ import { SomaApiService } from '../../core/soma-api.service';
     <div class="pagina">
       <p class="migas"><a routerLink="/mis-sesiones">Mis casos</a> / {{ contexto()?.nombreCaso ?? 'Participación' }}</p>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
-      @if (cargando()) { <p class="suave">Cargando el caso…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando el caso"><i></i><i></i><i></i></div> }
 
       @if (contexto(); as c) {
         <header class="cristal bloque cabecera-participacion">

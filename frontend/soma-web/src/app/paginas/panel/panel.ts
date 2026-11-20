@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, afterEveryRender, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, afterEveryRender, computed, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -111,6 +111,9 @@ const SECCIONES: readonly Seccion[] = [
 
         <main id="contenido" class="vista" tabindex="-1"><router-outlet /></main>
       </div>
+      @if (mostrarSubir()) {
+        <button type="button" class="subir" aria-label="Volver arriba" (click)="subir()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6" /></svg></button>
+      }
     </div>
   `,
   styles: `
@@ -253,6 +256,9 @@ export class Panel implements OnInit, OnDestroy {
   protected readonly prefs = inject(PreferenciasService);
   protected readonly bienvenida = signal(this.debeSaludar());
   protected readonly cargandoRuta = signal(false);
+  protected readonly mostrarSubir = signal(false);
+  @HostListener('window:scroll') protected alDesplazar(): void { const v = scrollY > 600; if (v !== this.mostrarSubir()) this.mostrarSubir.set(v); }
+  protected subir(): void { scrollTo({ top: 0, behavior: document.documentElement.hasAttribute('data-quieto') ? 'auto' : 'smooth' }); }
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
 

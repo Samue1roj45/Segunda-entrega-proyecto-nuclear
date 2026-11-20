@@ -80,7 +80,7 @@ import { SomaApiService } from '../../core/soma-api.service';
         }
       }
 
-      @if (cargando()) { <p class="suave">Cargando…</p> }
+      @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando"><i></i><i></i><i></i></div> }
       @else if (resultados().length === 0) { <p class="cristal vacio">No hay resultados todavía para esa búsqueda.</p> }
       @else {
         <section class="cristal bloque">
