@@ -39,7 +39,8 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 
 /* Superficie de cristal reutilizable */
 .cristal {
-  background: linear-gradient(160deg, rgba(255,255,255,.68), rgba(255,255,255,.36));
+  --mx: -999px; --my: -999px;
+  background: radial-gradient(300px circle at var(--mx) var(--my), rgba(255,255,255,.7), transparent 70%), linear-gradient(160deg, rgba(255,255,255,.68), rgba(255,255,255,.36));
   border: 1px solid rgba(255, 255, 255, 0.78);
   border-radius: var(--radio);
   box-shadow: 0 26px 50px -30px rgba(59, 45, 92, 0.42), inset 0 1.5px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(150,130,200,.15);
@@ -169,7 +170,7 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 [data-tema='noche'] h1, [data-tema='noche'] h2, [data-tema='noche'] h3, [data-tema='noche'] h4 { color: #f1ecff; }
 [data-tema='noche'] a { color: #c3b3f5; }
 [data-tema='noche'] .cristal {
-  background: linear-gradient(160deg, rgba(76,60,130,.5), rgba(30,24,62,.46));
+  background: radial-gradient(300px circle at var(--mx) var(--my), rgba(170,140,255,.28), transparent 70%), linear-gradient(160deg, rgba(76,60,130,.5), rgba(30,24,62,.46));
   border-color: rgba(190,170,240,.22);
   box-shadow: 0 28px 50px -30px rgba(0,0,0,.75), inset 0 1.5px 0 rgba(255,255,255,.13), inset 0 -1px 0 rgba(0,0,0,.25);
 }
@@ -249,3 +250,13 @@ html[data-contraste] a { text-decoration: underline; }
 html[data-contraste][data-tema='noche'] { --tinta: #fff; --tinta-suave: #e8e0ff; }
 html[data-contraste][data-tema='noche'] .cristal, html[data-contraste][data-tema='noche'] .modal { background: #120d22; border-color: #cdbcff; color: #fff; }
 html[data-quieto] *, html[data-quieto] *::before, html[data-quieto] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+
+/* Entrada escalonada: las tarjetas aparecen una tras otra al abrir una pantalla (solo antes de empezar, no deja estado final). */
+@keyframes entra { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+.pagina > *, .resumen > *, .tarjetas > *, .columnas > * { animation: entra .6s cubic-bezier(.2,.7,.2,1) backwards; }
+:is(.pagina, .resumen, .tarjetas, .columnas) > :nth-child(2) { animation-delay: .06s; } :is(.pagina, .resumen, .tarjetas, .columnas) > :nth-child(3) { animation-delay: .12s; }
+:is(.pagina, .resumen, .tarjetas, .columnas) > :nth-child(4) { animation-delay: .18s; } :is(.pagina, .resumen, .tarjetas, .columnas) > :nth-child(5) { animation-delay: .24s; }
+:is(.pagina, .resumen, .tarjetas, .columnas) > :nth-child(n+6) { animation-delay: .3s; }
+/* Perspectiva para la inclinación 3D de las tarjetas */
+.resumen, .tarjetas { perspective: 1100px; }
+.kpi, .tarjeta-item { transition: rotate .25s ease-out, transform .25s, box-shadow .25s; will-change: rotate; }

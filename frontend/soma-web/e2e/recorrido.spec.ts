@@ -75,7 +75,9 @@ test('Ctrl+K abre el buscador y lleva a la sección elegida', async ({ page }) =
   await page.fill('#clave-login', 'Clave-Docente-01');
   await page.click('button.ingresar');
   await page.waitForURL(/\/inicio/);
+  await expect(page.locator('soma-paleta button').first()).toBeVisible();
   await page.keyboard.press('Control+k');
+  await expect(page.locator('input:focus')).toBeVisible();
   await page.keyboard.type('sesion');
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/sesiones$/);

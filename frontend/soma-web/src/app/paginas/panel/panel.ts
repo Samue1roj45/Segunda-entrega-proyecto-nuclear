@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, afterEveryRender, computed, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -58,7 +58,8 @@ const SECCIONES: readonly Seccion[] = [
           <span><strong>SOMA</strong><small>Psicología social</small></span>
         </a>
 
-        <nav aria-label="Secciones">
+        <nav aria-label="Secciones" #navegacion>
+          <span class="pildora" aria-hidden="true" [style.transform]="'translateY(' + pildora().y + 'px)'" [style.height.px]="pildora().h" [style.opacity]="pildora().h ? 1 : 0"></span>
           @for (g of grupos(); track g.nombre) {
             <p class="grupo">{{ g.nombre }}</p>
             @for (s of g.items; track s.titulo) {
@@ -158,16 +159,21 @@ const SECCIONES: readonly Seccion[] = [
     .marca { display: flex; align-items: center; gap: .75rem; text-decoration: none; padding: .1rem .5rem .6rem; border-bottom: 1px solid rgba(94,74,138,.12); }
     .marca strong { display: block; font-family: var(--serif); font-size: 1.85rem; font-weight: 600; line-height: 1; color: var(--lila-950); letter-spacing: .08em; }
     .marca small { color: var(--tinta-suave); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; }
-    nav { display: grid; gap: .2rem; align-content: start; overflow-y: auto; padding-right: 2px; flex: 1; scrollbar-width: none; }
+    .pildora { position: absolute; left: 0; right: 2px; top: 0; border-radius: 16px; z-index: 0; pointer-events: none;
+      background: linear-gradient(100deg, rgba(255,255,255,.85), rgba(255,255,255,.4)); box-shadow: 0 10px 24px -14px rgba(59,45,92,.55), inset 0 1px 0 #fff;
+      transition: transform .45s cubic-bezier(.3,1.3,.4,1), height .3s, opacity .2s; }
+    .pildora::before { content: ''; position: absolute; left: -1rem; top: 22%; bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: var(--lila-700); box-shadow: 0 0 12px var(--lila-500); }
+    :host-context([data-tema='noche']) .pildora { background: linear-gradient(100deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); box-shadow: 0 12px 26px -14px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.2); }
+    :host-context([data-tema='noche']) .pildora::before { background: #b49cf5; box-shadow: 0 0 14px #8a6fe0; }
+    nav { position: relative; display: grid; gap: .2rem; align-content: start; overflow-y: auto; padding-right: 2px; flex: 1; scrollbar-width: none; }
     .grupo { margin: .9rem .6rem .3rem; font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: var(--lila-500); font-weight: 500; }
     .grupo:first-child { margin-top: .2rem; }
     .item { position: relative; display: flex; align-items: center; gap: .75rem; padding: .5rem .6rem; border-radius: 16px; color: var(--tinta); text-decoration: none; transition: background .2s, transform .2s, box-shadow .2s; }
     .ico { width: 2.15rem; height: 2.15rem; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff; transition: background .2s, color .2s; color: var(--lila-700); }
     .ico svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
     .item:hover { background: rgba(255,255,255,.5); transform: translateX(2px); }
-    .item.activo { background: linear-gradient(100deg, rgba(255,255,255,.85), rgba(255,255,255,.4)); box-shadow: 0 10px 24px -14px rgba(59,45,92,.55), inset 0 1px 0 #fff; color: var(--lila-950); font-weight: 500; }
+    .item { z-index: 1; } .item.activo { color: var(--lila-950); font-weight: 500; }
     .item.activo .ico { background: linear-gradient(145deg, var(--lila-500), var(--lila-900)); color: #fff; box-shadow: 0 8px 16px -8px rgba(59,45,92,.7), inset 0 1px 0 rgba(255,255,255,.35); }
-    .item.activo::before { content: ''; position: absolute; left: -1rem; top: 22%; bottom: 22%; width: 4px; border-radius: 0 4px 4px 0; background: var(--lila-700); box-shadow: 0 0 12px var(--lila-500); }
 
     .perfil { display: flex; align-items: center; gap: .65rem; padding: .6rem; border-radius: 20px; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); box-shadow: inset 0 1px 0 #fff; }
     .avatar { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 600; font-size: .9rem;
@@ -213,9 +219,8 @@ const SECCIONES: readonly Seccion[] = [
     :host-context([data-tema='noche']) .item { color: #d8d0ef; }
     :host-context([data-tema='noche']) .ico { background: rgba(255,255,255,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: #c6b9ee; }
     :host-context([data-tema='noche']) .item:hover { background: rgba(255,255,255,.07); }
-    :host-context([data-tema='noche']) .item.activo { background: linear-gradient(100deg, rgba(255,255,255,.16), rgba(255,255,255,.05)); color: #fff; box-shadow: 0 12px 26px -14px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.2); }
+    :host-context([data-tema='noche']) .item.activo { color: #fff; }
     :host-context([data-tema='noche']) .item.activo .ico { background: linear-gradient(145deg, #9b83e6, #5a3fb0); color: #fff; }
-    :host-context([data-tema='noche']) .item.activo::before { background: #b49cf5; box-shadow: 0 0 14px #8a6fe0; }
     :host-context([data-tema='noche']) .grupo { color: #8c7fbd; }
     :host-context([data-tema='noche']) .perfil { background: rgba(255,255,255,.07); border-color: rgba(190,170,240,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
     :host-context([data-tema='noche']) .salir, :host-context([data-tema='noche']) .tema, :host-context([data-tema='noche']) .chip { background: rgba(255,255,255,.09); border-color: rgba(190,170,240,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: #e2daf7; }
@@ -232,7 +237,9 @@ const SECCIONES: readonly Seccion[] = [
       .marca, .grupo, .perfil .datos, .txt { display: none; }
       nav { display: flex; flex: 1; gap: .15rem; overflow-x: auto; }
       .item { padding: .3rem; flex: none; }
-      .item.activo::before { display: none; }
+      .pildora { display: none; }
+      .item.activo { background: linear-gradient(100deg, rgba(255,255,255,.85), rgba(255,255,255,.4)); box-shadow: 0 10px 24px -14px rgba(59,45,92,.55), inset 0 1px 0 #fff; }
+      :host-context([data-tema='noche']) .item.activo { background: rgba(255,255,255,.14); }
       .perfil { padding: .2rem; background: none; border: 0; box-shadow: none; }
       .avatar { display: none; } .enlace-perfil { flex: none; }
       .marco.enfoque { padding-bottom: 1rem; }
@@ -301,10 +308,23 @@ export class Panel implements OnInit, OnDestroy {
     }
   });
 
+  private readonly navegacion = viewChild<ElementRef<HTMLElement>>('navegacion');
+  protected readonly pildora = signal({ y: 0, h: 0 });
+
+  /** Coloca la píldora detrás del elemento activo del menú (se desliza con una animación elástica). */
+  private posicionarPildora(): void {
+    const nav = this.navegacion()?.nativeElement, activo = nav?.querySelector<HTMLElement>('.item.activo');
+    const n = activo ? { y: activo.offsetTop, h: activo.offsetHeight } : { y: 0, h: 0 };
+    const a = this.pildora();
+    if (n.y !== a.y || n.h !== a.h) this.pildora.set(n);
+  }
+
   constructor() {
+    afterEveryRender(() => this.posicionarPildora());
     this.router.events.subscribe((e) => {
       if (e instanceof NavigationStart) this.cargandoRuta.set(true);
       else if (e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError) this.cargandoRuta.set(false);
+      if (e instanceof NavigationEnd) setTimeout(() => this.posicionarPildora(), 30);
     });
   }
 

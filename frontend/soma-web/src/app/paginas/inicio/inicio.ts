@@ -4,6 +4,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Barras } from '../../compartido/graficas';
+import { Neuronas } from '../../compartido/neuronas';
 import { Contar } from '../../compartido/contar';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Permiso } from '../../core/modelos/permiso';
@@ -51,10 +52,11 @@ const ESTADOS: Record<string, string> = {
  */
 @Component({
   selector: 'app-inicio',
-  imports: [Barras, Contar, DatePipe, DecimalPipe, RouterLink],
+  imports: [Barras, Contar, Neuronas, DatePipe, DecimalPipe, RouterLink],
   template: `
     <section class="bienvenida cristal">
-      <div>
+      <soma-neuronas />
+      <div class="texto-bienvenida">
         <p class="sobre">{{ esEstudiante() ? 'Tu espacio de práctica' : esAdministrador() ? 'Administración' : 'Tu espacio docente' }}</p>
         <h2>Explora realidades,<br />comprende personas.</h2>
         <p class="suave">
@@ -214,6 +216,7 @@ const ESTADOS: Record<string, string> = {
       padding: 2.2rem 2.4rem; min-height: 230px;
       background: radial-gradient(90% 140% at 100% 0%, rgba(201,184,240,.75), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(236,229,250,.5));
     }
+    .texto-bienvenida, .cerebro { position: relative; z-index: 1; }
     .bienvenida h2 { font-size: clamp(2rem, 2.8vw, 2.8rem); line-height: 1.04; margin: .3rem 0 .8rem; }
     .bienvenida .suave { max-width: 34rem; line-height: 1.55; }
     .sobre { text-transform: uppercase; letter-spacing: .2em; font-size: .7rem; color: var(--lila-700); }

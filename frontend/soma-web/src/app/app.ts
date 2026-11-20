@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ConexionService } from './core/red';
+import { EfectosService } from './core/efectos.service';
 import { PreferenciasService } from './core/preferencias.service';
 import { RouterOutlet } from '@angular/router';
 import { Dialogos } from './compartido/dialogos';
@@ -14,6 +15,6 @@ import { Toasts } from './compartido/toasts';
 })
 export class App {
   protected readonly conexion = inject(ConexionService);
-  constructor() { inject(PreferenciasService); }
+  constructor() { inject(PreferenciasService); inject(EfectosService).iniciar(); }
   protected saltar(e: Event): void { e.preventDefault(); const m = document.getElementById('contenido'); m?.focus(); m?.scrollIntoView(); }
 }
