@@ -3,7 +3,7 @@ import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
 import { TemaService } from '../../core/tema.service';
 import { ToastService } from '../../core/toast.service';
-import { PreferenciasService, COLORES_AVATAR } from '../../core/preferencias.service';
+import { ACENTOS, PreferenciasService, COLORES_AVATAR } from '../../core/preferencias.service';
 
 const NOMBRES: Record<string, string> = {
   [Permiso.ParticiparEnCasos]: 'Participar en casos', [Permiso.ConsultarResultadosPropios]: 'Consultar mis resultados',
@@ -36,6 +36,13 @@ const NOMBRES: Record<string, string> = {
               <button type="button" [class.activa]="temas.tema() === 'noche'" (click)="poner('noche', $event)">Noche</button>
             </div>
           </div>
+          <div class="fila"><span>Color de la plataforma</span>
+            <div class="colores" role="group" aria-label="Color de la plataforma">
+              @for (a of acentos; track a.id) {
+                <button type="button" class="color" [class.sel]="prefs.acento() === $index" [style.background]="a.muestra" (click)="prefs.fijarAcento($index)" [attr.aria-label]="a.nombre" [title]="a.nombre"></button>
+              }
+            </div>
+          </div>
           <div class="fila"><span>Color de tu avatar</span>
             <div class="colores" role="group" aria-label="Color del avatar">
               @for (c of colores; track $index) {
@@ -49,6 +56,7 @@ const NOMBRES: Record<string, string> = {
               <option value="0">Normal</option><option value="1">Grande</option><option value="2">Muy grande</option></select></label>
           <label class="fila interruptor"><span>Alto contraste</span><input type="checkbox" [checked]="prefs.contraste()" (change)="prefs.fijarContraste($any($event.target).checked)" /></label>
           <label class="fila interruptor"><span>Reducir animaciones</span><input type="checkbox" [checked]="prefs.sinMovimiento()" (change)="prefs.fijarSinMovimiento($any($event.target).checked)" /></label>
+          <label class="fila interruptor"><span>Sonidos suaves (clics y avisos)</span><input type="checkbox" [checked]="prefs.sonido()" (change)="prefs.fijarSonido($any($event.target).checked)" /></label>
           <label class="fila interruptor"><span>Mostrar la campana de notificaciones</span><input type="checkbox" [checked]="prefs.campana()" (change)="prefs.fijarCampana($any($event.target).checked)" /></label>
           <p class="ayuda">Estas preferencias se guardan solo en este navegador.</p>
         </section>
@@ -81,6 +89,7 @@ export class Perfil {
   protected readonly colores = COLORES_AVATAR;
 
   protected readonly iniciales = computed(() => (this.sesion()?.nombreCompleto ?? '').split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join(''));
+  protected readonly acentos = ACENTOS;
   protected readonly degradado = computed(() => { const c = COLORES_AVATAR[this.prefs.avatar()]; return `linear-gradient(135deg, ${c[0]}, ${c[1]})`; });
   protected readonly rol = computed(() => ({ ADMINISTRADOR: 'Administrador', DOCENTE: 'Docente', ESTUDIANTE: 'Estudiante' } as Record<string, string>)[this.sesion()?.rol ?? ''] ?? '');
   protected readonly permisos = computed(() => (this.sesion()?.permisos ?? []).map((p) => NOMBRES[p] ?? p));

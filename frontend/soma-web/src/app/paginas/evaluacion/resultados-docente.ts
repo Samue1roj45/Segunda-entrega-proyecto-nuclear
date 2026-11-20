@@ -60,6 +60,24 @@ import { SomaApiService } from '../../core/soma-api.service';
             @if (aciertos().length) { @defer (on idle) { <soma-barras [datos]="aciertos()" /> } @placeholder { <p class="suave">Cargando gráfica…</p> } } @else { <p class="suave">{{ calculando() ? 'Calculando…' : 'Se mostrará cuando haya intentos con detalle.' }}</p> }
           </section>
         </div>
+        @if (mapa().filas.length) {
+          <section class="cristal bloque">
+            <h3>Mapa de calor</h3>
+            <p class="ayuda">Cada fila es un estudiante y cada columna una pregunta. Verde: correcta · rojo: incorrecta · gris: sin responder.</p>
+            <div class="mapa-envoltorio" role="table" aria-label="Mapa de calor de respuestas por estudiante y pregunta">
+              <div class="mapa" [style.grid-template-columns]="'minmax(130px, 200px) repeat(' + mapa().columnas.length + ', minmax(26px, 48px))'">
+                <span class="m-vacio"></span>
+                @for (c of mapa().columnas; track c.id) { <span class="m-col" [title]="c.texto">{{ c.n }}</span> }
+                @for (f of mapa().filas; track f.nombre + f.intento) {
+                  <span class="m-fila" [title]="f.nombre">{{ f.nombre }}</span>
+                  @for (c of mapa().columnas; track c.id) {
+                    <span class="m-cel" [class]="'m-cel ' + (f.celdas[c.id] || 'na')" [title]="f.nombre + ' · P' + c.n + ': ' + etiquetaCelda(f.celdas[c.id])"></span>
+                  }
+                }
+              </div>
+            </div>
+          </section>
+        }
       }
 
       @if (cargando()) { <p class="suave">Cargando…</p> }
@@ -176,6 +194,13 @@ import { SomaApiService } from '../../core/soma-api.service';
     .paginacion { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: .9rem; }
     .nav-calificar { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; } .nav-calificar h3 { margin: 0; }
     .plantillas { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }
+    .mapa-envoltorio { overflow-x: auto; padding-bottom: .4rem; }
+    .mapa { display: grid; gap: 3px; align-items: center; margin-top: .6rem; }
+    .m-col { text-align: center; font-size: .72rem; color: var(--tinta-suave); } .m-fila { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: .5rem; }
+    .m-cel { height: 26px; border-radius: 7px; background: rgba(120,110,150,.22); transition: transform .15s; animation: m-aparece .5s backwards; }
+    .m-cel:hover { transform: scale(1.25); position: relative; z-index: 1; }
+    .m-cel.ok { background: linear-gradient(145deg, #7fd3a6, #2f9d6b); } .m-cel.mal { background: linear-gradient(145deg, #f3a0a0, #d9534f); }
+    @keyframes m-aparece { from { opacity: 0; transform: scale(.4); } }
     .dos { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; align-items: start; }
   `,
 })
@@ -202,6 +227,15 @@ export class ResultadosDocente implements OnInit {
   private readonly toasts = inject(ToastService);
   protected readonly aciertos = signal<{ etiqueta: string; valor: number }[]>([]);
   protected readonly calculando = signal(false);
+  protected readonly detalles = signal<ResultadoDetalle[]>([]);
+  /** Matriz estudiante × pregunta con el estado de cada respuesta (hasta 40 intentos). */
+  protected readonly mapa = computed(() => {
+    const d = this.detalles(), cols = new Map<number, { id: number; n: number; texto: string }>();
+    for (const r of d) for (const q of r.detallePreguntas) if (!cols.has(q.preguntaId)) cols.set(q.preguntaId, { id: q.preguntaId, n: cols.size + 1, texto: q.enunciado });
+    const filas = d.map((r) => ({ nombre: r.estudianteNombre, intento: r.numeroIntento, celdas: Object.fromEntries(r.detallePreguntas.map((q) => [q.preguntaId, !q.respondida ? 'na' : q.correcta ? 'ok' : 'mal'])) as Record<number, string> }));
+    return { columnas: [...cols.values()], filas };
+  });
+  protected etiquetaCelda(v: string | undefined): string { return v === 'ok' ? 'correcta' : v === 'mal' ? 'incorrecta' : 'sin responder'; }
   protected readonly proporciones = computed(() => this.resultados().map((r) => (r.escalaMaxima ? Number(r.notaFinal) / Number(r.escalaMaxima) : 0)));
   protected readonly estadisticas = computed(() => {
     const n = this.resultados().map((r) => Number(r.notaFinal));
@@ -285,11 +319,12 @@ export class ResultadosDocente implements OnInit {
 
   /** Porcentaje de intentos que acertó cada pregunta; lee el detalle de hasta 40 intentos. */
   private calcularAciertos(lista: ResultadoDetalle[]): void {
-    this.aciertos.set([]);
+    this.aciertos.set([]); this.detalles.set([]);
     if (!lista.length) return;
     this.calculando.set(true);
     forkJoin(lista.slice(0, 40).map((r) => this.api.resultado(r.id))).subscribe({
       next: (detalles) => {
+        this.detalles.set(detalles);
         const m = new Map<number, { e: string; ok: number; n: number }>();
         for (const d of detalles) for (const q of d.detallePreguntas) {
           const x = m.get(q.preguntaId) ?? { e: q.enunciado, ok: 0, n: 0 };

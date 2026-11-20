@@ -260,3 +260,19 @@ html[data-quieto] *, html[data-quieto] *::before, html[data-quieto] *::after { a
 /* Perspectiva para la inclinación 3D de las tarjetas */
 .resumen, .tarjetas { perspective: 1100px; }
 .kpi, .tarjeta-item { transition: rotate .25s ease-out, transform .25s, box-shadow .25s; will-change: rotate; }
+
+/* Paletas de acento (Perfil → Color de la plataforma). Solo dentro del panel (data-tema); --giro tiñe imágenes y luces. */
+html[data-acento][data-tema] .aurora, html[data-acento][data-tema] .cerebro, html[data-acento][data-tema] .marca img, html[data-acento][data-tema] soma-logo { filter: hue-rotate(var(--giro)) saturate(var(--sat, 1)); }
+html[data-acento='oceano'][data-tema] { --giro: -62deg; --lila-950: #11283f; --lila-900: #17395a; --lila-800: #1f4f7d; --lila-700: #2a6aa3; --lila-500: #5f9bd0; --lila-300: #b7d3ee; --lila-200: #d3e5f6; --lila-100: #e6f1fb; --lila-50: #f3f8fd; }
+html[data-acento='bosque'][data-tema] { --giro: -118deg; --lila-950: #12301f; --lila-900: #1b4630; --lila-800: #266243; --lila-700: #2f7d56; --lila-500: #62a885; --lila-300: #b5dcc6; --lila-200: #d3eadc; --lila-100: #e6f4ec; --lila-50: #f3faf6; }
+html[data-acento='atardecer'][data-tema] { --giro: 62deg; --lila-950: #40182a; --lila-900: #5c2440; --lila-800: #7d3158; --lila-700: #a23e70; --lila-500: #d17aa0; --lila-300: #efbad0; --lila-200: #f7d5e3; --lila-100: #fbe7ef; --lila-50: #fef4f8; }
+html[data-acento='grafito'][data-tema] { --giro: 0deg; --sat: 0; --lila-950: #1d1f26; --lila-900: #2c2f3a; --lila-800: #3d4150; --lila-700: #52576a; --lila-500: #868ca3; --lila-300: #c6c9d6; --lila-200: #dcdee7; --lila-100: #ebecf1; --lila-50: #f6f6f9; }
+html[data-acento='oceano'][data-tema='noche'] { --lila-700: #8cc3f2; --lila-800: #7ab5ea; --lila-900: #dff0ff; }
+html[data-acento='bosque'][data-tema='noche'] { --lila-700: #8fd8b0; --lila-800: #7acba0; --lila-900: #e0f7ea; }
+html[data-acento='atardecer'][data-tema='noche'] { --lila-700: #f0a3c6; --lila-800: #ea8fb8; --lila-900: #ffe3ef; }
+html[data-acento='grafito'][data-tema='noche'] { --lila-700: #b9bed2; --lila-800: #a8aec6; --lila-900: #eceef8; }
+
+/* Botones: onda de luz al pulsar y efecto magnético (translate no choca con transform) */
+.boton-primario, .boton-suave { position: relative; overflow: hidden; transition: translate .2s ease-out, transform .15s ease, box-shadow .15s ease; }
+.onda { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 65%); transform: scale(0); animation: onda .6s ease-out forwards; pointer-events: none; }
+@keyframes onda { to { transform: scale(1); opacity: 0; } }

@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { SonidoService } from './sonido.service';
 
 export interface Aviso { readonly id: number; readonly tipo: 'ok' | 'error' | 'info'; readonly texto: string }
 
@@ -6,6 +7,7 @@ export interface Aviso { readonly id: number; readonly tipo: 'ok' | 'error' | 'i
 @Injectable({ providedIn: 'root' })
 export class ToastService {
   readonly avisos = signal<Aviso[]>([]);
+  private readonly sonido = inject(SonidoService);
   private siguiente = 1;
 
   ok(texto: string): void { this.mostrar('ok', texto); }
@@ -15,6 +17,7 @@ export class ToastService {
   cerrar(id: number): void { this.avisos.update((a) => a.filter((x) => x.id !== id)); }
 
   private mostrar(tipo: Aviso['tipo'], texto: string, ms = 3800): void {
+    if (tipo === 'ok') this.sonido.exito(); else if (tipo === 'error') this.sonido.error(); else this.sonido.aviso();
     const id = this.siguiente++;
     this.avisos.update((a) => [...a.slice(-3), { id, tipo, texto }]);
     setTimeout(() => this.cerrar(id), ms);
