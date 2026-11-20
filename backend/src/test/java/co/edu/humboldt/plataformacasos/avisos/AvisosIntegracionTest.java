@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 /** Avisos, auditoría y bloqueo de ingreso, de punta a punta con JWT, Proxy, JPA y migraciones. */
 @SpringBootTest(properties = "pruebas.contexto=avisos")
@@ -36,6 +37,8 @@ class AvisosIntegracionTest {
     private ObjectMapper json;
     @Autowired
     private JdbcTemplate jdbc;
+    @Autowired
+    private AvisosDeSesion avisosDeSesion;
 
     private String token(String correo, String clave) throws Exception {
         Sesiones s = new Sesiones(mockMvc, json);
@@ -100,6 +103,12 @@ class AvisosIntegracionTest {
         MvcResult auditoria = mockMvc.perform(get("/api/auditoria").header("Authorization", "Bearer " + token(ADMIN, "Clave-Admin-01"))).andReturn();
         assertThat(auditoria.getResponse().getStatus()).isEqualTo(200);
         assertThat(auditoria.getResponse().getContentAsString(StandardCharsets.UTF_8)).contains("INGRESO");
+        String admin = token(ADMIN, "Clave-Admin-01");
+        String filtrada = mockMvc.perform(get("/api/auditoria?accion=INGRESO&limite=1").header("Authorization", "Bearer " + admin)).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(filtrada).contains("INGRESO").doesNotContain("CUENTA_BLOQUEADA");
+        String pasada = mockMvc.perform(get("/api/auditoria?desplazamiento=100000").header("Authorization", "Bearer " + admin)).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        assertThat(pasada).isEqualTo("[]");
+        assertThat(mockMvc.perform(get("/api/auditoria/acciones").header("Authorization", "Bearer " + admin)).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8)).contains("INGRESO");
     }
 
     @Test
@@ -110,5 +119,43 @@ class AvisosIntegracionTest {
         assertThat(avisosDe(admin).get("noLeidos").asInt()).isGreaterThan(0);
         mockMvc.perform(post("/api/avisos/leidos").header("Authorization", "Bearer " + admin).contentType(MediaType.APPLICATION_JSON)).andReturn();
         assertThat(avisosDe(admin).get("noLeidos").asInt()).isZero();
+    }
+
+    @Test
+    @DisplayName("Las preferencias se guardan por usuario, se validan y no se mezclan entre usuarios")
+    void preferenciasPorUsuario() throws Exception {
+        String carlos = token(CARLOS, "Clave-Docente-01");
+        String laura = token(LAURA, "Clave-Docente-02");
+        var tipo = org.springframework.http.MediaType.APPLICATION_JSON;
+        assertThat(mockMvc.perform(get("/api/preferencias").header("Authorization", "Bearer " + carlos)).andReturn().getResponse().getContentAsString()).isEqualTo("{}");
+        assertThat(mockMvc.perform(put("/api/preferencias").header("Authorization", "Bearer " + carlos).contentType(tipo)
+                .content("{\"acento\":2,\"tema\":\"auto\",\"quieto\":true}")).andReturn().getResponse().getStatus()).isEqualTo(204);
+        assertThat(mockMvc.perform(put("/api/preferencias").header("Authorization", "Bearer " + carlos).contentType(tipo)
+                .content("{\"acento\":3}")).andReturn().getResponse().getStatus()).isEqualTo(204);
+        assertThat(mockMvc.perform(get("/api/preferencias").header("Authorization", "Bearer " + carlos)).andReturn().getResponse().getContentAsString()).isEqualTo("{\"acento\":3}");
+        assertThat(mockMvc.perform(get("/api/preferencias").header("Authorization", "Bearer " + laura)).andReturn().getResponse().getContentAsString()).isEqualTo("{}");
+        assertThat(mockMvc.perform(put("/api/preferencias").header("Authorization", "Bearer " + carlos).contentType(tipo)
+                .content("{\"x\":{\"a\":1}}")).andReturn().getResponse().getStatus()).isEqualTo(400);
+        assertThat(mockMvc.perform(get("/api/preferencias")).andReturn().getResponse().getStatus()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("Al iniciar y finalizar una sesión avisan los convocados y el docente ")
+    void avisosDeInicioYCierreDeSesion() throws Exception {
+        long carlos = jdbc.queryForObject("SELECT id FROM usuario WHERE correo_institucional = ?", Long.class, CARLOS);
+        long ana = jdbc.queryForObject("SELECT id FROM usuario WHERE correo_institucional = ?", Long.class, "ana.perez@institucion.edu.co");
+        jdbc.update("INSERT INTO casos_estudio (id_docente, nombre, estado, fecha_creacion, fecha_actualizacion) VALUES (?, 'Caso de avisos', 'PUBLICADO', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)", carlos);
+        long caso = jdbc.queryForObject("SELECT MAX(id_caso) FROM casos_estudio WHERE nombre = 'Caso de avisos'", Long.class);
+        jdbc.update("INSERT INTO practicas (id_caso, id_docente, espacio_academico, fecha_inicio, fecha_fin, tiempo_maximo_minutos) VALUES (?, ?, 'Aula', DATEADD('HOUR', -1, CURRENT_TIMESTAMP), DATEADD('HOUR', 1, CURRENT_TIMESTAMP), 30)", caso, carlos);
+        long practica = jdbc.queryForObject("SELECT MAX(id_practica) FROM practicas WHERE id_caso = ?", Long.class, caso);
+        jdbc.update("INSERT INTO autorizaciones (id_practica, id_estudiante, codigo_hash) VALUES (?, ?, 'x')", practica, ana);
+
+        // Se llama al escuchador directamente: publicar el evento real dispararía también la evaluación de una sesión inventada.
+        avisosDeSesion.alIniciar(new co.edu.humboldt.plataformacasos.sesiones.evento.SesionIniciadaEvento(practica));
+        avisosDeSesion.alFinalizar(new co.edu.humboldt.plataformacasos.sesiones.evento.SesionFinalizadaEvento(practica, "MANUAL"));
+
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM aviso WHERE usuario_id = ? AND tipo = 'SESION_INICIADA' AND mensaje LIKE '%Caso de avisos%'", Long.class, ana)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM aviso WHERE usuario_id = ? AND tipo = 'SESION_FINALIZADA'", Long.class, ana)).isEqualTo(1L);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM aviso WHERE usuario_id = ? AND tipo = 'SESION_FINALIZADA'", Long.class, carlos)).isEqualTo(1L);
     }
 }

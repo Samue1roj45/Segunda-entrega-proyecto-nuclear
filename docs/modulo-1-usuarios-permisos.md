@@ -78,7 +78,13 @@ Documentos en `docs/modulo-1/pruebas`: PT-DCP-01 versiones 1 a 5 (plan, ejecuci�
   permisos de `Permiso`: `GESTIONAR_CASOS` (módulo 2 y herramientas de RF-28), `PROGRAMAR_SESIONES` (RF-04, RF-18,
   RF-19, RF-21), `AUTORIZAR_REPETICION` (RF-25), `CONSULTAR_PARTICIPACIONES` (RF-13 a RF-15, RF-24),
   `DESCARGAR_REPORTES` (RF-16), `REGISTRAR_RETROALIMENTACION` (RF-26); el estudiante usa `PARTICIPAR_EN_CASOS` y
-  `CONSULTAR_RESULTADOS_PROPIOS`.
+  `CONSULTAR_RESULTADOS_PROPIOS`. `ELIMINAR_CASOS` es un permiso **adicional**: no viene con el rol docente, lo asigna
+  el administrador (eliminar casos propios, con papelera y restauración).
+- **Avisos, auditoría y bloqueo:** `GET /api/avisos` (los del usuario, con `limite`), `POST /api/avisos/{id}/leido`,
+  `POST /api/avisos/leidos`; llegan a la campana y al correo institucional (`AVISOS_CORREO=false` lo desactiva).
+  `GET /api/auditoria?limite=&desplazamiento=&accion=` y `GET /api/auditoria/acciones` son solo del administrador
+  (`ADMINISTRAR_DOCENTES`). Tras 5 intentos de ingreso fallidos seguidos la cuenta se bloquea 15 minutos (429).
+- **Preferencias de interfaz:** `GET`/`PUT /api/preferencias` guardan por usuario un objeto plano (tema, color, tamaño de letra…).
 - **RF-20:** `VerificadorCodigoAutorizacion` lo implementa el módulo 3 (`VerificadorCodigoAcceso`). Se eliminaron
   `VerificadorCodigoAutorizacionTemporal`, la migración `V2` y la tabla `codigo_autorizacion_temporal`.
 - **Compartido:** `ManejadorErroresApi` y `ErrorApi` son el formato de error de toda la API; se agregó

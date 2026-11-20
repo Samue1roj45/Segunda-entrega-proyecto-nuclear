@@ -48,8 +48,16 @@ public class AvisoControlador {
     }
 
     @GetMapping("/auditoria")
-    public List<EntradaAuditoriaDto> auditoria(@RequestParam(defaultValue = "100") int limite) {
+    public List<EntradaAuditoriaDto> auditoria(@RequestParam(defaultValue = "50") int limite,
+                                               @RequestParam(defaultValue = "0") int desplazamiento,
+                                               @RequestParam(required = false) String accion) {
         autorizacion.exigirPermiso(Permiso.ADMINISTRAR_DOCENTES);
-        return avisos.auditoria(limite);
+        return avisos.auditoria(limite, desplazamiento, accion);
+    }
+
+    @GetMapping("/auditoria/acciones")
+    public List<String> accionesAuditadas() {
+        autorizacion.exigirPermiso(Permiso.ADMINISTRAR_DOCENTES);
+        return avisos.accionesAuditadas();
     }
 }

@@ -136,12 +136,22 @@ public class ServicioAvisos {
         jdbc.update("UPDATE aviso SET leido = TRUE WHERE usuario_id = ? AND leido = FALSE", usuarioId);
     }
 
+    /** Registros más recientes primero; {@code desplazamiento} permite pedir páginas siguientes y {@code accion} filtrar. */
     @Transactional(readOnly = true)
-    public List<EntradaAuditoriaDto> auditoria(int limite) {
-        return jdbc.query("SELECT id, fecha, actor_correo, accion, detalle FROM auditoria ORDER BY id DESC LIMIT ?",
-                (rs, n) -> new EntradaAuditoriaDto(rs.getLong("id"), rs.getTimestamp("fecha").toLocalDateTime(),
-                        rs.getString("actor_correo"), rs.getString("accion"), rs.getString("detalle")),
-                Math.max(1, Math.min(limite, 500)));
+    public List<EntradaAuditoriaDto> auditoria(int limite, int desplazamiento, String accion) {
+        boolean filtra = accion != null && !accion.isBlank();
+        String sql = "SELECT id, fecha, actor_correo, accion, detalle FROM auditoria "
+                + (filtra ? "WHERE accion = ? " : "") + "ORDER BY id DESC LIMIT ? OFFSET ?";
+        var mapa = (org.springframework.jdbc.core.RowMapper<EntradaAuditoriaDto>) (rs, n) -> new EntradaAuditoriaDto(rs.getLong("id"),
+                rs.getTimestamp("fecha").toLocalDateTime(), rs.getString("actor_correo"), rs.getString("accion"), rs.getString("detalle"));
+        int lim = Math.max(1, Math.min(limite, 200));
+        int off = Math.max(0, desplazamiento);
+        return filtra ? jdbc.query(sql, mapa, accion.trim(), lim, off) : jdbc.query(sql, mapa, lim, off);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> accionesAuditadas() {
+        return jdbc.queryForList("SELECT DISTINCT accion FROM auditoria ORDER BY accion", String.class);
     }
 
     private Timestamp ahora() {

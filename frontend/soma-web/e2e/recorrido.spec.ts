@@ -168,3 +168,16 @@ test('una dirección que no existe muestra la página 404 dentro del panel', asy
   await page.goto('/ruta-que-no-existe');
   await expect(page.getByText('Esta página se perdió en la niebla')).toBeVisible();
 });
+
+test('el docente abre el panel de estadísticas', async ({ page }) => {
+  const estado = new Estado();
+  await instalarServidorSimulado(page, estado);
+  await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));
+  await page.goto('/login');
+  await page.fill('#correo-login', 'carlos.gomez@institucion.edu.co');
+  await page.fill('#clave-login', 'Clave-Docente-01');
+  await page.click('button.ingresar');
+  await page.waitForURL(/\/inicio/);
+  await page.goto('/estadisticas');
+  await expect(page.locator('.vacio, #resumen-estadisticas').first()).toBeVisible();
+});

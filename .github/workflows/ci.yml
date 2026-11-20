@@ -16,6 +16,47 @@ jobs:
         working-directory: backend
         run: mvn -B -q test
 
+  # Las pruebas usan H2; aquí se comprueba que todas las migraciones (Flyway) corren en MySQL de verdad y que el servicio arranca.
+  backend-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: plataforma_casos
+          MYSQL_USER: plataforma
+          MYSQL_PASSWORD: clave-ci
+          MYSQL_ROOT_PASSWORD: clave-ci-root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pclave-ci-root"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21', cache: maven }
+      - name: Compilar
+        working-directory: backend
+        run: mvn -B -q -DskipTests package
+      - name: Arrancar contra MySQL y esperar a que respondan las rutas protegidas
+        working-directory: backend
+        env:
+          DB_URL: jdbc:mysql://127.0.0.1:3306/plataforma_casos?serverTimezone=America/Bogota
+          DB_USER: plataforma
+          DB_PASSWORD: clave-ci
+          JWT_SECRETO: secreto-solo-para-ci-con-mas-de-treinta-y-dos-caracteres
+          SPRING_PROFILES_ACTIVE: pruebas
+          AVISOS_CORREO: 'false'
+        run: |
+          java -jar target/*.jar > /tmp/backend.log 2>&1 &
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/avisos || true)
+            if [ "$code" = "401" ]; then echo "Servicio arriba (migraciones aplicadas)"; exit 0; fi
+            sleep 3
+          done
+          tail -n 80 /tmp/backend.log
+          exit 1
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

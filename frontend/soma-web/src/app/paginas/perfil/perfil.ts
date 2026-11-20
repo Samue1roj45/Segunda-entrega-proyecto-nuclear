@@ -1,7 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
-import { TemaService } from '../../core/tema.service';
+import { ModoTema, TemaService } from '../../core/tema.service';
 import { ToastService } from '../../core/toast.service';
 import { ACENTOS, PreferenciasService, COLORES_AVATAR } from '../../core/preferencias.service';
 
@@ -32,8 +32,9 @@ const NOMBRES: Record<string, string> = {
           <h3>Apariencia</h3>
           <div class="fila"><span>Modo</span>
             <div class="pestanas" role="group" aria-label="Modo de color">
-              <button type="button" [class.activa]="temas.tema() === 'dia'" (click)="poner('dia', $event)">Día</button>
-              <button type="button" [class.activa]="temas.tema() === 'noche'" (click)="poner('noche', $event)">Noche</button>
+              <button type="button" [class.activa]="temas.modo() === 'auto'" (click)="poner('auto', $event)" title="Sigue el modo de tu dispositivo">Automático</button>
+              <button type="button" [class.activa]="temas.modo() === 'dia'" (click)="poner('dia', $event)">Día</button>
+              <button type="button" [class.activa]="temas.modo() === 'noche'" (click)="poner('noche', $event)">Noche</button>
             </div>
           </div>
           <div class="fila"><span>Color de la plataforma</span>
@@ -94,10 +95,10 @@ export class Perfil {
   protected readonly rol = computed(() => ({ ADMINISTRADOR: 'Administrador', DOCENTE: 'Docente', ESTUDIANTE: 'Estudiante' } as Record<string, string>)[this.sesion()?.rol ?? ''] ?? '');
   protected readonly permisos = computed(() => (this.sesion()?.permisos ?? []).map((p) => NOMBRES[p] ?? p));
 
-  protected poner(t: 'dia' | 'noche', e: MouseEvent): void {
-    if (this.temas.tema() === t) return;
+  protected poner(t: ModoTema, e: MouseEvent): void {
+    if (this.temas.modo() === t) return;
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    this.temas.alternar({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-    this.toasts.info(t === 'noche' ? 'Modo noche activado' : 'Modo día activado');
+    this.temas.alternar({ x: r.left + r.width / 2, y: r.top + r.height / 2 }, t);
+    this.toasts.info(t === 'noche' ? 'Modo noche activado' : t === 'dia' ? 'Modo día activado' : 'El modo sigue a tu dispositivo');
   }
 }

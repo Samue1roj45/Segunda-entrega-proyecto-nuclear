@@ -8,6 +8,7 @@ import co.edu.humboldt.plataformacasos.sesiones.dto.SesionDto;
 import co.edu.humboldt.plataformacasos.sesiones.estado.EstadoSesion;
 import co.edu.humboldt.plataformacasos.sesiones.estado.EstadosSesion;
 import co.edu.humboldt.plataformacasos.sesiones.evento.SesionFinalizadaEvento;
+import co.edu.humboldt.plataformacasos.sesiones.evento.SesionIniciadaEvento;
 import co.edu.humboldt.plataformacasos.sesiones.repositorio.SesionRepositorio;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,7 @@ public class ServicioGestionSesion {
     public SesionDto iniciar(Long idPractica, Long idDocente) {
         EstadoSesion estado = EstadosSesion.de(cargar(idPractica, idDocente).estado());
         estado.iniciar(repo, idPractica, idDocente);
+        eventos.publishEvent(new SesionIniciadaEvento(idPractica));
         return obtener(idPractica, idDocente);
     }
 

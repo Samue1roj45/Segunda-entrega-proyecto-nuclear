@@ -64,6 +64,10 @@ Todas las rutas exigen `Authorization: Bearer <token>` del módulo 1. Las de `/a
 | `GET /api/casos/{id}/validacion` | Informe de reglas, sin cambiar el estado |
 | `POST /api/casos/{id}/publicacion` | Publica o responde 422 con los incumplimientos |
 | `POST /api/casos/{id}/archivo` | Archiva un caso publicado |
+| `DELETE /api/casos/{id}` | Mueve el caso a la papelera. Exige además `ELIMINAR_CASOS` (permiso adicional que da el administrador) y que ninguna sesión use el caso (409) |
+| `GET /api/casos/papelera` | Casos propios en la papelera · `ELIMINAR_CASOS` |
+| `POST /api/casos/{id}/restauracion` | Saca el caso de la papelera · `ELIMINAR_CASOS` |
+| `DELETE /api/casos/{id}/definitivo` | Borra para siempre un caso que ya está en la papelera (404 si no lo está) · `ELIMINAR_CASOS` |
 | `GET /api/integracion/casos/publicados` | Módulo 3 · `PROGRAMAR_SESIONES` |
 | `GET /api/integracion/casos/{id}/programacion` | Módulo 3 · `PROGRAMAR_SESIONES` |
 | `GET /api/integracion/casos/{id}/rubrica` | Módulo 4 de evaluación · `CONSULTAR_PARTICIPACIONES` |

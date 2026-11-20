@@ -37,6 +37,10 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/evaluacion/resultados-docente').then((m) => m.ResultadosDocente), title: 'Resultados · SOMA',
       },
       {
+        path: 'estadisticas', canActivate: [guardiaPermiso(Permiso.ConsultarParticipaciones)],
+        loadComponent: () => import('./paginas/evaluacion/estadisticas').then((m) => m.Estadisticas), title: 'Estadísticas · SOMA',
+      },
+      {
         path: 'mis-sesiones', canActivate: [guardiaPermiso(Permiso.ParticiparEnCasos)],
         loadComponent: () => import('./paginas/estudiante/mis-sesiones').then((m) => m.MisSesiones), title: 'Mis casos · SOMA',
       },

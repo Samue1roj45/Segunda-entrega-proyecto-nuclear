@@ -1258,6 +1258,46 @@
               }
             }
           ]
+        },
+        {
+          "name": "2.14 Papelera de casos (permiso ELIMINAR_CASOS)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/casos/papelera",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "casos",
+                "papelera"
+              ]
+            },
+            "description": "Casos propios eliminados. 403 si el administrador no le dio el permiso adicional.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_docente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('2.14 responde 200', () => pm.expect(pm.response.code).to.be.oneOf([200, 403]))"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

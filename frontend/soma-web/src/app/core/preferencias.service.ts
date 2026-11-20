@@ -41,6 +41,29 @@ export class PreferenciasService {
     if (a === 'lila') delete d.dataset['acento']; else d.dataset['acento'] = a;
   }
 
+  /** Valores que viajan con la cuenta (el modo de color los completa en PreferenciasRemotasService). */
+  exportar(): Record<string, number> {
+    return {
+      avatar: this.avatar(), bienvenida: this.bienvenida() ? 1 : 0, campana: this.campana() ? 1 : 0, letra: this.letra(),
+      contraste: this.contraste() ? 1 : 0, acento: this.acento(), sonido: this.sonido() ? 1 : 0, quieto: this.sinMovimiento() ? 1 : 0,
+    };
+  }
+
+  /** Aplica lo guardado en la cuenta; ignora claves o valores que no reconoce. */
+  importar(datos: Record<string, unknown>): void {
+    const num = (k: string): number | null => { const v = datos[k]; return typeof v === 'number' && Number.isFinite(v) ? v : null; };
+    const poner = (k: string, destino: (n: number) => void): void => { const v = num(k); if (v !== null) destino(v); };
+    poner('avatar', (n) => { if (n >= 0 && n < COLORES_AVATAR.length) { this.avatar.set(n); this.guardar('avatar', n); } });
+    poner('bienvenida', (n) => { this.bienvenida.set(n === 1); this.guardar('bienvenida', n); });
+    poner('campana', (n) => { this.campana.set(n === 1); this.guardar('campana', n); });
+    poner('letra', (n) => { if (n >= 0 && n <= 2) { this.letra.set(n); this.guardar('letra', n); } });
+    poner('contraste', (n) => { this.contraste.set(n === 1); this.guardar('contraste', n); });
+    poner('acento', (n) => { if (n >= 0 && n < ACENTOS.length) { this.acento.set(n); this.guardar('acento', n); } });
+    poner('sonido', (n) => { this.sonido.set(n === 1); this.guardar('sonido', n); });
+    poner('quieto', (n) => { this.sinMovimiento.set(n === 1); this.guardar('quieto', n); });
+    this.aplicar();
+  }
+
   fijarAvatar(i: number): void { this.avatar.set(i); this.guardar('avatar', i); }
   fijarBienvenida(v: boolean): void { this.bienvenida.set(v); this.guardar('bienvenida', v ? 1 : 0); }
   fijarCampana(v: boolean): void { this.campana.set(v); this.guardar('campana', v ? 1 : 0); }

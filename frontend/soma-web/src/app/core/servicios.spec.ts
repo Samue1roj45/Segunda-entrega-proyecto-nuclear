@@ -41,6 +41,27 @@ describe('TemaService', () => {
     expect(t.tema()).toBe('noche'); expect(document.documentElement.dataset['tema']).toBe('noche');
     t.quitar(); expect(document.documentElement.dataset['tema']).toBeUndefined();
   });
+
+  it('el modo automático sigue al sistema y una elección explícita lo reemplaza', () => {
+    const t = TestBed.inject(TemaService);
+    t.fijarModo('auto');
+    expect(t.modo()).toBe('auto');
+    expect(['dia', 'noche']).toContain(t.tema());
+    t.fijarModo('noche');
+    expect(t.modo()).toBe('noche'); expect(t.tema()).toBe('noche');
+    expect(localStorage.getItem('soma.tema')).toBe('noche');
+  });
+});
+
+describe('PreferenciasService (cuenta)', () => {
+  beforeEach(() => localStorage.clear());
+  it('exporta e importa solo valores válidos', () => {
+    const p = TestBed.inject(PreferenciasService);
+    p.importar({ letra: 2, acento: 3, quieto: 1, avatar: 99, acento_raro: 'x', contraste: 'si' });
+    expect(p.letra()).toBe(2); expect(p.acento()).toBe(3); expect(p.sinMovimiento()).toBe(true);
+    expect(p.avatar()).not.toBe(99); expect(p.contraste()).toBe(false);
+    expect(p.exportar()['letra']).toBe(2);
+  });
 });
 
 describe('RegistroErroresService', () => {

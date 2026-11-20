@@ -144,7 +144,14 @@ export class SomaApiService {
   avisos(): Observable<{ avisos: M.Aviso[]; noLeidos: number }> { return this.http.get<{ avisos: M.Aviso[]; noLeidos: number }>('/api/avisos'); }
   marcarAvisoLeido(id: number): Observable<unknown> { return this.http.post(`/api/avisos/${id}/leido`, null); }
   marcarAvisosLeidos(): Observable<unknown> { return this.http.post('/api/avisos/leidos', null); }
-  auditoria(limite = 100): Observable<M.EntradaAuditoria[]> { return this.http.get<M.EntradaAuditoria[]>('/api/auditoria', { params: { limite } }); }
+  auditoria(limite = 50, desplazamiento = 0, accion = ''): Observable<M.EntradaAuditoria[]> {
+    const params: Record<string, string | number> = { limite, desplazamiento };
+    if (accion) { params['accion'] = accion; }
+    return this.http.get<M.EntradaAuditoria[]>('/api/auditoria', { params });
+  }
+  preferencias(): Observable<Record<string, number | boolean | string>> { return this.http.get<Record<string, number | boolean | string>>('/api/preferencias'); }
+  guardarPreferencias(datos: Record<string, number | boolean | string>): Observable<unknown> { return this.http.put('/api/preferencias', datos); }
+  accionesAuditadas(): Observable<string[]> { return this.http.get<string[]>('/api/auditoria/acciones'); }
   notificaciones(practica?: number): Observable<M.Notificacion[]> { return this.http.get<M.Notificacion[]>('/api/notificaciones', { params: filtros({ practica }) }); }
   enviarConvocatoria(practica: number): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/convocatoria`, null); }
   notificarCambio(practica: number, motivo: string): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/cambio`, { motivo }); }
