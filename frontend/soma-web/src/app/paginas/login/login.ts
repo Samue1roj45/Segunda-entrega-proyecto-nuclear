@@ -130,10 +130,10 @@ import { SesionService } from '../../core/sesion.service';
 
     /* ---- Vidrio y movimiento ---- */
     .escena { background: linear-gradient(180deg, var(--d-e9e3f5) 0%, var(--d-cfc6e6) 100%); }
-    .fondo { opacity: 0; transition: opacity .9s ease; filter: blur(.45px) saturate(1.04); }
+    .fondo { opacity: 0; transition: opacity .9s ease; filter: blur(.45px) saturate(1.04) hue-rotate(var(--giro, 0deg)) saturate(var(--sat, 1)); }
     .fondo.listo { opacity: 1; }
     .marca > * { animation: entra .9s cubic-bezier(.2,.7,.2,1) both; }
-    .marca .isotipo { animation: entra .9s cubic-bezier(.2,.7,.2,1) both, flota 7s ease-in-out 1s infinite; filter: drop-shadow(0 14px 18px rgba(var(--d-88_68_140),.25)); }
+    .marca .isotipo { animation: entra .9s cubic-bezier(.2,.7,.2,1) both, flota 7s ease-in-out 1s infinite; filter: drop-shadow(0 14px 18px rgba(var(--d-88_68_140),.25)) hue-rotate(var(--giro, 0deg)) saturate(var(--sat, 1)); }
     .marca .nombre { animation-delay: .12s; } .marca .sub { animation-delay: .22s; } .marca .linea { animation-delay: .3s; }
     .marca .lema { animation-delay: .38s; } .marca .parrafo { animation-delay: .46s; }
     .tarjeta { animation: tarjeta 1s cubic-bezier(.2,.7,.2,1) .1s backwards; transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .35s ease-out; will-change: transform; }
@@ -199,7 +199,7 @@ import { SesionService } from '../../core/sesion.service';
     /* Marca de la izquierda: texto y logo reales (el logo es vectorial), medidos en px de referencia. */
     .marca { position: relative; z-index: 1; --w: min(92vw, 460px); width: var(--w); margin: 6vh auto 0; text-align: center; color: var(--d-4a3a6b); }
     .marca .isotipo { width: 44%; height: auto; display: block; margin: 0 auto; }
-    .marca .nombre { display: block; width: 80%; height: auto; margin: 0 auto; }
+    .marca .nombre { display: block; width: 80%; height: auto; margin: 0 auto; filter: hue-rotate(var(--giro, 0deg)) saturate(var(--sat, 1)); }
     .marca .sub { font-size: calc(var(--w) * .036); letter-spacing: .12em; line-height: 1.6; color: var(--d-5b4c7c); margin-top: calc(var(--w) * .03); }
     .marca .linea { width: 15%; height: 2px; background: #6b5a8e; margin: calc(var(--w) * .05) auto; }
     .marca .lema { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: calc(var(--w) * .085); line-height: 1.1; color: var(--d-43335f); }
@@ -268,7 +268,7 @@ import { SesionService } from '../../core/sesion.service';
     .ingresar {
       left: calc(var(--u) * 67); top: calc(var(--u) * 420); width: calc(var(--u) * 478); height: calc(var(--u) * 65); border-radius: calc(var(--u) * 33);
       display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(100deg, #5e4d82 0%, #5a4879 60%, #55437a 100%);
+      background: linear-gradient(100deg, var(--d-5e4d82) 0%, var(--d-5a4879) 60%, var(--d-55437a) 100%);
       box-shadow: 0 14px 26px -12px rgba(var(--d-63_48_95),.65), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 6px rgba(var(--d-40_28_66),.35);
       color: #fff; font: inherit; font-size: max(calc(var(--u) * 20), 15px); font-weight: 500; letter-spacing: .01em; cursor: pointer;
       transition: filter .2s, transform .2s, box-shadow .2s;
@@ -321,7 +321,7 @@ import { SesionService } from '../../core/sesion.service';
       .vidrio { display: block; position: absolute; inset: -1.2%; z-index: 0; overflow: hidden; border-radius: 7.4% / 6.4%; pointer-events: none; }
       .vidrio img { position: absolute; width: var(--W); max-width: none; height: auto; aspect-ratio: 1672 / 941;
         left: calc(var(--W) * -920 / 1672 + 1.2%); top: calc(var(--W) * -138 / 1672 + 1.2%);
-        filter: blur(30px) saturate(1.5) brightness(1.1); transform: scale(1); }
+        filter: blur(30px) saturate(1.5) brightness(1.1) hue-rotate(var(--giro, 0deg)) saturate(var(--sat, 1)); transform: scale(1); }
     }
 
   `,
