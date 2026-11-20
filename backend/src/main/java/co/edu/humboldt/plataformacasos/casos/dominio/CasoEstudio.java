@@ -30,6 +30,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "casos_estudio")
+@org.hibernate.annotations.SQLRestriction("fecha_eliminacion IS NULL")
 public class CasoEstudio {
 
     @Id

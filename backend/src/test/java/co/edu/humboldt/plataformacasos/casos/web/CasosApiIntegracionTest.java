@@ -291,6 +291,24 @@ class CasosApiIntegracionTest {
         assertThat(delete(caso, carlosConPermiso).estado()).isEqualTo(204);
         assertThat(get(caso, carlosConPermiso).estado()).isEqualTo(404);
         assertThat(delete(caso, carlosConPermiso).estado()).isEqualTo(404);
+
+        // Papelera: el caso eliminado se puede ver, restaurar y, ya en la papelera, borrar para siempre.
+        Respuesta papelera = get(CASOS + "/papelera", carlosConPermiso);
+        assertThat(papelera.estado()).isEqualTo(200);
+        assertThat(papelera.cuerpo().size()).isEqualTo(1);
+        assertThat(papelera.cuerpo().get(0).get("id").asLong()).isEqualTo(id);
+        assertThat(get(CASOS, carlosConPermiso).texto()).doesNotContain("\"id\":" + id + ",");
+
+        assertThat(post(caso + "/restauracion", laura(), null).estado()).isEqualTo(403);
+        assertThat(post(caso + "/restauracion", carlosConPermiso, null).estado()).isEqualTo(204);
+        assertThat(get(caso, carlosConPermiso).estado()).isEqualTo(200);
+        assertThat(get(CASOS + "/papelera", carlosConPermiso).cuerpo().size()).isZero();
+
+        assertThat(delete(caso + "/definitivo", carlosConPermiso).estado()).isEqualTo(404); // aún no está en la papelera
+        assertThat(delete(caso, carlosConPermiso).estado()).isEqualTo(204);
+        assertThat(delete(caso + "/definitivo", carlosConPermiso).estado()).isEqualTo(204);
+        assertThat(get(CASOS + "/papelera", carlosConPermiso).cuerpo().size()).isZero();
+        assertThat(get(caso, carlosConPermiso).estado()).isEqualTo(404);
     }
 
     @Test

@@ -2,6 +2,7 @@ package co.edu.humboldt.plataformacasos.casos.web;
 
 import co.edu.humboldt.plataformacasos.casos.dominio.EstadoCaso;
 import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
+import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEliminado;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.GestionCasos;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
@@ -57,6 +58,23 @@ public class CasoControlador {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long idCaso) {
         gestionCasos.eliminar(idCaso);
+    }
+
+    @GetMapping("/papelera")
+    public List<CasoEliminado> papelera() {
+        return gestionCasos.papelera();
+    }
+
+    @PostMapping("/{idCaso}/restauracion")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void restaurar(@PathVariable Long idCaso) {
+        gestionCasos.restaurar(idCaso);
+    }
+
+    @DeleteMapping("/{idCaso}/definitivo")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarDefinitivamente(@PathVariable Long idCaso) {
+        gestionCasos.eliminarDefinitivamente(idCaso);
     }
 
     @PostMapping("/importacion-dsl")

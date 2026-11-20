@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.casos.servicio;
 import co.edu.humboldt.plataformacasos.autorizacion.RequierePermiso;
 import co.edu.humboldt.plataformacasos.casos.dominio.EstadoCaso;
 import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
+import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEliminado;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
@@ -34,7 +35,17 @@ public interface GestionCasos {
     @RequierePermiso(Permiso.GESTIONAR_CASOS)
     DocumentoDsl exportarDsl(Long idCaso);
 
-    /** Elimina un caso propio. Exige el permiso adicional del administrador y que ninguna sesión lo use. */
+    /** Mueve un caso propio a la papelera. Exige el permiso adicional del administrador y que ninguna sesión lo use. */
     @RequierePermiso(Permiso.ELIMINAR_CASOS)
     void eliminar(Long idCaso);
+
+    @RequierePermiso(Permiso.ELIMINAR_CASOS)
+    List<CasoEliminado> papelera();
+
+    @RequierePermiso(Permiso.ELIMINAR_CASOS)
+    void restaurar(Long idCaso);
+
+    /** Borra para siempre un caso que ya está en la papelera. */
+    @RequierePermiso(Permiso.ELIMINAR_CASOS)
+    void eliminarDefinitivamente(Long idCaso);
 }

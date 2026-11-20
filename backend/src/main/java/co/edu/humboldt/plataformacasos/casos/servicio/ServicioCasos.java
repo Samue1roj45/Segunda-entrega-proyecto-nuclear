@@ -4,17 +4,20 @@ import co.edu.humboldt.plataformacasos.casos.dominio.CasoEstudio;
 import co.edu.humboldt.plataformacasos.casos.dominio.EstadoCaso;
 import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
 import co.edu.humboldt.plataformacasos.casos.dsl.ImportadorDsl;
+import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEliminado;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEstudioRepositorio;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
 import co.edu.humboldt.plataformacasos.avisos.ServicioAvisos;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -75,18 +78,65 @@ public class ServicioCasos implements GestionCasos {
     @Override
     public void eliminar(Long idCaso) {
         CasoEstudio caso = acceso.paraModificar(idCaso);
-        String nombre = caso.getNombre() == null || caso.getNombre().isBlank() ? "(sin nombre)" : caso.getNombre();
-        try {
-            casos.delete(caso);
-            casos.flush();
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictoException("No se puede eliminar: el caso ya tiene sesiones o participaciones asociadas.");
+        if (casos.sesionesDelCaso(idCaso) > 0) {
+            throw new ConflictoException("No se puede eliminar: el caso ya tiene sesiones asociadas.");
         }
+        String nombre = nombreVisible(caso.getNombre());
+        casos.marcarEliminado(idCaso, LocalDateTime.now());
+        constancia("CASO_ELIMINADO", "Caso eliminado", " movió a la papelera el caso «" + nombre + "»",
+                "Moviste a la papelera el caso «" + nombre + "». Puedes restaurarlo desde la papelera.");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CasoEliminado> papelera() {
+        return casos.papelera(acceso.idDocenteActual()).stream()
+                .map(f -> new CasoEliminado(((Number) f[0]).longValue(), (String) f[1], (String) f[2],
+                        aFecha(f[3])))
+                .toList();
+    }
+
+    @Override
+    public void restaurar(Long idCaso) {
+        Long yo = acceso.idDocenteActual();
+        String nombre = casos.nombreEnPapelera(idCaso, yo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("El caso no está en la papelera."));
+        casos.restaurar(idCaso, yo);
+        constancia("CASO_RESTAURADO", "Caso restaurado", " restauró el caso «" + nombreVisible(nombre) + "»",
+                "Restauraste el caso «" + nombreVisible(nombre) + "».");
+    }
+
+    @Override
+    public void eliminarDefinitivamente(Long idCaso) {
+        Long yo = acceso.idDocenteActual();
+        String nombre = casos.nombreEnPapelera(idCaso, yo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("El caso no está en la papelera."));
+        try {
+            casos.borrarDefinitivamente(idCaso, yo);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictoException("No se puede borrar: el caso tiene participaciones asociadas.");
+        }
+        constancia("CASO_BORRADO_DEFINITIVO", "Caso borrado para siempre", " borró definitivamente el caso «" + nombreVisible(nombre) + "»",
+                "Borraste definitivamente el caso «" + nombreVisible(nombre) + "».");
+    }
+
+    /** Según el motor, una consulta nativa entrega Timestamp (MySQL) o LocalDateTime (H2). */
+    private static LocalDateTime aFecha(Object valor) {
+        if (valor instanceof java.sql.Timestamp t) { return t.toLocalDateTime(); }
+        return (LocalDateTime) valor;
+    }
+
+    private static String nombreVisible(String nombre) {
+        return nombre == null || nombre.isBlank() ? "(sin nombre)" : nombre;
+    }
+
+    /** Auditoría, aviso a los administradores y confirmación para quien hizo la acción. */
+    private void constancia(String accion, String titulo, String textoAccion, String paraElActor) {
         var actor = acceso.actor();
-        String detalle = actor.nombreCompleto() + " eliminó el caso «" + nombre + "»";
-        avisos.registrar("CASO_ELIMINADO", actor.id(), actor.correoInstitucional(), detalle);
-        avisos.avisarAdministradores("CASO_ELIMINADO", "Caso eliminado", detalle + ".");
-        avisos.avisar(java.util.List.of(actor.id()), "CASO_ELIMINADO", "Eliminaste un caso", "Eliminaste el caso «" + nombre + "».");
+        String detalle = actor.nombreCompleto() + textoAccion;
+        avisos.registrar(accion, actor.id(), actor.correoInstitucional(), detalle);
+        avisos.avisarAdministradores(accion, titulo, detalle + ".");
+        avisos.avisar(java.util.List.of(actor.id()), accion, titulo, paraElActor);
     }
 
     /** Las herramientas son de RF-28, ajeno a este módulo: se avisa en vez de perderlas en silencio. */
