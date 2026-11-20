@@ -1,6 +1,10 @@
 import { Component, ElementRef, HostListener, computed, input, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { inject } from '@angular/core';
+import { TemaService } from '../core/tema.service';
+import { ACENTOS, PreferenciasService } from '../core/preferencias.service';
 
+export interface Accion { readonly titulo: string; readonly grupo: string; readonly icono: string; readonly ejecutar: () => void }
 export interface Destino { readonly titulo: string; readonly ruta: string; readonly grupo: string; readonly icono: string; readonly tecla?: string }
 
 /** Paleta de comandos (Ctrl/⌘ + K): salta a cualquier sección permitida escribiendo unas letras. */
@@ -30,7 +34,7 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
         <input #entrada type="text" placeholder="¿A dónde quieres ir?" autocomplete="off" [value]="consulta()"
                (input)="escribir($any($event.target).value)" (keydown)="teclas($event)" aria-label="Buscar sección" />
         <ul role="listbox">
-          @for (d of resultados(); track d.ruta; let i = $index) {
+          @for (d of resultados(); track d.titulo; let i = $index) {
             <li role="option" [attr.aria-selected]="i === indice()" [class.sel]="i === indice()" (mouseenter)="indice.set(i)" (click)="ir(d)">
               <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="d.icono" /></svg></span>
               <span class="t">{{ d.titulo }}</span><small>{{ d.grupo }}</small>
@@ -92,9 +96,18 @@ export class Paleta {
   protected readonly indice = signal(0);
   private readonly entrada = viewChild<ElementRef<HTMLInputElement>>('entrada');
 
-  protected readonly resultados = computed(() => {
+  private readonly temas = inject(TemaService);
+  private readonly prefs = inject(PreferenciasService);
+  private readonly acciones = computed<Accion[]>(() => [
+    { titulo: this.temas.tema() === 'dia' ? 'Cambiar a modo noche' : 'Cambiar a modo día', grupo: 'Acción', icono: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z', ejecutar: () => this.temas.alternar() },
+    { titulo: `Siguiente color (ahora: ${ACENTOS[this.prefs.acento()]?.nombre})`, grupo: 'Acción', icono: 'M12 3a9 9 0 1 0 0 18c1.5 0 2-1 1.5-2s0-2 1.5-2h2a3 3 0 0 0 3-3 9 9 0 0 0-8-11Z', ejecutar: () => this.prefs.fijarAcento((this.prefs.acento() + 1) % ACENTOS.length) },
+    { titulo: 'Letra más grande o normal', grupo: 'Acción', icono: 'M4 19 10 5l6 14M6.5 14h7M17 19l3-7 3 7', ejecutar: () => this.prefs.fijarLetra((this.prefs.letra() + 1) % 3) },
+    { titulo: this.prefs.sinMovimiento() ? 'Activar animaciones' : 'Reducir animaciones', grupo: 'Acción', icono: 'M5 12h14M12 5l7 7-7 7', ejecutar: () => this.prefs.fijarSinMovimiento(!this.prefs.sinMovimiento()) },
+  ]);
+  protected readonly resultados = computed<(Destino | Accion)[]>(() => {
     const q = this.normal(this.consulta());
-    return this.destinos().filter((d) => !q || this.normal(`${d.titulo} ${d.grupo}`).includes(q));
+    const todo: (Destino | Accion)[] = [...this.destinos(), ...this.acciones()];
+    return todo.filter((d) => !q || this.normal(`${d.titulo} ${d.grupo}`).includes(q));
   });
 
   constructor(private readonly router: Router) {}
@@ -126,7 +139,7 @@ export class Paleta {
     else if (e.key === 'ArrowUp') { e.preventDefault(); this.indice.set((this.indice() - 1 + Math.max(n, 1)) % Math.max(n, 1)); }
     else if (e.key === 'Enter') { const d = this.resultados()[this.indice()]; if (d) this.ir(d); }
   }
-  protected ir(d: Destino): void { this.cerrar(); void this.router.navigateByUrl(d.ruta); }
+  protected ir(d: Destino | Accion): void { this.cerrar(); if ('ejecutar' in d) d.ejecutar(); else void this.router.navigateByUrl(d.ruta); }
   private escribiendo(e: KeyboardEvent): boolean { const t = e.target as HTMLElement | null; return !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable); }
   private normal(s: string): string { return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 }

@@ -1,3 +1,4 @@
+import { confeti } from '../../compartido/confeti';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -253,7 +254,7 @@ export class Participar implements OnInit, OnDestroy {
   private enviarFinal(): void {
     this.ocupado.set(true); this.error.set(null);
     this.api.finalizarParticipacion(this.id).subscribe({
-      next: () => { this.ocupado.set(false); this.cerrada.set(true); clearInterval(this.reloj$); void this.router.navigate(['/mis-resultados']); },
+      next: () => { this.ocupado.set(false); this.cerrada.set(true); clearInterval(this.reloj$); const espera = confeti(); setTimeout(() => void this.router.navigate(['/mis-resultados']), espera); },
       error: (e: HttpErrorResponse) => { this.ocupado.set(false); this.error.set(mensajeDeError(e)); },
     });
   }

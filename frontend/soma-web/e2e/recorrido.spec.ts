@@ -83,6 +83,22 @@ test('Ctrl+K abre el buscador y lleva a la sección elegida', async ({ page }) =
   await expect(page).toHaveURL(/\/sesiones$/);
 });
 
+test('la paleta también ejecuta acciones (cambiar color)', async ({ page }) => {
+  await instalarServidorSimulado(page, new Estado());
+  await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));
+  await page.goto('/login');
+  await page.fill('#correo-login', 'carlos.gomez@institucion.edu.co');
+  await page.fill('#clave-login', 'Clave-Docente-01');
+  await page.click('button.ingresar');
+  await page.waitForURL(/\/inicio/);
+  await expect(page.locator('soma-paleta button').first()).toBeVisible();
+  await page.keyboard.press('Control+k');
+  await expect(page.locator('input:focus')).toBeVisible();
+  await page.keyboard.type('siguiente color');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('html')).toHaveAttribute('data-acento', 'oceano');
+});
+
 test('modo noche se aplica solo dentro del panel y se recuerda', async ({ page }) => {
   await instalarServidorSimulado(page, new Estado());
   await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));
