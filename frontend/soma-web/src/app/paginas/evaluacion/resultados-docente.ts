@@ -187,7 +187,7 @@ import { SomaApiService } from '../../core/soma-api.service';
   styles: `
     .resumen-estadistico { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; }
     .kpi { padding: 1.1rem 1.3rem; display: grid; gap: .2rem; } .kpi .valor { font-weight: 300; font-size: 2.2rem; line-height: 1; color: var(--lila-950); font-variant-numeric: tabular-nums; }
-    :host-context([data-tema='noche']) .kpi .valor { color: #f1ecff; }
+    :host-context([data-tema='noche']) .kpi .valor { color: var(--n-f1ecff); }
     .barra-tabla { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; align-items: flex-end; margin-bottom: .8rem; } .buscador { min-width: 240px; }
     .orden { all: unset; cursor: pointer; font-weight: 600; } .orden:focus-visible { outline: 3px solid #7a5fd0; border-radius: 4px; }
     tr.activa { background: rgba(139,111,224,.14); }

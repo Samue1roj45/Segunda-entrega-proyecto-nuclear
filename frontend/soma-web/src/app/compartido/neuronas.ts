@@ -76,7 +76,7 @@ export class Neuronas implements OnDestroy {
 
   private dibujar(ctx: CanvasRenderingContext2D): void {
     const noche = document.documentElement.dataset['tema'] === 'noche';
-    const tinta = noche ? '190,170,255' : '94,74,138';
+    const tinta = noche ? (getComputedStyle(document.documentElement).getPropertyValue('--n-borde').trim() || '190,170,240') : '94,74,138';
     ctx.clearRect(0, 0, this.w, this.h);
     const N = this.nodos;
     for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {

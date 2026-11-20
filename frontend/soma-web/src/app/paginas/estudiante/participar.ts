@@ -115,11 +115,11 @@ import { SomaApiService } from '../../core/soma-api.service';
     .punto { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin: 0 .25rem 0 .8rem; border: 1px solid rgba(94,74,138,.4); vertical-align: middle; }
     .punto.hecha { background: var(--lila-700); margin-left: 0; } .punto.revisar { outline: 2px solid #e0a43c; }
     .marca { margin-top: .6rem; width: fit-content; font-size: .85rem; } fieldset.por-revisar { border-color: #e0a43c; }
-    :host-context([data-tema='noche']) .casilla { background: rgba(255,255,255,.08); color: #efe9ff; } :host-context([data-tema='noche']) .casilla.hecha { background: #8b6fe0; }
-    :host-context([data-tema='noche']) .reloj .pista { stroke: rgba(255,255,255,.14); } :host-context([data-tema='noche']) .reloj strong { color: #f1ecff; }
+    :host-context([data-tema='noche']) .casilla { background: rgba(255,255,255,.08); color: var(--n-efe9ff); } :host-context([data-tema='noche']) .casilla.hecha { background: var(--n-8b6fe0); }
+    :host-context([data-tema='noche']) .reloj .pista { stroke: rgba(255,255,255,.14); } :host-context([data-tema='noche']) .reloj strong { color: var(--n-f1ecff); }
     :host-context([data-tema='noche']) .guardado { background: rgba(92,184,143,.22); color: #8fe0bb; }
     :host-context([data-tema='noche']) .opcion { background: rgba(255,255,255,.06); } :host-context([data-tema='noche']) .opcion:hover { background: rgba(255,255,255,.12); }
-    :host-context([data-tema='noche']) .opcion.elegida { background: rgba(139,111,224,.22); border-color: #a692ea; } :host-context([data-tema='noche']) legend { color: #efe9ff; }
+    :host-context([data-tema='noche']) .opcion.elegida { background: rgba(139,111,224,.22); border-color: #a692ea; } :host-context([data-tema='noche']) legend { color: var(--n-efe9ff); }
     .cabecera-participacion { display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: space-between; align-items: center; position: sticky; top: .6rem; z-index: 3; }
     .cabecera-participacion > div:first-child { flex: 1; min-width: 240px; display: grid; gap: .5rem; }
     .reloj { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }

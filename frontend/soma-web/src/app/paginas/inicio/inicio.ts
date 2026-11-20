@@ -254,18 +254,18 @@ const ESTADOS: Record<string, string> = {
     .punto-f { flex: none; width: .9rem; height: .9rem; border-radius: 50%; margin-top: .25rem; background: var(--lila-500); box-shadow: 0 0 0 4px rgba(139,111,224,.18); position: relative; z-index: 1; }
     .punto-f.ok, .punto-f.fin { background: #5cb88f; box-shadow: 0 0 0 4px rgba(92,184,143,.2); } .punto-f.mal { background: #d98a5b; box-shadow: 0 0 0 4px rgba(217,138,91,.22); }
     .feed div { display: grid; gap: .1rem; min-width: 0; } .feed strong { font-weight: 500; color: var(--lila-950); font-size: .92rem; } .feed small { color: var(--tinta-suave); text-transform: capitalize; }
-    :host-context([data-tema='noche']) .feed strong { color: #f1ecff; } :host-context([data-tema='noche']) .feed li::before { background: rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) .feed strong { color: var(--n-f1ecff); } :host-context([data-tema='noche']) .feed li::before { background: rgba(255,255,255,.14); }
     .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(94,74,138,.3); border-radius: 16px; }
     .nota-final { font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.6rem; color: var(--lila-900); }
     @media (max-width: 700px) { .cerebro { display: none; } .bienvenida { grid-template-columns: 1fr; } }
     .nota-final small { font-size: 1rem; color: var(--tinta-suave); }
-    :host-context([data-tema='noche']) .bienvenida { background: radial-gradient(90% 140% at 100% 0%, rgba(120,90,210,.5), transparent 60%), linear-gradient(120deg, rgba(70,56,120,.6), rgba(28,22,58,.5)); }
-    :host-context([data-tema='noche']) .cerebro { filter: drop-shadow(0 0 26px rgba(160,130,240,.55)) brightness(1.25); }
-    :host-context([data-tema='noche']) .sobre, :host-context([data-tema='noche']) .kpi .nota { color: #a996e6; }
-    :host-context([data-tema='noche']) .kpi .valor, :host-context([data-tema='noche']) .lista strong, :host-context([data-tema='noche']) .nota-final { color: #f1ecff; }
-    :host-context([data-tema='noche']) .lista li { background: rgba(255,255,255,.06); border-color: rgba(190,170,240,.16); }
+    :host-context([data-tema='noche']) .bienvenida { background: radial-gradient(90% 140% at 100% 0%, rgba(var(--n-s5),.5), transparent 60%), linear-gradient(120deg, rgba(var(--n-s3),.6), rgba(var(--n-s4),.5)); }
+    :host-context([data-tema='noche']) .cerebro { filter: drop-shadow(0 0 26px rgba(var(--n-borde),.55)) brightness(1.25) hue-rotate(var(--giro, 0deg)) saturate(var(--sat, 1)); }
+    :host-context([data-tema='noche']) .sobre, :host-context([data-tema='noche']) .kpi .nota { color: var(--n-a996e6); }
+    :host-context([data-tema='noche']) .kpi .valor, :host-context([data-tema='noche']) .lista strong, :host-context([data-tema='noche']) .nota-final { color: var(--n-f1ecff); }
+    :host-context([data-tema='noche']) .lista li { background: rgba(255,255,255,.06); border-color: rgba(var(--n-borde),.16); }
     :host-context([data-tema='noche']) .lista li:hover { background: rgba(255,255,255,.12); box-shadow: 0 12px 22px -16px #000; }
-    :host-context([data-tema='noche']) .vacio { border-color: rgba(190,170,240,.3); }
+    :host-context([data-tema='noche']) .vacio { border-color: rgba(var(--n-borde),.3); }
     :host-context([data-tema='noche']) .esqueleto i { background: linear-gradient(100deg, rgba(255,255,255,.05) 30%, rgba(255,255,255,.16) 50%, rgba(255,255,255,.05) 70%) 0 0 / 220% 100%; }
 
   `,

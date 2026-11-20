@@ -88,9 +88,9 @@ import { SomaApiService } from '../../core/soma-api.service';
     .confeti { position: fixed; inset: 0; pointer-events: none; z-index: 120; overflow: hidden; }
     .confeti i { position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px; animation: cae 3.2s cubic-bezier(.3,.6,.4,1) both; transform: rotate(var(--g)); }
     @keyframes cae { to { transform: translateY(105vh) rotate(calc(var(--g) + 540deg)); opacity: .9; } }
-    :host-context([data-tema='noche']) .destacado { background: radial-gradient(90% 140% at 100% 0%, rgba(120,90,210,.5), transparent 60%), linear-gradient(120deg, rgba(70,56,120,.6), rgba(28,22,58,.5)); }
-    :host-context([data-tema='noche']) blockquote { background: rgba(255,255,255,.07); } :host-context([data-tema='noche']) .nota-grande { color: #f1ecff; }
-    :host-context([data-tema='noche']) .historial circle { fill: #231b45; }
+    :host-context([data-tema='noche']) .destacado { background: radial-gradient(90% 140% at 100% 0%, rgba(var(--n-s5),.5), transparent 60%), linear-gradient(120deg, rgba(var(--n-s3),.6), rgba(var(--n-s4),.5)); }
+    :host-context([data-tema='noche']) blockquote { background: rgba(255,255,255,.07); } :host-context([data-tema='noche']) .nota-grande { color: var(--n-f1ecff); }
+    :host-context([data-tema='noche']) .historial circle { fill: var(--n-231b45); }
     @media (prefers-reduced-motion: reduce) { .confeti { display: none; } .medalla { animation: none; } }
     .nota-grande { font-family: var(--serif); font-size: 2.8rem; line-height: 1; color: var(--lila-900); } .nota-grande small { font-size: 1.1rem; color: var(--tinta-suave); }`,
 })
@@ -103,7 +103,7 @@ export class MisResultados implements OnInit {
   private readonly toasts = inject(ToastService);
   protected readonly celebrar = signal(false);
   protected readonly retroDestacada = signal<Retroalimentacion[]>([]);
-  protected readonly confeti = Array.from({ length: 46 }, (_, i) => ({ x: (i * 37) % 100, d: (i % 12) * 0.12, g: (i * 53) % 360, c: ['#8b6fe0', '#c3a9ff', '#e8b8dd', '#aebcf0', '#f0cfa0', '#7fd1ae'][i % 6] }));
+  protected readonly confeti = Array.from({ length: 46 }, (_, i) => ({ x: (i * 37) % 100, d: (i % 12) * 0.12, g: (i * 53) % 360, c: ['var(--n-8b6fe0)', '#c3a9ff', '#e8b8dd', '#aebcf0', '#f0cfa0', '#7fd1ae'][i % 6] }));
   protected readonly destacado = computed(() => [...this.lista()].sort((a, b) => b.fechaCalculo.localeCompare(a.fechaCalculo))[0] ?? null);
   protected proporcion(r: ResultadoDetalle): number { return r.escalaMaxima ? Number(r.notaFinal) / Number(r.escalaMaxima) : 0; }
   /** Evolución de la nota entre intentos de un mismo caso (solo para casos con más de un intento). */

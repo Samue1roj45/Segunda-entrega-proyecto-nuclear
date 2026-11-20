@@ -29,10 +29,10 @@ import { ToastService } from '../core/toast.service';
     .tx { flex: 1; font-size: .92rem; line-height: 1.35; }
     button { border: 0; background: none; font-size: 1.3rem; line-height: 1; color: var(--tinta-suave); padding: 0 .2rem; }
     @keyframes sube { from { opacity: 0; transform: translateY(14px) scale(.96); } }
-    :host-context([data-tema='noche']) .toast { background: linear-gradient(160deg, rgba(64,50,116,.92), rgba(28,22,58,.92)); border-color: rgba(190,170,240,.28); color: #f1ecff; box-shadow: 0 24px 44px -20px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) .toast { background: linear-gradient(160deg, rgba(var(--n-s6),.92), rgba(var(--n-s4),.92)); border-color: rgba(var(--n-borde),.28); color: var(--n-f1ecff); box-shadow: 0 24px 44px -20px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
     :host-context([data-tema='noche']) .ic { background: rgba(92,184,143,.22); color: #8fe0bb; }
     :host-context([data-tema='noche']) .error .ic { background: rgba(224,110,90,.22); color: #ffab9a; }
-    :host-context([data-tema='noche']) .info .ic { background: rgba(110,140,230,.24); color: #b4c6ff; }
+    :host-context([data-tema='noche']) .info .ic { background: rgba(110,140,230,.24); color: var(--n-b4c6ff); }
     @media (max-width: 1000px) { .pila { bottom: 5.8rem; right: .7rem; } }
     @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
   `,

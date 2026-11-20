@@ -22,7 +22,7 @@ import { Component, computed, input } from '@angular/core';
     .barra { transform-origin: bottom; animation: crece .7s cubic-bezier(.2,.8,.2,1) both; transform-box: fill-box; }
     @keyframes crece { from { transform: scaleY(.05); opacity: 0; } }
     .n { font-size: 13px; font-weight: 600; fill: var(--lila-900); } .e { font-size: 11px; fill: var(--tinta-suave); }
-    :host-context([data-tema='noche']) .n { fill: #efe9ff; }
+    :host-context([data-tema='noche']) .n { fill: var(--n-efe9ff); }
     @media (prefers-reduced-motion: reduce) { .barra { animation: none; } }
   `,
 })
@@ -62,10 +62,10 @@ export interface Dato { readonly etiqueta: string; readonly valor: number; reado
     li { display: grid; grid-template-columns: minmax(80px, 38%) 1fr 3rem; align-items: center; gap: .7rem; font-size: .85rem; }
     .et { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tinta); } .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--tinta-suave); }
     .pista { height: 10px; border-radius: 999px; background: rgba(94,74,138,.14); overflow: hidden; }
-    i { display: block; height: 100%; border-radius: 999px; animation: llena .9s cubic-bezier(.2,.8,.2,1) both; background: linear-gradient(90deg, #8b6fe0, #5e4a8a); }
+    i { display: block; height: 100%; border-radius: 999px; animation: llena .9s cubic-bezier(.2,.8,.2,1) both; background: linear-gradient(90deg, var(--n-8b6fe0), #5e4a8a); }
     i.bien { background: linear-gradient(90deg, #7fd1ae, #3f8f6b); } i.mal { background: linear-gradient(90deg, #f0a58d, #b5523b); }
     @keyframes llena { from { width: 0; } }
-    :host-context([data-tema='noche']) .pista { background: rgba(255,255,255,.12); } :host-context([data-tema='noche']) .et { color: #e6e0f5; }
+    :host-context([data-tema='noche']) .pista { background: rgba(255,255,255,.12); } :host-context([data-tema='noche']) .et { color: var(--n-e6e0f5); }
     @media (prefers-reduced-motion: reduce) { i { animation: none; } }
   `,
 })

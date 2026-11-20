@@ -45,13 +45,13 @@ import { SomaApiService } from '../core/soma-api.service';
     .punto.mal { background: #d98a5b; box-shadow: 0 0 0 3px rgba(217,138,91,.25); }
     .vacio { padding: 1rem; text-align: center; color: var(--tinta-suave); font-size: .9rem; }
     @keyframes abre { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
-    :host-context([data-tema='noche']) .campana { background: rgba(255,255,255,.09); border-color: rgba(190,170,240,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
+    :host-context([data-tema='noche']) .campana { background: rgba(255,255,255,.09); border-color: rgba(var(--n-borde),.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
     :host-context([data-tema='noche']) .campana:hover { background: rgba(255,255,255,.18); }
-    :host-context([data-tema='noche']) .campana svg { stroke: #d6cbf5; }
-    :host-context([data-tema='noche']) .campana i { box-shadow: 0 0 0 2px #1a1438; }
-    :host-context([data-tema='noche']) .menu { background: linear-gradient(160deg, rgba(60,48,110,.88), rgba(26,20,54,.9)); border-color: rgba(190,170,240,.25); box-shadow: 0 40px 70px -28px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) .campana svg { stroke: var(--n-d6cbf5); }
+    :host-context([data-tema='noche']) .campana i { box-shadow: 0 0 0 2px var(--n-1a1438); }
+    :host-context([data-tema='noche']) .menu { background: linear-gradient(160deg, rgba(60,48,110,.88), rgba(26,20,54,.9)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 40px 70px -28px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
     :host-context([data-tema='noche']) article { background: rgba(255,255,255,.07); }
-    :host-context([data-tema='noche']) strong { color: #f1ecff; }
+    :host-context([data-tema='noche']) strong { color: var(--n-f1ecff); }
 
   `,
 })

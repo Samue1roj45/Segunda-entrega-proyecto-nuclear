@@ -68,17 +68,17 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
     @keyframes pal-f { from { opacity: 0; } } @keyframes pal-c { from { opacity: 0; transform: translate(-50%, 14px) scale(.98); } }
     @media (max-width: 1000px) { .abrir span, .abrir kbd { display: none; } .abrir { padding: .55rem; } }
     @media (prefers-reduced-motion: reduce) { .fondo, .caja { animation: none; } }
-    :host-context([data-tema='noche']) .abrir { background: rgba(255,255,255,.09); border-color: rgba(190,170,240,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: #cfc6ee; }
+    :host-context([data-tema='noche']) .abrir { background: rgba(255,255,255,.09); border-color: rgba(var(--n-borde),.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: var(--n-cfc6ee); }
     :host-context([data-tema='noche']) .abrir:hover { background: rgba(255,255,255,.18); }
-    :host-context([data-tema='noche']) .abrir svg { stroke: #d6cbf5; }
-    :host-context([data-tema='noche']) kbd { background: rgba(190,170,240,.2); color: #e2d9fb; }
+    :host-context([data-tema='noche']) .abrir svg { stroke: var(--n-d6cbf5); }
+    :host-context([data-tema='noche']) kbd { background: rgba(var(--n-borde),.2); color: var(--n-e2d9fb); }
     :host-context([data-tema='noche']) .fondo { background: rgba(6,4,18,.55); }
-    :host-context([data-tema='noche']) .caja { background: linear-gradient(160deg, rgba(60,48,110,.82), rgba(26,20,54,.86)); border-color: rgba(190,170,240,.25); box-shadow: 0 50px 90px -30px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
-    :host-context([data-tema='noche']) input { background: rgba(255,255,255,.08); border-color: rgba(190,170,240,.3); color: #f1ecff; }
-    :host-context([data-tema='noche']) li { color: #e2d9fb; }
+    :host-context([data-tema='noche']) .caja { background: linear-gradient(160deg, rgba(60,48,110,.82), rgba(26,20,54,.86)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 50px 90px -30px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) input { background: rgba(255,255,255,.08); border-color: rgba(var(--n-borde),.3); color: var(--n-f1ecff); }
+    :host-context([data-tema='noche']) li { color: var(--n-e2d9fb); }
     :host-context([data-tema='noche']) li.sel { background: rgba(255,255,255,.12); box-shadow: none; }
-    :host-context([data-tema='noche']) .ico { background: rgba(255,255,255,.1); color: #c6b9ee; }
-    :host-context([data-tema='noche']) li.sel .ico { background: linear-gradient(145deg, #9b83e6, #5a3fb0); color: #fff; }
+    :host-context([data-tema='noche']) .ico { background: rgba(255,255,255,.1); color: var(--n-c6b9ee); }
+    :host-context([data-tema='noche']) li.sel .ico { background: linear-gradient(145deg, var(--n-9b83e6), var(--n-5a3fb0)); color: #fff; }
 
   `,
 })
