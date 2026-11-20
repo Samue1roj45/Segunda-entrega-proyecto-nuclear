@@ -209,19 +209,19 @@ const SECCIONES: readonly Seccion[] = [
     :host-context([data-tema='noche']) .aurora { background: radial-gradient(120% 90% at 12% 0%, var(--n-2b2150) 0%, var(--n-1a1438) 50%, var(--n-110d27) 100%); }
     :host-context([data-tema='noche']) .aurora i { opacity: .5; mix-blend-mode: screen; }
     :host-context([data-tema='noche']) .aurora i:nth-child(1) { background: radial-gradient(circle, var(--n-6a4fc2), transparent 65%); }
-    :host-context([data-tema='noche']) .aurora i:nth-child(2) { background: radial-gradient(circle, #3b55b8, transparent 65%); }
-    :host-context([data-tema='noche']) .aurora i:nth-child(3) { background: radial-gradient(circle, #9b3f8f, transparent 65%); opacity: .35; }
+    :host-context([data-tema='noche']) .aurora i:nth-child(2) { background: radial-gradient(circle, var(--n-3b55b8), transparent 65%); }
+    :host-context([data-tema='noche']) .aurora i:nth-child(3) { background: radial-gradient(circle, var(--n-9b3f8f), transparent 65%); opacity: .35; }
     :host-context([data-tema='noche']) .aurora img { opacity: .1; filter: brightness(1.6) saturate(.9); }
     :host-context([data-tema='noche']) .lateral { background: linear-gradient(170deg, rgba(var(--n-s3),.55), rgba(var(--n-s4),.55) 60%, rgba(var(--d-50_38_96),.5)); border-color: rgba(var(--n-borde),.22); box-shadow: 0 34px 60px -30px rgba(0,0,0,.7), inset 0 1.5px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(0,0,0,.3); }
     :host-context([data-tema='noche']) .marca { border-color: rgba(var(--n-borde),.16); }
     :host-context([data-tema='noche']) .marca strong, :host-context([data-tema='noche']) .datos strong { color: var(--n-f1ecff); }
-    :host-context([data-tema='noche']) .marca small, :host-context([data-tema='noche']) .datos small { color: #a89dc9; }
-    :host-context([data-tema='noche']) .item { color: #d8d0ef; }
+    :host-context([data-tema='noche']) .marca small, :host-context([data-tema='noche']) .datos small { color: var(--n-a89dc9); }
+    :host-context([data-tema='noche']) .item { color: var(--n-d8d0ef); }
     :host-context([data-tema='noche']) .ico { background: rgba(255,255,255,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: var(--n-c6b9ee); }
     :host-context([data-tema='noche']) .item:hover { background: rgba(255,255,255,.07); }
     :host-context([data-tema='noche']) .item.activo { color: #fff; }
     :host-context([data-tema='noche']) .item.activo .ico { background: linear-gradient(145deg, var(--n-9b83e6), var(--n-5a3fb0)); color: #fff; }
-    :host-context([data-tema='noche']) .grupo { color: #8c7fbd; }
+    :host-context([data-tema='noche']) .grupo { color: var(--n-8c7fbd); }
     :host-context([data-tema='noche']) .perfil { background: rgba(255,255,255,.07); border-color: rgba(var(--n-borde),.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
     :host-context([data-tema='noche']) .salir, :host-context([data-tema='noche']) .tema, :host-context([data-tema='noche']) .chip { background: rgba(255,255,255,.09); border-color: rgba(var(--n-borde),.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.12); color: var(--d-e2daf7); }
     :host-context([data-tema='noche']) .salir:hover, :host-context([data-tema='noche']) .tema:hover { background: rgba(255,255,255,.18); }
