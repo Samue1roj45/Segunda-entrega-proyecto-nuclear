@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 
 /** Paletas de acento: cambian los tonos de toda la plataforma (valor 0 = lila original). */
 export const ACENTOS: readonly { id: string; nombre: string; muestra: string }[] = [
-  { id: 'lila', nombre: 'Lila', muestra: '#7a5fd0' }, { id: 'oceano', nombre: 'Océano', muestra: '#2a6aa3' }, { id: 'bosque', nombre: 'Bosque', muestra: '#2f7d56' },
+  { id: 'lila', nombre: 'Lila', muestra: 'var(--d-7a5fd0)' }, { id: 'oceano', nombre: 'Océano', muestra: '#2a6aa3' }, { id: 'bosque', nombre: 'Bosque', muestra: '#2f7d56' },
   { id: 'atardecer', nombre: 'Atardecer', muestra: '#a23e70' }, { id: 'grafito', nombre: 'Grafito', muestra: '#52576a' },
 ];
 

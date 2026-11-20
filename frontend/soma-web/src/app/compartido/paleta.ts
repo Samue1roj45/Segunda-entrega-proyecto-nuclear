@@ -44,19 +44,19 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
   styles: `
     :host { display: contents; }
     .abrir { display: inline-flex; align-items: center; gap: .55rem; padding: .5rem .8rem .5rem .9rem; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); color: var(--tinta-suave); font-size: .85rem;
-      background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(59,45,92,.5); transition: background .2s, transform .2s; }
+      background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(var(--d-59_45_92),.5); transition: background .2s, transform .2s; }
     .abrir:hover { background: #fff; transform: translateY(-1px); }
     .abrir svg { width: 16px; height: 16px; fill: none; stroke: var(--lila-700); stroke-width: 1.8; stroke-linecap: round; }
-    kbd { font: inherit; font-size: .7rem; padding: .1rem .4rem; border-radius: 6px; background: rgba(94,74,138,.1); color: var(--lila-800); margin: 0 .15rem; }
-    .fondo { position: fixed; inset: 0; z-index: 90; background: rgba(42,31,66,.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: pal-f .2s ease both; }
+    kbd { font: inherit; font-size: .7rem; padding: .1rem .4rem; border-radius: 6px; background: rgba(var(--d-94_74_138),.1); color: var(--lila-800); margin: 0 .15rem; }
+    .fondo { position: fixed; inset: 0; z-index: 90; background: rgba(var(--d-42_31_66),.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: pal-f .2s ease both; }
     .caja { position: fixed; z-index: 91; left: 50%; top: 16vh; width: min(560px, 92vw); transform: translateX(-50%); padding: .8rem; border-radius: 26px; animation: pal-c .28s cubic-bezier(.2,.8,.2,1) both;
-      background: linear-gradient(160deg, rgba(255,255,255,.88), rgba(240,234,252,.8)); border: 1px solid rgba(255,255,255,.9);
-      -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8); box-shadow: 0 50px 90px -30px rgba(42,31,66,.6), inset 0 1.5px 0 #fff; }
-    input { width: 100%; font: inherit; font-size: 1.1rem; padding: .85rem 1rem; border-radius: 16px; border: 1px solid rgba(94,74,138,.2); background: rgba(255,255,255,.85); color: var(--tinta); }
+      background: linear-gradient(160deg, rgba(255,255,255,.88), rgba(var(--d-240_234_252),.8)); border: 1px solid rgba(255,255,255,.9);
+      -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8); box-shadow: 0 50px 90px -30px rgba(var(--d-42_31_66),.6), inset 0 1.5px 0 #fff; }
+    input { width: 100%; font: inherit; font-size: 1.1rem; padding: .85rem 1rem; border-radius: 16px; border: 1px solid rgba(var(--d-94_74_138),.2); background: rgba(255,255,255,.85); color: var(--tinta); }
     input:focus { outline: 2px solid var(--lila-500); outline-offset: 1px; }
     ul { list-style: none; margin: .6rem 0 .2rem; padding: 0; display: grid; gap: .15rem; max-height: 46vh; overflow-y: auto; }
     li { display: flex; align-items: center; gap: .75rem; padding: .55rem .65rem; border-radius: 14px; cursor: pointer; color: var(--tinta); }
-    li.sel { background: linear-gradient(100deg, rgba(255,255,255,.95), rgba(221,212,239,.7)); box-shadow: 0 8px 18px -14px rgba(59,45,92,.6); }
+    li.sel { background: linear-gradient(100deg, rgba(255,255,255,.95), rgba(221,212,239,.7)); box-shadow: 0 8px 18px -14px rgba(var(--d-59_45_92),.6); }
     li.nada { color: var(--tinta-suave); cursor: default; justify-content: center; }
     .ico { width: 2rem; height: 2rem; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.7); color: var(--lila-700); }
     li.sel .ico { background: linear-gradient(145deg, var(--lila-500), var(--lila-900)); color: #fff; }
@@ -73,7 +73,7 @@ export interface Destino { readonly titulo: string; readonly ruta: string; reado
     :host-context([data-tema='noche']) .abrir svg { stroke: var(--n-d6cbf5); }
     :host-context([data-tema='noche']) kbd { background: rgba(var(--n-borde),.2); color: var(--n-e2d9fb); }
     :host-context([data-tema='noche']) .fondo { background: rgba(6,4,18,.55); }
-    :host-context([data-tema='noche']) .caja { background: linear-gradient(160deg, rgba(60,48,110,.82), rgba(26,20,54,.86)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 50px 90px -30px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) .caja { background: linear-gradient(160deg, rgba(var(--d-60_48_110),.82), rgba(26,20,54,.86)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 50px 90px -30px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
     :host-context([data-tema='noche']) input { background: rgba(255,255,255,.08); border-color: rgba(var(--n-borde),.3); color: var(--n-f1ecff); }
     :host-context([data-tema='noche']) li { color: var(--n-e2d9fb); }
     :host-context([data-tema='noche']) li.sel { background: rgba(255,255,255,.12); box-shadow: none; }

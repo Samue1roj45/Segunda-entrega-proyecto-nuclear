@@ -21,8 +21,8 @@ import { ToastService } from '../core/toast.service';
   styles: `
     .pila { position: fixed; z-index: 200; right: 1.2rem; bottom: 1.2rem; display: grid; gap: .6rem; width: min(380px, calc(100vw - 2rem)); pointer-events: none; }
     .toast { pointer-events: auto; display: flex; align-items: center; gap: .7rem; padding: .75rem .9rem; border-radius: 18px; animation: sube .38s cubic-bezier(.2,.9,.25,1.1) both;
-      background: linear-gradient(160deg, rgba(255,255,255,.92), rgba(240,234,252,.86)); border: 1px solid rgba(255,255,255,.95); color: var(--lila-950);
-      -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); box-shadow: 0 24px 44px -20px rgba(42,31,66,.55), inset 0 1.5px 0 #fff; }
+      background: linear-gradient(160deg, rgba(255,255,255,.92), rgba(var(--d-240_234_252),.86)); border: 1px solid rgba(255,255,255,.95); color: var(--lila-950);
+      -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); box-shadow: 0 24px 44px -20px rgba(var(--d-42_31_66),.55), inset 0 1.5px 0 #fff; }
     .ic { flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%; display: grid; place-items: center; background: #d8efe4; color: #2d6a4f; }
     .error .ic { background: rgba(181,82,59,.16); color: #b5523b; } .info .ic { background: #e3e8f6; color: #36498a; }
     svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }

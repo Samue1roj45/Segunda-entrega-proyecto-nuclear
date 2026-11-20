@@ -214,7 +214,7 @@ const ESTADOS: Record<string, string> = {
     .bienvenida {
       position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 1rem;
       padding: 2.2rem 2.4rem; min-height: 230px;
-      background: radial-gradient(90% 140% at 100% 0%, rgba(201,184,240,.75), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(236,229,250,.5));
+      background: radial-gradient(90% 140% at 100% 0%, rgba(var(--d-201_184_240),.75), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(var(--d-236_229_250),.5));
     }
     .texto-bienvenida, .cerebro { position: relative; z-index: 1; }
     .bienvenida h2 { font-size: clamp(2rem, 2.8vw, 2.8rem); line-height: 1.04; margin: .3rem 0 .8rem; }
@@ -222,13 +222,13 @@ const ESTADOS: Record<string, string> = {
     .sobre { text-transform: uppercase; letter-spacing: .2em; font-size: .7rem; color: var(--lila-700); }
     .accesos { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.2rem; }
     .chico { padding: .65rem 1.2rem; font-size: .9rem; text-decoration: none; }
-    .cerebro { width: clamp(130px, 16vw, 210px); height: auto; margin-right: .6rem; filter: drop-shadow(0 18px 22px rgba(88,68,140,.3)); animation: flota 8s ease-in-out infinite; }
+    .cerebro { width: clamp(130px, 16vw, 210px); height: auto; margin-right: .6rem; filter: drop-shadow(0 18px 22px rgba(var(--d-88_68_140),.3)); animation: flota 8s ease-in-out infinite; }
     @keyframes flota { 50% { transform: translateY(-9px) rotate(-1.5deg); } }
     .resumen { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.2rem; }
     .kpi { position: relative; overflow: hidden; padding: 1.3rem 1.4rem 1.3rem 1.4rem; display: grid; gap: .2rem; transition: transform .25s, box-shadow .25s; }
     .kpi:hover { transform: translateY(-3px); }
-    .kpi::before { content: ''; position: absolute; right: -28px; top: -28px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, var(--tono, #c9b8f0), transparent 70%); opacity: .6; }
-    .kpi::after { content: ''; position: absolute; left: 1.4rem; right: 1.4rem; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--tono, #c9b8f0), transparent); }
+    .kpi::before { content: ''; position: absolute; right: -28px; top: -28px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, var(--tono, var(--d-c9b8f0)), transparent 70%); opacity: .6; }
+    .kpi::after { content: ''; position: absolute; left: 1.4rem; right: 1.4rem; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: linear-gradient(90deg, var(--tono, var(--d-c9b8f0)), transparent); }
     .kpi:nth-child(2) { --tono: #aebcf0; } .kpi:nth-child(3) { --tono: #e8b8dd; } .kpi:nth-child(4) { --tono: #b7e0d0; }
     .kpi .valor { font-family: var(--sans); font-weight: 300; font-variant-numeric: tabular-nums; font-size: 2.6rem; line-height: 1; color: var(--lila-950); }
     .kpi .nota { font-size: .85rem; color: var(--lila-700); }
@@ -242,7 +242,7 @@ const ESTADOS: Record<string, string> = {
       display: flex; align-items: center; gap: .8rem; padding: .85rem 1rem; border-radius: 16px;
       background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.8); transition: transform .2s, background .2s, box-shadow .2s;
     }
-    .lista li:hover { background: rgba(255,255,255,.8); transform: translateY(-1px); box-shadow: 0 12px 22px -16px rgba(59,45,92,.5); }
+    .lista li:hover { background: rgba(255,255,255,.8); transform: translateY(-1px); box-shadow: 0 12px 22px -16px rgba(var(--d-59_45_92),.5); }
     .lista .principal { flex: 1; display: grid; gap: .15rem; min-width: 0; }
     .lista strong { font-weight: 500; color: var(--lila-950); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .lista .suave { font-size: .85rem; }
@@ -250,12 +250,12 @@ const ESTADOS: Record<string, string> = {
     @keyframes brilla { to { background-position: -220% 0; } }
     .feed { list-style: none; margin: 0; padding: 0 0 0 .4rem; display: grid; gap: .1rem; position: relative; }
     .feed li { display: flex; gap: .9rem; align-items: flex-start; padding: .55rem 0; position: relative; }
-    .feed li::before { content: ''; position: absolute; left: .42rem; top: 1.6rem; bottom: -.5rem; width: 2px; background: rgba(94,74,138,.16); } .feed li:last-child::before { display: none; }
-    .punto-f { flex: none; width: .9rem; height: .9rem; border-radius: 50%; margin-top: .25rem; background: var(--lila-500); box-shadow: 0 0 0 4px rgba(139,111,224,.18); position: relative; z-index: 1; }
+    .feed li::before { content: ''; position: absolute; left: .42rem; top: 1.6rem; bottom: -.5rem; width: 2px; background: rgba(var(--d-94_74_138),.16); } .feed li:last-child::before { display: none; }
+    .punto-f { flex: none; width: .9rem; height: .9rem; border-radius: 50%; margin-top: .25rem; background: var(--lila-500); box-shadow: 0 0 0 4px rgba(var(--d-139_111_224),.18); position: relative; z-index: 1; }
     .punto-f.ok, .punto-f.fin { background: #5cb88f; box-shadow: 0 0 0 4px rgba(92,184,143,.2); } .punto-f.mal { background: #d98a5b; box-shadow: 0 0 0 4px rgba(217,138,91,.22); }
     .feed div { display: grid; gap: .1rem; min-width: 0; } .feed strong { font-weight: 500; color: var(--lila-950); font-size: .92rem; } .feed small { color: var(--tinta-suave); text-transform: capitalize; }
     :host-context([data-tema='noche']) .feed strong { color: var(--n-f1ecff); } :host-context([data-tema='noche']) .feed li::before { background: rgba(255,255,255,.14); }
-    .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(94,74,138,.3); border-radius: 16px; }
+    .vacio { padding: 1.4rem; text-align: center; color: var(--tinta-suave); border: 1px dashed rgba(var(--d-94_74_138),.3); border-radius: 16px; }
     .nota-final { font-weight: 300; font-variant-numeric: tabular-nums; font-size: 1.6rem; color: var(--lila-900); }
     @media (max-width: 700px) { .cerebro { display: none; } .bienvenida { grid-template-columns: 1fr; } }
     .nota-final small { font-size: 1rem; color: var(--tinta-suave); }

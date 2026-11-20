@@ -76,7 +76,7 @@ export class Neuronas implements OnDestroy {
 
   private dibujar(ctx: CanvasRenderingContext2D): void {
     const noche = document.documentElement.dataset['tema'] === 'noche';
-    const tinta = noche ? (getComputedStyle(document.documentElement).getPropertyValue('--n-borde').trim() || '190,170,240') : '94,74,138';
+    const tinta = noche ? (getComputedStyle(document.documentElement).getPropertyValue('--n-borde').trim() || '190,170,240') : (getComputedStyle(document.documentElement).getPropertyValue('--d-94_74_138').trim() || '94,74,138');
     ctx.clearRect(0, 0, this.w, this.h);
     const N = this.nodos;
     for (let i = 0; i < N.length; i++) for (let j = i + 1; j < N.length; j++) {
@@ -90,7 +90,7 @@ export class Neuronas implements OnDestroy {
     for (const p of this.pulsos) {
       const A = N[p.a], B = N[p.b]; if (!A || !B) continue;
       const x = A.x + (B.x - A.x) * p.t, y = A.y + (B.y - A.y) * p.t;
-      const g = ctx.createRadialGradient(x, y, 0, x, y, 12); g.addColorStop(0, noche ? 'rgba(220,205,255,.95)' : 'rgba(139,111,224,.95)'); g.addColorStop(1, 'rgba(139,111,224,0)');
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 12); g.addColorStop(0, noche ? 'rgba(220,205,255,.95)' : 'rgba(var(--d-139_111_224),.95)'); g.addColorStop(1, 'rgba(var(--d-139_111_224),0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 12, 0, 6.283); ctx.fill();
     }
   }

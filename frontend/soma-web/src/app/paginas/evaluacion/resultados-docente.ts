@@ -189,8 +189,8 @@ import { SomaApiService } from '../../core/soma-api.service';
     .kpi { padding: 1.1rem 1.3rem; display: grid; gap: .2rem; } .kpi .valor { font-weight: 300; font-size: 2.2rem; line-height: 1; color: var(--lila-950); font-variant-numeric: tabular-nums; }
     :host-context([data-tema='noche']) .kpi .valor { color: var(--n-f1ecff); }
     .barra-tabla { display: flex; flex-wrap: wrap; gap: .8rem 1.2rem; align-items: flex-end; margin-bottom: .8rem; } .buscador { min-width: 240px; }
-    .orden { all: unset; cursor: pointer; font-weight: 600; } .orden:focus-visible { outline: 3px solid #7a5fd0; border-radius: 4px; }
-    tr.activa { background: rgba(139,111,224,.14); }
+    .orden { all: unset; cursor: pointer; font-weight: 600; } .orden:focus-visible { outline: 3px solid var(--d-7a5fd0); border-radius: 4px; }
+    tr.activa { background: rgba(var(--d-139_111_224),.14); }
     .paginacion { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: .9rem; }
     .nav-calificar { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; } .nav-calificar h3 { margin: 0; }
     .plantillas { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }

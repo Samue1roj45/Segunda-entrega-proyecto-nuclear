@@ -15,10 +15,10 @@ import { RouterLink } from '@angular/router';
   `,
   styles: `
     .caja { display: grid; justify-items: center; gap: .8rem; padding: 3rem 1.5rem; text-align: center; }
-    img { width: 120px; opacity: .85; animation: flota 7s ease-in-out infinite; filter: drop-shadow(0 14px 18px rgba(88,68,140,.28)); }
+    img { width: 120px; opacity: .85; animation: flota 7s ease-in-out infinite; filter: drop-shadow(0 14px 18px rgba(var(--d-88_68_140),.28)); }
     .codigo-error { font-family: var(--serif); font-size: 5rem; line-height: 1; color: var(--lila-500); letter-spacing: .1em; }
     .suave { max-width: 30rem; line-height: 1.5; } a { text-decoration: none; margin-top: .6rem; }
-    kbd { font: inherit; font-size: .75rem; padding: .1rem .4rem; border-radius: 6px; background: rgba(94,74,138,.12); }
+    kbd { font: inherit; font-size: .75rem; padding: .1rem .4rem; border-radius: 6px; background: rgba(var(--d-94_74_138),.12); }
     @keyframes flota { 50% { transform: translateY(-8px); } }
   `,
 })

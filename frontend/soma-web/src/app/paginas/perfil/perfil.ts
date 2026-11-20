@@ -73,7 +73,7 @@ const NOMBRES: Record<string, string> = {
   `,
   styles: `
     .cabeza { display: flex; align-items: center; gap: 1.4rem; padding: 1.6rem 1.8rem; flex-wrap: wrap; }
-    .avatar-grande { width: 5.2rem; height: 5.2rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 1.7rem; font-weight: 600; box-shadow: 0 0 0 4px rgba(255,255,255,.75), 0 16px 26px -14px rgba(59,45,92,.7); }
+    .avatar-grande { width: 5.2rem; height: 5.2rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 1.7rem; font-weight: 600; box-shadow: 0 0 0 4px rgba(255,255,255,.75), 0 16px 26px -14px rgba(var(--d-59_45_92),.7); }
     .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.2rem; align-items: start; }
     .fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
     .colores { display: flex; gap: .5rem; } .color { width: 1.9rem; height: 1.9rem; border-radius: 50%; border: 2px solid transparent; transition: transform .2s; }

@@ -61,7 +61,7 @@ export interface Dato { readonly etiqueta: string; readonly valor: number; reado
     ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
     li { display: grid; grid-template-columns: minmax(80px, 38%) 1fr 3rem; align-items: center; gap: .7rem; font-size: .85rem; }
     .et { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--tinta); } .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--tinta-suave); }
-    .pista { height: 10px; border-radius: 999px; background: rgba(94,74,138,.14); overflow: hidden; }
+    .pista { height: 10px; border-radius: 999px; background: rgba(var(--d-94_74_138),.14); overflow: hidden; }
     i { display: block; height: 100%; border-radius: 999px; animation: llena .9s cubic-bezier(.2,.8,.2,1) both; background: linear-gradient(90deg, var(--n-8b6fe0), #5e4a8a); }
     i.bien { background: linear-gradient(90deg, #7fd1ae, #3f8f6b); } i.mal { background: linear-gradient(90deg, #f0a58d, #b5523b); }
     @keyframes llena { from { width: 0; } }

@@ -51,7 +51,7 @@ const hora = (iso: string): string => iso.slice(11, 16);
     .rejilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
     .cab { text-align: center; font-size: .78rem; color: var(--tinta-suave); padding: .3rem 0; }
     .dia { min-height: 5.6rem; padding: .3rem; border-radius: 10px; background: rgba(255,255,255,.45); display: grid; align-content: start; gap: 2px; overflow: hidden; }
-    .dia.fuera { opacity: .45; } .dia.hoy { outline: 2px solid var(--lila-600, #7a5fd0); } .n { font-size: .8rem; color: var(--tinta-suave); }
+    .dia.fuera { opacity: .45; } .dia.hoy { outline: 2px solid var(--lila-600, var(--d-7a5fd0)); } .n { font-size: .8rem; color: var(--tinta-suave); }
     .ev { font-size: .72rem; line-height: 1.2; padding: .15rem .35rem; border-radius: 6px; background: var(--lila-700); color: #fff; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .ev.en-curso { background: #2d6a4f; } .ev.choque { background: #c78a1d; color: #1c1300; }
     :host-context([data-tema='noche']) .dia { background: rgba(255,255,255,.06); }

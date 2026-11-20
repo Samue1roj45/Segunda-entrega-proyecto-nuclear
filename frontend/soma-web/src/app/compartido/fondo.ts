@@ -10,13 +10,13 @@ import { Component } from '@angular/core';
     <svg class="escena" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>
         <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#d9d0ee" /><stop offset=".45" stop-color="#ece7f7" /><stop offset="1" stop-color="#cfc4e6" />
+          <stop offset="0" stop-color="var(--d-d9d0ee)" /><stop offset=".45" stop-color="var(--d-ece7f7)" /><stop offset="1" stop-color="#cfc4e6" />
         </linearGradient>
         <linearGradient id="monte" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#a99bc9" /><stop offset="1" stop-color="#e5def3" />
+          <stop offset="0" stop-color="#a99bc9" /><stop offset="1" stop-color="var(--d-e5def3)" />
         </linearGradient>
         <linearGradient id="agua" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#e9e3f6" /><stop offset="1" stop-color="#b7a8d8" />
+          <stop offset="0" stop-color="var(--d-e9e3f6)" /><stop offset="1" stop-color="#b7a8d8" />
         </linearGradient>
         <linearGradient id="cinta" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stop-color="#ffffff" stop-opacity=".0" />
@@ -42,7 +42,7 @@ import { Component } from '@angular/core';
       <path d="M820 640 L900 330 L940 300 L990 420 L1040 380 L1110 520 L1180 640 Z" fill="url(#monte)" opacity=".7" />
       <path d="M1100 640 L1170 520 L1230 560 L1290 640 Z" fill="url(#monte)" opacity=".45" />
       </g>
-      <rect x="0" y="560" width="1600" height="120" fill="#efeaf8" opacity=".75" filter="url(#niebla)" />
+      <rect x="0" y="560" width="1600" height="120" fill="var(--d-efeaf8)" opacity=".75" filter="url(#niebla)" />
 
       <!-- agua -->
       <rect x="0" y="640" width="1600" height="260" fill="url(#agua)" />
@@ -80,7 +80,7 @@ import { Component } from '@angular/core';
     @keyframes flotar { from { transform: translateY(-6px); } to { transform: translateY(8px); } }
     .vino {
       position: absolute; right: -6%; bottom: -8%; width: 32vw; height: 60vh;
-      background: radial-gradient(circle at 60% 60%, rgba(94,74,138,.55), rgba(94,74,138,0) 60%);
+      background: radial-gradient(circle at 60% 60%, rgba(var(--d-94_74_138),.55), rgba(var(--d-94_74_138),0) 60%);
       filter: blur(30px);
     }
   `,

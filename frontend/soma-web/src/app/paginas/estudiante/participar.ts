@@ -109,22 +109,22 @@ import { SomaApiService } from '../../core/soma-api.service';
   styles: `
     .casillas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
     .casilla { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 10px; text-decoration: none; font-weight: 500; color: var(--lila-900);
-      background: rgba(255,255,255,.55); border: 1px solid rgba(94,74,138,.25); }
+      background: rgba(255,255,255,.55); border: 1px solid rgba(var(--d-94_74_138),.25); }
     .casilla.hecha { background: var(--lila-700); color: #fff; border-color: transparent; }
     .casilla.revisar { outline: 2.5px solid #e0a43c; outline-offset: 2px; }
-    .punto { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin: 0 .25rem 0 .8rem; border: 1px solid rgba(94,74,138,.4); vertical-align: middle; }
+    .punto { display: inline-block; width: .7rem; height: .7rem; border-radius: 3px; margin: 0 .25rem 0 .8rem; border: 1px solid rgba(var(--d-94_74_138),.4); vertical-align: middle; }
     .punto.hecha { background: var(--lila-700); margin-left: 0; } .punto.revisar { outline: 2px solid #e0a43c; }
     .marca { margin-top: .6rem; width: fit-content; font-size: .85rem; } fieldset.por-revisar { border-color: #e0a43c; }
     :host-context([data-tema='noche']) .casilla { background: rgba(255,255,255,.08); color: var(--n-efe9ff); } :host-context([data-tema='noche']) .casilla.hecha { background: var(--n-8b6fe0); }
     :host-context([data-tema='noche']) .reloj .pista { stroke: rgba(255,255,255,.14); } :host-context([data-tema='noche']) .reloj strong { color: var(--n-f1ecff); }
     :host-context([data-tema='noche']) .guardado { background: rgba(92,184,143,.22); color: #8fe0bb; }
     :host-context([data-tema='noche']) .opcion { background: rgba(255,255,255,.06); } :host-context([data-tema='noche']) .opcion:hover { background: rgba(255,255,255,.12); }
-    :host-context([data-tema='noche']) .opcion.elegida { background: rgba(139,111,224,.22); border-color: #a692ea; } :host-context([data-tema='noche']) legend { color: var(--n-efe9ff); }
+    :host-context([data-tema='noche']) .opcion.elegida { background: rgba(var(--d-139_111_224),.22); border-color: #a692ea; } :host-context([data-tema='noche']) legend { color: var(--n-efe9ff); }
     .cabecera-participacion { display: flex; flex-wrap: wrap; gap: 1.2rem; justify-content: space-between; align-items: center; position: sticky; top: .6rem; z-index: 3; }
     .cabecera-participacion > div:first-child { flex: 1; min-width: 240px; display: grid; gap: .5rem; }
     .reloj { position: relative; width: 132px; height: 132px; display: grid; place-items: center; }
     .anillo { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-    .anillo circle { fill: none; stroke-width: 7; } .anillo .pista { stroke: rgba(94,74,138,.16); }
+    .anillo circle { fill: none; stroke-width: 7; } .anillo .pista { stroke: rgba(var(--d-94_74_138),.16); }
     .anillo .avance { stroke: url(#x); stroke: var(--lila-700); stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke .4s; }
     .reloj.urgente .avance { stroke: #d98a5b; } .reloj.critico .avance { stroke: var(--alerta); animation: late 1s ease-in-out infinite; }
     @keyframes late { 50% { opacity: .55; } }

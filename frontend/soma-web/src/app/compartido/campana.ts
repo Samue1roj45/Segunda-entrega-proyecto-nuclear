@@ -28,15 +28,15 @@ import { SomaApiService } from '../core/soma-api.service';
   styles: `
     :host { position: relative; display: inline-block; }
     .campana { position: relative; width: 2.5rem; height: 2.5rem; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.8);
-      background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(59,45,92,.5); transition: background .2s, transform .2s; }
+      background: rgba(255,255,255,.55); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -14px rgba(var(--d-59_45_92),.5); transition: background .2s, transform .2s; }
     .campana:hover { background: #fff; transform: translateY(-1px); }
     .campana svg { width: 19px; height: 19px; fill: none; stroke: var(--lila-800); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .campana i { position: absolute; top: -3px; right: -3px; min-width: 1.1rem; height: 1.1rem; border-radius: 999px; padding: 0 .25rem; display: grid; place-items: center;
-      font-style: normal; font-size: .65rem; font-weight: 600; color: #fff; background: linear-gradient(135deg, #b78be0, #6b4fb0); box-shadow: 0 0 0 2px #efeaf8; }
+      font-style: normal; font-size: .65rem; font-weight: 600; color: #fff; background: linear-gradient(135deg, #b78be0, #6b4fb0); box-shadow: 0 0 0 2px var(--d-efeaf8); }
     .fondo { position: fixed; inset: 0; z-index: 70; }
     .menu { position: absolute; right: 0; top: calc(100% + .6rem); z-index: 71; width: min(360px, 90vw); max-height: 60vh; overflow-y: auto; padding: 1rem; border-radius: 22px; display: grid; gap: .5rem;
-      background: linear-gradient(160deg, rgba(255,255,255,.9), rgba(240,234,252,.82)); border: 1px solid rgba(255,255,255,.9); animation: abre .25s cubic-bezier(.2,.8,.2,1) both;
-      -webkit-backdrop-filter: blur(26px) saturate(1.7); backdrop-filter: blur(26px) saturate(1.7); box-shadow: 0 40px 70px -28px rgba(42,31,66,.55), inset 0 1.5px 0 #fff; }
+      background: linear-gradient(160deg, rgba(255,255,255,.9), rgba(var(--d-240_234_252),.82)); border: 1px solid rgba(255,255,255,.9); animation: abre .25s cubic-bezier(.2,.8,.2,1) both;
+      -webkit-backdrop-filter: blur(26px) saturate(1.7); backdrop-filter: blur(26px) saturate(1.7); box-shadow: 0 40px 70px -28px rgba(var(--d-42_31_66),.55), inset 0 1.5px 0 #fff; }
     h3 { font-size: 1.3rem; margin-bottom: .2rem; }
     article { display: flex; gap: .65rem; align-items: flex-start; padding: .6rem .7rem; border-radius: 14px; background: rgba(255,255,255,.6); }
     article div { display: grid; gap: .1rem; min-width: 0; } strong { font-weight: 500; font-size: .88rem; color: var(--lila-950); }
@@ -49,7 +49,7 @@ import { SomaApiService } from '../core/soma-api.service';
     :host-context([data-tema='noche']) .campana:hover { background: rgba(255,255,255,.18); }
     :host-context([data-tema='noche']) .campana svg { stroke: var(--n-d6cbf5); }
     :host-context([data-tema='noche']) .campana i { box-shadow: 0 0 0 2px var(--n-1a1438); }
-    :host-context([data-tema='noche']) .menu { background: linear-gradient(160deg, rgba(60,48,110,.88), rgba(26,20,54,.9)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 40px 70px -28px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
+    :host-context([data-tema='noche']) .menu { background: linear-gradient(160deg, rgba(var(--d-60_48_110),.88), rgba(26,20,54,.9)); border-color: rgba(var(--n-borde),.25); box-shadow: 0 40px 70px -28px #000, inset 0 1.5px 0 rgba(255,255,255,.14); }
     :host-context([data-tema='noche']) article { background: rgba(255,255,255,.07); }
     :host-context([data-tema='noche']) strong { color: var(--n-f1ecff); }
 

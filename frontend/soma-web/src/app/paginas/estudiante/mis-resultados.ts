@@ -78,7 +78,7 @@ import { SomaApiService } from '../../core/soma-api.service';
     </div>
   `,
   styles: `
-    .destacado { display: flex; gap: 1.3rem; align-items: center; padding: 1.6rem 1.8rem; background: radial-gradient(90% 140% at 100% 0%, rgba(201,184,240,.6), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(236,229,250,.5)); }
+    .destacado { display: flex; gap: 1.3rem; align-items: center; padding: 1.6rem 1.8rem; background: radial-gradient(90% 140% at 100% 0%, rgba(var(--d-201_184_240),.6), transparent 60%), linear-gradient(120deg, rgba(255,255,255,.78), rgba(var(--d-236_229_250),.5)); }
     .medalla { font-size: 3.4rem; animation: salta 1.6s ease-out both; } @keyframes salta { 0% { transform: scale(.3) rotate(-20deg); opacity: 0; } 60% { transform: scale(1.2) rotate(8deg); } 100% { transform: none; opacity: 1; } }
     .sobre-d { text-transform: uppercase; letter-spacing: .18em; font-size: .7rem; color: var(--lila-700); }
     blockquote { margin: .8rem 0 0; padding: .8rem 1rem; border-left: 4px solid var(--lila-500); border-radius: 0 14px 14px 0; background: rgba(255,255,255,.6); white-space: pre-line; line-height: 1.5; }
@@ -103,7 +103,7 @@ export class MisResultados implements OnInit {
   private readonly toasts = inject(ToastService);
   protected readonly celebrar = signal(false);
   protected readonly retroDestacada = signal<Retroalimentacion[]>([]);
-  protected readonly confeti = Array.from({ length: 46 }, (_, i) => ({ x: (i * 37) % 100, d: (i % 12) * 0.12, g: (i * 53) % 360, c: ['var(--n-8b6fe0)', '#c3a9ff', '#e8b8dd', '#aebcf0', '#f0cfa0', '#7fd1ae'][i % 6] }));
+  protected readonly confeti = Array.from({ length: 46 }, (_, i) => ({ x: (i * 37) % 100, d: (i % 12) * 0.12, g: (i * 53) % 360, c: ['var(--n-8b6fe0)', 'var(--d-c3a9ff)', '#e8b8dd', '#aebcf0', '#f0cfa0', '#7fd1ae'][i % 6] }));
   protected readonly destacado = computed(() => [...this.lista()].sort((a, b) => b.fechaCalculo.localeCompare(a.fechaCalculo))[0] ?? null);
   protected proporcion(r: ResultadoDetalle): number { return r.escalaMaxima ? Number(r.notaFinal) / Number(r.escalaMaxima) : 0; }
   /** Evolución de la nota entre intentos de un mismo caso (solo para casos con más de un intento). */
