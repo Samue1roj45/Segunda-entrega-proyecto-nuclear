@@ -53,9 +53,13 @@ test('recorrido completo docente → estudiante → docente', async ({ page }) =
 
   // 6) El docente califica: nota oficial y publicación
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.locator('#correo-login')).toBeVisible();
+  await page.waitForTimeout(400); // deja que el formulario termine de inicializarse
   await page.fill('#correo-login', 'carlos.gomez@institucion.edu.co');
   await page.fill('#clave-login', 'Clave-Docente-01');
   await page.click('button.ingresar');
+  await page.waitForURL(/\/inicio/);
   await page.goto('/resultados?practica=1');
   await expect(page.locator('.resumen-estadistico')).toContainText('5,0');
   await page.getByRole('button', { name: 'Detalle' }).click();
