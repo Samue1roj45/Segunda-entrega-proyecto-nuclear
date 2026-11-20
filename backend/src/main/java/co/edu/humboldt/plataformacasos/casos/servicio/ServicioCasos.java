@@ -9,6 +9,8 @@ import co.edu.humboldt.plataformacasos.casos.repositorio.CasoResumen;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +67,17 @@ public class ServicioCasos implements GestionCasos {
     @Transactional(readOnly = true)
     public DocumentoDsl exportarDsl(Long idCaso) {
         return DocumentoDsl.de(acceso.paraConsultar(idCaso));
+    }
+
+    @Override
+    public void eliminar(Long idCaso) {
+        CasoEstudio caso = acceso.paraModificar(idCaso);
+        try {
+            casos.delete(caso);
+            casos.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictoException("No se puede eliminar: el caso ya tiene sesiones o participaciones asociadas.");
+        }
     }
 
     /** Las herramientas son de RF-28, ajeno a este módulo: se avisa en vez de perderlas en silencio. */

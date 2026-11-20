@@ -9,7 +9,7 @@ const NOMBRES: Record<string, string> = {
   [Permiso.ParticiparEnCasos]: 'Participar en casos', [Permiso.ConsultarResultadosPropios]: 'Consultar mis resultados',
   [Permiso.GestionarCasos]: 'Gestionar casos', [Permiso.ProgramarSesiones]: 'Programar sesiones',
   [Permiso.ConsultarParticipaciones]: 'Consultar participaciones', [Permiso.DescargarReportes]: 'Descargar reportes',
-  [Permiso.RegistrarRetroalimentacion]: 'Registrar retroalimentación', [Permiso.AutorizarRepeticion]: 'Autorizar repeticiones',
+  [Permiso.RegistrarRetroalimentacion]: 'Registrar retroalimentación', [Permiso.AutorizarRepeticion]: 'Autorizar repeticiones', [Permiso.EliminarCasos]: 'Eliminar casos',
   [Permiso.AdministrarDocentes]: 'Administrar docentes',
 };
 

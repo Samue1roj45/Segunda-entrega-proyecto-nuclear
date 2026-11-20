@@ -13,6 +13,7 @@ const PERMISOS_DOCENTE: { clave: Permiso; titulo: string; ayuda: string }[] = [
   { clave: Permiso.DescargarReportes, titulo: 'Descargar reportes', ayuda: 'Exportar la evaluación en PDF y Excel.' },
   { clave: Permiso.RegistrarRetroalimentacion, titulo: 'Retroalimentar', ayuda: 'Escribir comentarios a los estudiantes.' },
   { clave: Permiso.AutorizarRepeticion, titulo: 'Autorizar repeticiones', ayuda: 'Conceder intentos adicionales.' },
+  { clave: Permiso.EliminarCasos, titulo: 'Eliminar casos', ayuda: 'Borrar sus propios casos que no tengan sesiones.' },
 ];
 
 /** Administración de docentes (RF-02): alta de docentes y asignación de permisos. Solo el administrador. */

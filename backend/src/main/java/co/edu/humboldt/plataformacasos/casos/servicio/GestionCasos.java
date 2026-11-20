@@ -33,4 +33,8 @@ public interface GestionCasos {
 
     @RequierePermiso(Permiso.GESTIONAR_CASOS)
     DocumentoDsl exportarDsl(Long idCaso);
+
+    /** Elimina un caso propio. Exige el permiso adicional del administrador y que ninguna sesión lo use. */
+    @RequierePermiso(Permiso.ELIMINAR_CASOS)
+    void eliminar(Long idCaso);
 }

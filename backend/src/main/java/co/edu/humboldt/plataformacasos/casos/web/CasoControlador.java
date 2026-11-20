@@ -8,6 +8,7 @@ import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.DatosCasoRequest;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +51,12 @@ public class CasoControlador {
     @PutMapping("/{idCaso}")
     public CasoDetalleDTO actualizar(@PathVariable Long idCaso, @RequestBody DatosCasoRequest datos) {
         return gestionCasos.actualizar(idCaso, datos);
+    }
+
+    @DeleteMapping("/{idCaso}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long idCaso) {
+        gestionCasos.eliminar(idCaso);
     }
 
     @PostMapping("/importacion-dsl")

@@ -8,5 +8,6 @@ export enum Permiso {
   DescargarReportes = 'DESCARGAR_REPORTES',
   RegistrarRetroalimentacion = 'REGISTRAR_RETROALIMENTACION',
   AutorizarRepeticion = 'AUTORIZAR_REPETICION',
+  EliminarCasos = 'ELIMINAR_CASOS',
   AdministrarDocentes = 'ADMINISTRAR_DOCENTES',
 }

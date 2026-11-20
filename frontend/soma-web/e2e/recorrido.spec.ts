@@ -71,6 +71,23 @@ test('recorrido completo docente → estudiante → docente', async ({ page }) =
   await expect(page.locator('.toast').last()).toContainText('Calificaciones publicadas');
 });
 
+test('el docente con el permiso adicional elimina un caso desde la lista', async ({ page }) => {
+  const estado = new Estado();
+  await instalarServidorSimulado(page, estado);
+  await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));
+  await page.goto('/login');
+  await page.fill('#correo-login', 'carlos.gomez@institucion.edu.co');
+  await page.fill('#clave-login', 'Clave-Docente-01');
+  await page.click('button.ingresar');
+  await page.waitForURL(/\/inicio/);
+  await page.goto('/casos');
+  await page.getByRole('button', { name: 'Eliminar' }).click();
+  await expect(page.getByRole('alertdialog')).toContainText('no se puede deshacer');
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Eliminar' }).click();
+  await expect.poll(() => estado.casoEliminado).toBe(true);
+  await expect(page.locator('.vacio')).toBeVisible();
+});
+
 test('Ctrl+K abre el buscador y lleva a la sección elegida', async ({ page }) => {
   await instalarServidorSimulado(page, new Estado());
   await page.addInitScript(() => sessionStorage.setItem('soma.saludado', '1'));

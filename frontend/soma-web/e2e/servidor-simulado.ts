@@ -7,11 +7,12 @@ export class Estado {
   participacion: { id: number; estado: string; respuesta: number | null } | null = null;
   oficial = false;
   publicada = false;
+  casoEliminado = false;
   llamadas: string[] = [];
 }
 
 const DOCENTE = { token: 't-doc', correoInstitucional: 'carlos.gomez@institucion.edu.co', nombreCompleto: 'Carlos Gómez', rol: 'DOCENTE', expiraEn: '2099-01-01T00:00:00Z',
-  permisos: ['GESTIONAR_CASOS', 'PROGRAMAR_SESIONES', 'CONSULTAR_PARTICIPACIONES', 'DESCARGAR_REPORTES', 'REGISTRAR_RETROALIMENTACION', 'AUTORIZAR_REPETICION'] };
+  permisos: ['GESTIONAR_CASOS', 'PROGRAMAR_SESIONES', 'CONSULTAR_PARTICIPACIONES', 'DESCARGAR_REPORTES', 'REGISTRAR_RETROALIMENTACION', 'AUTORIZAR_REPETICION', 'ELIMINAR_CASOS'] };
 const ESTUDIANTE = { token: 't-est', correoInstitucional: 'ana.perez@institucion.edu.co', nombreCompleto: 'Ana Pérez', rol: 'ESTUDIANTE', expiraEn: '2099-01-01T00:00:00Z',
   permisos: ['PARTICIPAR_EN_CASOS', 'CONSULTAR_RESULTADOS_PROPIOS'] };
 
@@ -37,7 +38,8 @@ export async function instalarServidorSimulado(page: Page, e: Estado): Promise<v
     if (ruta === '/api/auth/personal/login') return json(r, DOCENTE);
     if (ruta === '/api/auth/estudiantes/login') return json(r, ESTUDIANTE);
     if (ruta === '/api/estudiantes') return json(r, ESTUDIANTES);
-    if (ruta === '/api/casos' && m === 'GET') return json(r, [CASO]);
+    if (ruta === '/api/casos' && m === 'GET') return json(r, e.casoEliminado ? [] : [CASO]);
+    if (ruta === '/api/casos/1' && m === 'DELETE') { e.casoEliminado = true; return r.fulfill({ status: 204 }); }
     if (ruta === '/api/sesiones' && m === 'GET') return json(r, e.sesionCreada ? [sesion()] : []);
     if (ruta === '/api/sesiones' && m === 'POST') { e.sesionCreada = true; return json(r, { idPractica: 1, convocados: [] }, 201); }
     if (ruta === '/api/sesiones/1') return json(r, sesion());

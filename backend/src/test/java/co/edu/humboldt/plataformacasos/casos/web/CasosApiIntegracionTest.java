@@ -270,6 +270,30 @@ class CasosApiIntegracionTest {
     }
 
     @Test
+    @DisplayName("Eliminar casos es un permiso adicional: sin él 403; con él solo los propios y sin sesiones")
+    void eliminarCasoConPermisoAdicional() throws Exception {
+        String carlos = carlos();
+        long id = importarCasoValido(carlos);
+        String caso = CASOS + "/" + id;
+
+        // Gestionar casos no basta: el administrador debe dar además «eliminar casos».
+        assertThat(delete(caso, carlos).estado()).isEqualTo(403);
+        assertThat(get(caso, carlos).estado()).isEqualTo(200);
+
+        otorgar(CARLOS, "ELIMINAR_CASOS");
+        String carlosConPermiso = carlos();
+
+        // Un caso de otro docente no se puede eliminar aunque se tenga el permiso.
+        otorgar(LAURA, "GESTIONAR_CASOS");
+        long ajeno = crearCaso(laura(), "{\"nombre\":\"De Laura\"}");
+        assertThat(delete(CASOS + "/" + ajeno, carlosConPermiso).estado()).isEqualTo(403);
+
+        assertThat(delete(caso, carlosConPermiso).estado()).isEqualTo(204);
+        assertThat(get(caso, carlosConPermiso).estado()).isEqualTo(404);
+        assertThat(delete(caso, carlosConPermiso).estado()).isEqualTo(404);
+    }
+
+    @Test
     @DisplayName("RF-06 y RF-07: eliminar en un borrador borra sus elementos dependientes")
     void eliminacionEnBorrador() throws Exception {
         String token = carlos();

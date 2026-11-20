@@ -1,10 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { claseEstado, nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
+import { DialogoService } from '../../core/dialogo.service';
+import { Permiso } from '../../core/modelos/permiso';
+import { SesionService } from '../../core/sesion.service';
 import { ToastService } from '../../core/toast.service';
 import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
@@ -69,6 +72,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
               <div class="acciones">
                 <a [routerLink]="['/casos', c.id]" class="boton-suave boton-chico enlace-boton">Abrir</a>
                 <button type="button" class="boton-suave boton-chico" [disabled]="duplicando() === c.id" (click)="duplicar(c)" title="Crea una copia como borrador">{{ duplicando() === c.id ? 'Duplicando…' : 'Duplicar' }}</button>
+                @if (puedeEliminar()) { <button type="button" class="boton-peligro boton-chico" [disabled]="eliminando() === c.id" (click)="eliminar(c)">{{ eliminando() === c.id ? 'Eliminando…' : 'Eliminar' }}</button> }
               </div>
             </article>
           }
@@ -90,6 +94,10 @@ export class CasosLista implements OnInit {
   protected readonly ocupado = signal(false);
   protected readonly duplicando = signal<number | null>(null);
   private readonly toasts = inject(ToastService);
+  private readonly dialogos = inject(DialogoService);
+  private readonly sesiones = inject(SesionService);
+  protected readonly puedeEliminar = computed(() => this.sesiones.tienePermiso(Permiso.EliminarCasos));
+  protected readonly eliminando = signal<number | null>(null);
   protected textoDsl = '';
   protected readonly nombre = nombreEstado;
   protected readonly clase = claseEstado;
@@ -119,6 +127,18 @@ export class CasosLista implements OnInit {
         });
       },
       error: (e: HttpErrorResponse) => { this.duplicando.set(null); this.toasts.error(mensajeDeError(e)); },
+    });
+  }
+
+  /** Permiso adicional que da el administrador. El servidor lo vuelve a comprobar y rechaza casos con sesiones. */
+  protected eliminar(c: CasoResumen): void {
+    void this.dialogos.confirmar({ titulo: 'Eliminar el caso', mensaje: `«${c.nombre}» se borrará con sus escenarios, preguntas y rúbrica.`, detalle: ['Esta acción no se puede deshacer.'], confirmar: 'Eliminar', peligro: true }).then((ok) => {
+      if (!ok) { return; }
+      this.eliminando.set(c.id);
+      this.api.eliminarCaso(c.id).subscribe({
+        next: () => { this.eliminando.set(null); this.casos.update((l) => l.filter((x) => x.id !== c.id)); this.toasts.ok('Caso eliminado.'); },
+        error: (e: HttpErrorResponse) => { this.eliminando.set(null); this.toasts.error(mensajeDeError(e)); },
+      });
     });
   }
 

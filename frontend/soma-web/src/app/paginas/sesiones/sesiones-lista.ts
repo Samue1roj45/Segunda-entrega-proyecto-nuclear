@@ -58,7 +58,8 @@ export class SesionesLista implements OnInit {
   private readonly api = inject(SomaApiService);
   private readonly dialogos = inject(DialogoService);
   protected readonly reportes = inject(ReportesService);
-  protected readonly puedeReportes = computed(() => inject(SesionService).tienePermiso(Permiso.DescargarReportes));
+  private readonly sesionUsuario = inject(SesionService);
+  protected readonly puedeReportes = computed(() => this.sesionUsuario.tienePermiso(Permiso.DescargarReportes));
   protected readonly sesiones = signal<SesionDetalle[]>([]);
   protected readonly cargando = signal(true);
   protected readonly ocupado = signal(false);
