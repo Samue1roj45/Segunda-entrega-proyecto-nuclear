@@ -175,8 +175,16 @@ public class CasoEstudio {
         }
     }
 
+    /** Solo un BORRADOR se publica; un caso archivado se recupera con {@link #recuperar()}. */
+    public void exigirPublicable() {
+        if (!estado.puedePublicarse()) {
+            throw new ConflictoException("Un caso en estado " + estado + " no se puede publicar.");
+        }
+    }
+
     /** RF-09: quien llama debe haber validado el caso con el validador DSL-CEPS. */
     public void publicar() {
+        exigirPublicable();
         transitarA(EstadoCaso.PUBLICADO);
         fechaPublicacion = fechaActualizacion;
     }
@@ -185,6 +193,18 @@ public class CasoEstudio {
     public void archivar() {
         transitarA(EstadoCaso.ARCHIVADO);
         fechaArchivado = fechaActualizacion;
+    }
+
+    /**
+     * Devuelve un caso archivado a PUBLICADO para volver a programarlo. Conserva la fecha de la primera
+     * publicación y el contenido; quien llama debe haberlo validado otra vez con las reglas vigentes.
+     */
+    public void recuperar() {
+        if (!estado.puedeRecuperarse()) {
+            throw new ConflictoException("Solo se recupera un caso archivado; este está " + estado + ".");
+        }
+        transitarA(EstadoCaso.PUBLICADO);
+        fechaArchivado = null;
     }
 
     private void transitarA(EstadoCaso destino) {

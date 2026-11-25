@@ -10,9 +10,20 @@ import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
 import { ToastService } from '../../core/toast.service';
 import { CasoEliminado } from '../../core/modelos/dominio';
+
+/** «Activos» son los publicados: los que se pueden programar. Archivados y papelera son cosas distintas. */
+const FILTROS: readonly { valor: string; texto: string; ayuda: string }[] = [
+  { valor: '', texto: 'Todos', ayuda: 'Todos tus casos: borradores, activos y archivados. Los de la papelera no aparecen aquí.' },
+  { valor: 'PUBLICADO', texto: 'Activos', ayuda: 'Casos publicados y disponibles para programar sesiones.' },
+  { valor: 'BORRADOR', texto: 'Borradores', ayuda: 'Casos en preparación: se pueden editar y publicar.' },
+  { valor: 'ARCHIVADO', texto: 'Archivados', ayuda: 'Casos guardados para reutilizarlos, con todo su contenido y sus sesiones anteriores. «Recuperar» los vuelve a activar; «Duplicar» crea una copia editable. Archivar no es eliminar.' },
+];
 import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
-/** Módulo 2: casos de estudio del docente. Lista con filtro por estado e importación de un caso en formato DSL (JSON). */
+/**
+ * Módulo 2: casos de estudio del docente. Lista con filtro por categoría (todos, activos, borradores, archivados),
+ * archivo y recuperación desde la lista, duplicación para reutilizar el contenido, papelera e importación DSL.
+ */
 @Component({
   selector: 'app-casos-lista',
   imports: [DatePipe, FormsModule, RouterLink],
@@ -48,17 +59,19 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
       <section class="cristal bloque">
         <div class="filtros">
-          <label class="campo-f">Estado
+          <label class="campo-f">Mostrar
             <select [ngModel]="estado()" (ngModelChange)="cambiarEstado($event)" name="estado">
-              <option value="">Todos</option><option value="BORRADOR">Borrador</option>
-              <option value="PUBLICADO">Publicado</option><option value="ARCHIVADO">Archivado</option>
+              @for (f of filtros; track f.valor) { <option [value]="f.valor">{{ f.texto }}</option> }
             </select>
           </label>
         </div>
+        <p class="ayuda">{{ ayudaFiltro() }}</p>
       </section>
 
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando casos"><i></i><i></i><i></i></div> }
-      @else if (casos().length === 0) { <p class="cristal vacio">Todavía no hay casos{{ estado() ? ' en este estado' : '' }}. Crea el primero con «Nuevo caso».</p> }
+      @else if (casos().length === 0) {
+        <p class="cristal vacio">{{ estado() === 'ARCHIVADO' ? 'No tienes casos archivados.' : 'Todavía no hay casos' + (estado() ? ' en esta categoría' : '') + '. Crea el primero con «Nuevo caso».' }}</p>
+      }
       @else {
         <div class="tarjetas">
           @for (c of casos(); track c.id) {
@@ -72,8 +85,14 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
               </div>
               <div class="acciones">
                 <a [routerLink]="['/casos', c.id]" class="boton-suave boton-chico enlace-boton">Abrir</a>
-                <button type="button" class="boton-suave boton-chico" [disabled]="duplicando() === c.id" (click)="duplicar(c)" title="Crea una copia como borrador">{{ duplicando() === c.id ? 'Duplicando…' : 'Duplicar' }}</button>
-                @if (puedeEliminar()) { <button type="button" class="boton-peligro boton-chico" [disabled]="eliminando() === c.id" (click)="eliminar(c)">{{ eliminando() === c.id ? 'Eliminando…' : 'Eliminar' }}</button> }
+                @if (c.estado === 'ARCHIVADO') {
+                  <button type="button" class="boton-primario boton-chico" [disabled]="cambiando() === c.id" [attr.aria-busy]="cambiando() === c.id" (click)="recuperar(c)" title="Vuelve a estar disponible para programar sesiones">{{ cambiando() === c.id ? 'Recuperando…' : 'Recuperar' }}</button>
+                }
+                <button type="button" class="boton-suave boton-chico" [disabled]="duplicando() === c.id" [attr.aria-busy]="duplicando() === c.id" (click)="duplicar(c)" title="Crea una copia editable como borrador; el original no cambia">{{ duplicando() === c.id ? 'Duplicando…' : 'Duplicar' }}</button>
+                @if (c.estado === 'PUBLICADO') {
+                  <button type="button" class="boton-suave boton-chico" [disabled]="cambiando() === c.id" [attr.aria-busy]="cambiando() === c.id" (click)="archivar(c)" title="Lo guarda para reutilizarlo; deja de ofrecerse para sesiones nuevas">{{ cambiando() === c.id ? 'Archivando…' : 'Archivar' }}</button>
+                }
+                @if (puedeEliminar()) { <button type="button" class="boton-peligro boton-chico" [disabled]="eliminando() === c.id" [attr.aria-busy]="eliminando() === c.id" (click)="eliminar(c)">{{ eliminando() === c.id ? 'Eliminando…' : 'Eliminar' }}</button> }
               </div>
             </article>
           }
@@ -82,7 +101,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
 
       @if (puedeEliminar()) {
         <section class="cristal papelera" aria-label="Papelera de casos">
-          <button type="button" class="boton-secundario boton-chico" id="papelera-toggle" [attr.aria-expanded]="papeleraAbierta()" (click)="alternarPapelera()">
+          <button type="button" class="boton-suave boton-chico" id="papelera-toggle" [attr.aria-expanded]="papeleraAbierta()" (click)="alternarPapelera()">
             Papelera ({{ papelera().length }})
           </button>
           @if (papeleraAbierta()) {
@@ -93,7 +112,7 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
                   <li>
                     <span><strong>{{ p.nombre || '(sin nombre)' }}</strong> · eliminado {{ p.fechaEliminacion | date: 'd MMM y, HH:mm' }}</span>
                     <span class="acciones">
-                      <button type="button" class="boton-secundario boton-chico" [disabled]="trabajandoPapelera() === p.id" (click)="restaurar(p)">Restaurar</button>
+                      <button type="button" class="boton-suave boton-chico" [disabled]="trabajandoPapelera() === p.id" (click)="restaurar(p)">Restaurar</button>
                       <button type="button" class="boton-peligro boton-chico" [disabled]="trabajandoPapelera() === p.id" (click)="borrarParaSiempre(p)">Borrar para siempre</button>
                     </span>
                   </li>
@@ -118,6 +137,9 @@ export class CasosLista implements OnInit {
   protected readonly importando = signal(false);
   protected readonly ocupado = signal(false);
   protected readonly duplicando = signal<number | null>(null);
+  protected readonly cambiando = signal<number | null>(null);
+  protected readonly filtros = FILTROS;
+  protected readonly ayudaFiltro = computed(() => FILTROS.find((f) => f.valor === this.estado())?.ayuda ?? '');
   private readonly toasts = inject(ToastService);
   private readonly dialogos = inject(DialogoService);
   private readonly sesiones = inject(SesionService);
@@ -153,6 +175,46 @@ export class CasosLista implements OnInit {
       },
       error: (e: HttpErrorResponse) => { this.duplicando.set(null); this.toasts.error(mensajeDeError(e)); },
     });
+  }
+
+  /** Archivar no borra nada: el caso sale de los activos y queda en «Archivados» para reutilizarlo. */
+  protected archivar(c: CasoResumen): void {
+    void this.dialogos.confirmar({
+      titulo: 'Archivar el caso', mensaje: `«${c.nombre}» dejará de ofrecerse para programar sesiones nuevas.`,
+      detalle: ['Conserva todo su contenido y sus sesiones anteriores.', 'Lo encontrarás en «Archivados», donde puedes recuperarlo o duplicarlo.'],
+      confirmar: 'Archivar',
+    }).then((ok) => {
+      if (!ok) { return; }
+      this.cambiando.set(c.id);
+      this.api.archivarCaso(c.id).subscribe({
+        next: (d) => { this.cambiando.set(null); this.reflejarEstado(c.id, d.estado); this.toasts.ok('Caso archivado. Está en «Archivados».'); },
+        error: (e: HttpErrorResponse) => { this.cambiando.set(null); this.toasts.error(mensajeDeError(e)); },
+      });
+    });
+  }
+
+  /** El servidor vuelve a validar el caso con las reglas vigentes antes de activarlo. */
+  protected recuperar(c: CasoResumen): void {
+    void this.dialogos.confirmar({
+      titulo: 'Recuperar el caso', mensaje: `«${c.nombre}» volverá a estar activo y disponible para programar sesiones.`,
+      detalle: ['Se valida otra vez con las reglas académicas.', 'Su contenido no cambia; si necesitas modificarlo, usa «Duplicar».'],
+      confirmar: 'Recuperar',
+    }).then((ok) => {
+      if (!ok) { return; }
+      this.cambiando.set(c.id);
+      this.api.recuperarCaso(c.id).subscribe({
+        next: (d) => { this.cambiando.set(null); this.reflejarEstado(c.id, d.estado); this.toasts.ok('Caso recuperado. Ya está entre los activos.'); },
+        error: (e: HttpErrorResponse) => { this.cambiando.set(null); this.toasts.error(mensajeDeError(e)); },
+      });
+    });
+  }
+
+  /** Actualiza la tarjeta al instante; si ya no corresponde al filtro elegido, la quita de la vista. */
+  private reflejarEstado(id: number, estado: CasoResumen['estado']): void {
+    const filtro = this.estado();
+    this.casos.update((l) => l
+      .map((x) => (x.id === id ? { ...x, estado } : x))
+      .filter((x) => !filtro || x.estado === filtro));
   }
 
   /** Permiso adicional que da el administrador. El servidor lo vuelve a comprobar y rechaza casos con sesiones. */

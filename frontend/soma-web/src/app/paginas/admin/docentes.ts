@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Docente } from '../../core/modelos/dominio';
 import { Permiso } from '../../core/modelos/permiso';
@@ -16,10 +17,10 @@ const PERMISOS_DOCENTE: { clave: Permiso; titulo: string; ayuda: string }[] = [
   { clave: Permiso.EliminarCasos, titulo: 'Eliminar casos', ayuda: 'Borrar sus propios casos que no tengan sesiones.' },
 ];
 
-/** Administración de docentes (RF-02): alta de docentes y asignación de permisos. Solo el administrador. */
+/** Administración de docentes (RF-02): alta de docentes y asignación de permisos de los activos. Solo el administrador. */
 @Component({
   selector: 'app-docentes',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   template: `
     <div class="pagina">
       <div class="cabecera-pagina"><h2 class="sr-only">Docentes</h2></div>
@@ -38,7 +39,8 @@ const PERMISOS_DOCENTE: { clave: Permiso; titulo: string; ayuda: string }[] = [
       </section>
 
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando docentes"><i></i><i></i><i></i></div> }
-      @else if (docentes().length === 0) { <p class="cristal vacio">Todavía no hay docentes registrados.</p> }
+      @else if (docentes().length === 0) { <p class="cristal vacio">Todavía no hay docentes activos.</p> }
+      @if (archivados() > 0) { <p class="aviso-info">{{ archivados() }} {{ archivados() === 1 ? 'docente archivado no aparece' : 'docentes archivados no aparecen' }} aquí. Consúltalos o reactívalos en <a routerLink="/usuarios">Usuarios</a>.</p> }
       @for (d of docentes(); track d.id) {
         <section class="cristal bloque">
           <div class="cabecera-pagina">
@@ -63,6 +65,8 @@ export class Docentes implements OnInit {
   private readonly api = inject(SomaApiService);
   protected readonly permisos = PERMISOS_DOCENTE;
   protected readonly docentes = signal<Docente[]>([]);
+  /** Los archivados no inician sesión: sus permisos no se editan aquí, se gestionan en «Usuarios». */
+  protected readonly archivados = signal(0);
   protected readonly cargando = signal(true);
   protected readonly ocupado = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -75,7 +79,7 @@ export class Docentes implements OnInit {
 
   private cargar(): void {
     this.api.docentes().subscribe({
-      next: (d) => { this.docentes.set(d); this.cambios.clear(); this.cargando.set(false); },
+      next: (d) => { this.docentes.set(d.filter((x) => x.activo)); this.archivados.set(d.filter((x) => !x.activo).length); this.cambios.clear(); this.cargando.set(false); },
       error: (e: HttpErrorResponse) => { this.cargando.set(false); this.error.set(mensajeDeError(e)); },
     });
   }

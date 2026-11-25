@@ -42,4 +42,20 @@ class UsuarioTest {
     void nombreObligatorio() {
         assertThrows(IllegalArgumentException.class, () -> Usuario.nuevoDocente("d@institucion.edu.co", " "));
     }
+
+    @Test
+    void archivarQuitaElAccesoYReactivarLoDevuelveConLosMismosPermisos() {
+        Usuario docente = Usuario.nuevoDocente("docente@institucion.edu.co", "Docente");
+        docente.asignarPermisos(Set.of(Permiso.GESTIONAR_CASOS));
+
+        docente.archivar();
+        assertFalse(docente.isActivo());
+        assertFalse(docente.tienePermiso(Permiso.GESTIONAR_CASOS));
+        assertThrows(IllegalStateException.class, docente::archivar);
+
+        docente.reactivar();
+        assertTrue(docente.isActivo());
+        assertTrue(docente.tienePermiso(Permiso.GESTIONAR_CASOS));
+        assertThrows(IllegalStateException.class, docente::reactivar);
+    }
 }

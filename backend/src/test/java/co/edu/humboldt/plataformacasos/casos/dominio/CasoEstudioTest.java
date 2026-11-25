@@ -190,22 +190,32 @@ class CasoEstudioTest {
     }
 
     @Test
-    @DisplayName("RF-09: el ciclo de vida solo avanza de BORRADOR a PUBLICADO y de PUBLICADO a ARCHIVADO")
+    @DisplayName("RF-09: BORRADOR → PUBLICADO → ARCHIVADO, y un archivado solo vuelve a PUBLICADO con «recuperar»")
     void cicloDeVida() {
         CasoEstudio caso = borrador();
 
         assertThatThrownBy(caso::archivar).isInstanceOf(ConflictoException.class);
+        assertThatThrownBy(caso::recuperar).isInstanceOf(ConflictoException.class);
 
         caso.publicar();
         assertThat(caso.getEstado()).isEqualTo(EstadoCaso.PUBLICADO);
         assertThat(caso.getFechaPublicacion()).isNotNull();
         assertThatThrownBy(caso::publicar).isInstanceOf(ConflictoException.class);
+        assertThatThrownBy(caso::recuperar).isInstanceOf(ConflictoException.class);
 
         caso.archivar();
         assertThat(caso.getEstado()).isEqualTo(EstadoCaso.ARCHIVADO);
         assertThat(caso.getFechaArchivado()).isNotNull();
+        // Publicar sigue siendo exclusivo del borrador; archivar dos veces sigue siendo un conflicto.
         assertThatThrownBy(caso::publicar).isInstanceOf(ConflictoException.class);
         assertThatThrownBy(caso::archivar).isInstanceOf(ConflictoException.class);
+
+        var primeraPublicacion = caso.getFechaPublicacion();
+        caso.recuperar();
+        assertThat(caso.getEstado()).isEqualTo(EstadoCaso.PUBLICADO);
+        assertThat(caso.getFechaArchivado()).isNull();
+        assertThat(caso.getFechaPublicacion()).isEqualTo(primeraPublicacion);
+        assertThat(caso.getEstado().permiteEditarContenido()).isFalse();
     }
 
     @Test

@@ -100,10 +100,12 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
           </div>
           <ul class="lista-simple">
             @for (c of convocados(); track c.idAutorizacion) {
-              <li class="fila-item">
-                <span class="texto"><strong>{{ c.nombre }}</strong> <span class="ayuda">{{ c.correo }} · ID {{ c.idEstudiante }}</span></span>
-                <span class="etiqueta">{{ nombre(c.estado) }}</span>
-                @if (intentos()[c.idAutorizacion]; as i) { <span class="ayuda">Intentos {{ i.intentosUsados }} de {{ i.intentosPermitidos }}</span> }
+              <li class="fila-item fila-persona">
+                <span class="quien"><strong>{{ c.nombre }}</strong><small>{{ c.correo }} · ID {{ c.idEstudiante }}</small></span>
+                <span class="estado-persona">
+                  <span class="etiqueta">{{ nombre(c.estado) }}</span>
+                  @if (intentos()[c.idAutorizacion]; as i) { <span class="ayuda">Intentos {{ i.intentosUsados }} de {{ i.intentosPermitidos }}</span> }
+                </span>
                 <span class="acciones">
                   <button type="button" class="boton-suave boton-chico" (click)="verIntentos(c)">Ver intentos</button>
                   <button type="button" class="boton-suave boton-chico" (click)="repetir(c)">Autorizar repetición</button>

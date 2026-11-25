@@ -287,10 +287,14 @@ type Pestana = 'datos' | 'contenido' | 'rubrica' | 'herramientas' | 'publicacion
           <section class="cristal bloque">
             <h3>Validación y publicación</h3>
             <p class="suave">Un caso solo se puede publicar si cumple las reglas académicas. Publicado, queda disponible para programar sesiones y ya no se edita.</p>
+            @if (c.estado === 'ARCHIVADO') {
+              <p class="aviso-info">Este caso está archivado: se conserva completo, con sus sesiones anteriores, pero no se ofrece para sesiones nuevas. «Recuperar» lo vuelve a activar; para modificarlo, duplícalo desde la lista de casos.</p>
+            }
             <div class="acciones">
               <button type="button" class="boton-suave" (click)="validar(c.id)" [disabled]="ocupado()">Validar caso</button>
               @if (c.estado === 'BORRADOR') { <button type="button" class="boton-primario" (click)="publicar(c.id)" [disabled]="ocupado()">Publicar</button> }
-              @if (c.estado !== 'ARCHIVADO') { <button type="button" class="boton-peligro" (click)="archivar(c.id)" [disabled]="ocupado()">Archivar</button> }
+              @if (c.estado === 'PUBLICADO') { <button type="button" class="boton-suave" (click)="archivar(c.id)" [disabled]="ocupado()">Archivar</button> }
+              @if (c.estado === 'ARCHIVADO') { <button type="button" class="boton-primario" (click)="recuperar(c.id)" [disabled]="ocupado()">Recuperar</button> }
               <button type="button" class="boton-suave" (click)="exportar(c)" [disabled]="ocupado()">Exportar (DSL)</button>
             </div>
             @if (informe(); as i) {
@@ -480,7 +484,11 @@ export class CasoEditor implements OnInit {
     void this.dialogos.confirmar({ titulo: 'Publicar el caso', mensaje: 'Después de publicarlo ya no podrás editarlo. Podrás duplicarlo para hacer una versión nueva.', confirmar: 'Publicar' }).then((ok) => { if (ok) this.guardar(this.api.publicarCaso(caso), 'Caso publicado.'); });
   }
   protected archivar(caso: number): void {
-    void this.dialogos.confirmar({ titulo: 'Archivar el caso', mensaje: 'El caso dejará de estar disponible para programar sesiones nuevas.', confirmar: 'Archivar' }).then((ok) => { if (ok) this.guardar(this.api.archivarCaso(caso), 'Caso archivado.'); });
+    void this.dialogos.confirmar({ titulo: 'Archivar el caso', mensaje: 'El caso dejará de estar disponible para programar sesiones nuevas.', detalle: ['Conserva todo su contenido y sus sesiones anteriores.', 'Podrás recuperarlo o duplicarlo desde «Archivados».'], confirmar: 'Archivar' }).then((ok) => { if (ok) this.guardar(this.api.archivarCaso(caso), 'Caso archivado.'); });
+  }
+
+  protected recuperar(caso: number): void {
+    void this.dialogos.confirmar({ titulo: 'Recuperar el caso', mensaje: 'El caso volverá a estar activo y disponible para programar sesiones.', detalle: ['Se valida otra vez con las reglas académicas.'], confirmar: 'Recuperar' }).then((ok) => { if (ok) this.guardar(this.api.recuperarCaso(caso), 'Caso recuperado: ya está activo.'); });
   }
 
   protected exportar(c: CasoDetalle): void {

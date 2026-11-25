@@ -63,6 +63,19 @@ public class ServicioAvisos {
     /** Deja constancia de una acción importante en la auditoría. */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void registrar(String accion, Long actorId, String actorCorreo, String detalle) {
+        insertarAuditoria(accion, actorId, actorCorreo, detalle);
+    }
+
+    /**
+     * Igual que {@link #registrar}, pero dentro de la transacción de quien llama (que debe existir): el registro
+     * se confirma o se deshace junto con la operación que describe. Lo usa la limpieza de la auditoría.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void registrarEnLaMismaTransaccion(String accion, Long actorId, String actorCorreo, String detalle) {
+        insertarAuditoria(accion, actorId, actorCorreo, detalle);
+    }
+
+    private void insertarAuditoria(String accion, Long actorId, String actorCorreo, String detalle) {
         jdbc.update("INSERT INTO auditoria (fecha, actor_id, actor_correo, accion, detalle) VALUES (?, ?, ?, ?, ?)",
                 ahora(), actorId, recortar(actorCorreo, 150), recortar(accion, 60), recortar(detalle, MAX_TEXTO));
     }
