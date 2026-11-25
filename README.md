@@ -36,11 +36,12 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 │       ├── main/resources/  application.yml · db/migration (V1-V9 M1, V20-V29 M2, V30-V39 M3-4, V40-V49 M5-6) · db/semilla
 │       └── test/            274 pruebas
 ├── frontend/
+│   ├── soma-web/             Angular: interfaz única (Dockerfile + nginx, puerto 4200)
 │   ├── usuarios-y-permisos/  Angular: login, menú por rol, docentes y permisos
 │   └── casos/                Angular: panel de casos y constructor
 ├── docs/                   documentación por módulo, PATRONES.md y ANTIPATRONES.md
 ├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
-├── docker-compose.yml      backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
+├── docker-compose.yml      interfaz + backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
 ├── levantar-soma.bat       Windows: reinicia todo en Docker con un doble clic
 ├── .env.example            variables de entorno de toda la aplicación
 └── .gitignore
@@ -83,21 +84,35 @@ módulo conoce las clases internas de otro.
 
 ## Ejecutar todo (backend + frontend) en localhost
 
-Con Docker Desktop y Node 20+ instalados, desde la raíz del proyecto (también desde la terminal de IntelliJ o VS Code):
+Sólo hace falta Docker Desktop. Desde la raíz del proyecto (también desde la terminal de IntelliJ o VS Code):
 
 ```
 iniciar-soma.bat
 ```
 
-Levanta el backend en http://localhost:8080 y el frontend en http://localhost:4200 (rama `frontend/soma-web`, carpeta `frontend/soma-web`).
+O, en cualquier sistema:
+
+```bash
+docker compose up -d --build
+```
+
+La interfaz queda en http://localhost:4200, el backend en http://localhost:8080 y los correos en http://localhost:8025.
+Nginx sirve `frontend/soma-web` y reenvía `/api` al backend, así que el navegador no habla con el puerto 8080.
+
+Para desarrollar la interfaz con recarga automática, pare el contenedor web (libera el 4200) y use Node 20+:
+
+```bash
+docker compose stop web
+cd frontend/soma-web && npm ci && npm start
+```
 
 ## Ejecutar con Docker (lo más rápido)
 
 Sólo hace falta Docker Desktop:
 
 ```bash
-docker compose up -d --build      # backend en http://localhost:8080, MySQL en :3306, correos en http://localhost:8025
-docker compose logs -f app        # ver el arranque
+docker compose up -d --build      # interfaz en http://localhost:4200, backend en :8080, MySQL en :3306, correos en http://localhost:8025
+docker compose logs -f app        # ver el arranque del backend
 docker compose down -v            # apagar y borrar la base (la próxima vez arranca con datos semilla limpios)
 ```
 

@@ -5,6 +5,7 @@ import { DialogoService } from './dialogo.service';
 import { PreferenciasService } from './preferencias.service';
 import { cacheInterceptor, limpiarCache, reintentoInterceptor } from './red';
 import { RegistroErroresService } from './registro-errores.service';
+import { SomaApiService } from './soma-api.service';
 import { TemaService } from './tema.service';
 
 describe('DialogoService', () => {
@@ -96,5 +97,43 @@ describe('interceptores de red', () => {
     const n: unknown[] = [];
     http.get('/api/casos/7').subscribe((v) => n.push(v)); ctl.expectOne('/api/casos/7').flush({ x: 1 });
     expect(n.length).toBe(1);
+  });
+});
+
+describe('SomaApiService (cuentas, casos archivados y limpieza de auditoría)', () => {
+  beforeEach(() => TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] }));
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('lista cuentas archivadas por rol y usa las rutas de archivo, reactivación y eliminación', () => {
+    const api = TestBed.inject(SomaApiService);
+    const http = TestBed.inject(HttpTestingController);
+    api.usuarios(false, 'DOCENTE').subscribe();
+    const lista = http.expectOne((r) => r.url === '/api/admin/usuarios');
+    expect(lista.request.params.get('activos')).toBe('false');
+    expect(lista.request.params.get('rol')).toBe('DOCENTE');
+    lista.flush([]);
+    api.archivarUsuario(7).subscribe(); http.expectOne({ method: 'POST', url: '/api/admin/usuarios/7/archivo' }).flush({});
+    api.reactivarUsuario(7).subscribe(); http.expectOne({ method: 'POST', url: '/api/admin/usuarios/7/reactivacion' }).flush({});
+    api.evaluarEliminacionUsuario(7).subscribe(); http.expectOne({ method: 'GET', url: '/api/admin/usuarios/7/eliminacion' }).flush({ permitida: true, motivo: '', registros: [] });
+    api.eliminarUsuario(7).subscribe(); http.expectOne({ method: 'DELETE', url: '/api/admin/usuarios/7' }).flush(null);
+  });
+
+  it('recupera un caso archivado con su propia ruta (no con la de publicar)', () => {
+    const api = TestBed.inject(SomaApiService);
+    api.recuperarCaso(3).subscribe();
+    TestBed.inject(HttpTestingController).expectOne({ method: 'POST', url: '/api/casos/3/recuperacion' }).flush({});
+  });
+
+  it('la limpieza pide vista previa por fecha y siempre envía la confirmación explícita', () => {
+    const api = TestBed.inject(SomaApiService);
+    const http = TestBed.inject(HttpTestingController);
+    api.vistaPreviaLimpiezaAuditoria('2026-11-01').subscribe();
+    const previa = http.expectOne((r) => r.url === '/api/auditoria/limpieza' && r.method === 'GET');
+    expect(previa.request.params.get('antesDe')).toBe('2026-11-01');
+    previa.flush({ antesDe: '2026-11-01', registros: 3 });
+    api.limpiarAuditoria('2026-11-01').subscribe();
+    const limpieza = http.expectOne({ method: 'POST', url: '/api/auditoria/limpieza' });
+    expect(limpieza.request.body).toEqual({ antesDe: '2026-11-01', confirmada: true });
+    limpieza.flush({ antesDe: '2026-11-01', eliminados: 3, fecha: '2026-11-25T10:00:00' });
   });
 });

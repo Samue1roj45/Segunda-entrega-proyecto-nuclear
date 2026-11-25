@@ -30,7 +30,7 @@ export interface CasoResumen {
   readonly id: number;
   readonly nombre: string;
   readonly tiempoEstimadoMinutos: number | null;
-  readonly estado: 'BORRADOR' | 'PUBLICADO';
+  readonly estado: 'BORRADOR' | 'PUBLICADO' | 'ARCHIVADO';
   readonly fechaActualizacion: string | null;
   readonly fechaPublicacion: string | null;
 }
@@ -94,6 +94,7 @@ export class SomaApiService {
   validarCaso(id: number): Observable<M.InformeValidacion> { return this.http.get<M.InformeValidacion>(`/api/casos/${id}/validacion`); }
   publicarCaso(id: number): Observable<M.CasoDetalle> { return this.http.post<M.CasoDetalle>(`/api/casos/${id}/publicacion`, null); }
   archivarCaso(id: number): Observable<M.CasoDetalle> { return this.http.post<M.CasoDetalle>(`/api/casos/${id}/archivo`, null); }
+  recuperarCaso(id: number): Observable<M.CasoDetalle> { return this.http.post<M.CasoDetalle>(`/api/casos/${id}/recuperacion`, null); }
   eliminarCaso(id: number): Observable<unknown> { return this.http.delete(`/api/casos/${id}`); }
   papeleraCasos(): Observable<M.CasoEliminado[]> { return this.http.get<M.CasoEliminado[]>('/api/casos/papelera'); }
   restaurarCaso(id: number): Observable<unknown> { return this.http.post(`/api/casos/${id}/restauracion`, null); }
@@ -152,6 +153,8 @@ export class SomaApiService {
   preferencias(): Observable<Record<string, number | boolean | string>> { return this.http.get<Record<string, number | boolean | string>>('/api/preferencias'); }
   guardarPreferencias(datos: Record<string, number | boolean | string>): Observable<unknown> { return this.http.put('/api/preferencias', datos); }
   accionesAuditadas(): Observable<string[]> { return this.http.get<string[]>('/api/auditoria/acciones'); }
+  vistaPreviaLimpiezaAuditoria(antesDe: string): Observable<M.VistaPreviaLimpieza> { return this.http.get<M.VistaPreviaLimpieza>('/api/auditoria/limpieza', { params: filtros({ antesDe }) }); }
+  limpiarAuditoria(antesDe: string): Observable<M.ResultadoLimpieza> { return this.http.post<M.ResultadoLimpieza>('/api/auditoria/limpieza', { antesDe, confirmada: true }); }
   notificaciones(practica?: number): Observable<M.Notificacion[]> { return this.http.get<M.Notificacion[]>('/api/notificaciones', { params: filtros({ practica }) }); }
   enviarConvocatoria(practica: number): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/convocatoria`, null); }
   notificarCambio(practica: number, motivo: string): Observable<M.ResumenEnvio> { return this.http.post<M.ResumenEnvio>(`/api/notificaciones/practica/${practica}/cambio`, { motivo }); }
@@ -187,6 +190,11 @@ export class SomaApiService {
   docentes(): Observable<M.Docente[]> { return this.http.get<M.Docente[]>('/api/admin/docentes'); }
   crearDocente(nombreCompleto: string, correoInstitucional: string): Observable<M.Docente> { return this.http.post<M.Docente>('/api/admin/docentes', { nombreCompleto, correoInstitucional }); }
   asignarPermisos(id: number, permisos: string[]): Observable<M.Docente> { return this.http.put<M.Docente>(`/api/admin/docentes/${id}/permisos`, { permisos }); }
+  usuarios(activos: boolean, rol?: string): Observable<M.UsuarioAdmin[]> { return this.http.get<M.UsuarioAdmin[]>('/api/admin/usuarios', { params: filtros({ activos: String(activos), rol }) }); }
+  archivarUsuario(id: number): Observable<M.UsuarioAdmin> { return this.http.post<M.UsuarioAdmin>(`/api/admin/usuarios/${id}/archivo`, null); }
+  reactivarUsuario(id: number): Observable<M.UsuarioAdmin> { return this.http.post<M.UsuarioAdmin>(`/api/admin/usuarios/${id}/reactivacion`, null); }
+  evaluarEliminacionUsuario(id: number): Observable<M.EvaluacionEliminacion> { return this.http.get<M.EvaluacionEliminacion>(`/api/admin/usuarios/${id}/eliminacion`); }
+  eliminarUsuario(id: number): Observable<void> { return this.http.delete<void>(`/api/admin/usuarios/${id}`); }
 
   // ---------- Estudiante ----------
   convocatorias(): Observable<M.Convocatoria[]> { return this.http.get<M.Convocatoria[]>('/api/autorizaciones'); }

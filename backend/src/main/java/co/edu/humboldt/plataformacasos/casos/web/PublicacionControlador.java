@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** RF-09: validación académica, publicación y archivo del caso. */
+/** RF-09: validación académica, publicación, archivo y recuperación del caso. */
 @RestController
 @RequestMapping("/api/casos/{idCaso}")
 public class PublicacionControlador {
@@ -33,5 +33,10 @@ public class PublicacionControlador {
     @PostMapping("/archivo")
     public CasoDetalleDTO archivar(@PathVariable Long idCaso) {
         return publicacion.archivar(idCaso);
+    }
+
+    @PostMapping("/recuperacion")
+    public CasoDetalleDTO recuperar(@PathVariable Long idCaso) {
+        return publicacion.recuperar(idCaso);
     }
 }

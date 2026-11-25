@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 title SOMA - reiniciar backend en Docker
-rem Doble clic: baja los contenedores, borra la base, reconstruye y levanta backend + MySQL + correo,
+rem Doble clic: baja los contenedores, borra la base, reconstruye y levanta interfaz + backend + MySQL + correo,
 rem y espera a que http://localhost:8080/api/salud responda. Requiere Docker Desktop abierto.
 setlocal
 cd /d "%~dp0"
@@ -29,7 +29,7 @@ goto esperar
 :listo
 echo.
 echo ============================================================
-echo  SOMA listo:  API http://localhost:8080   Correos http://localhost:8025
+echo  SOMA listo:  Interfaz http://localhost:4200   API http://localhost:8080   Correos http://localhost:8025
 echo  Postman: importe la carpeta postman/, entorno "SOMA local" y Run collection.
 echo ============================================================
 pause

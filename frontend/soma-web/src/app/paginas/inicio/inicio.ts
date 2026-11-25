@@ -67,7 +67,7 @@ const ESTADOS: Record<string, string> = {
               : 'Diseña casos, programa sesiones y acompaña el aprendizaje de tus estudiantes.' }}
         </p>
         <div class="accesos">
-          @for (a of accesos(); track a.ruta) { <a class="boton-primario chico" [routerLink]="a.ruta">{{ a.texto }}</a> }
+          @for (a of accesos(); track a.ruta) { <a class="boton-primario" [routerLink]="a.ruta">{{ a.texto }}</a> }
         </div>
       </div>
       <img class="cerebro" src="logo-soma.webp" alt="" aria-hidden="true" />
@@ -221,7 +221,6 @@ const ESTADOS: Record<string, string> = {
     .bienvenida .suave { max-width: 34rem; line-height: 1.55; }
     .sobre { text-transform: uppercase; letter-spacing: .2em; font-size: .7rem; color: var(--lila-700); }
     .accesos { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.2rem; }
-    .chico { padding: .65rem 1.2rem; font-size: .9rem; text-decoration: none; }
     .cerebro { width: clamp(130px, 16vw, 210px); height: auto; margin-right: .6rem; filter: drop-shadow(0 18px 22px rgba(var(--d-88_68_140),.3)); animation: flota 8s ease-in-out infinite; }
     @keyframes flota { 50% { transform: translateY(-9px) rotate(-1.5deg); } }
     .resumen { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.2rem; }
@@ -309,7 +308,7 @@ export class Inicio implements OnInit {
     if (p(Permiso.ProgramarSesiones)) r.push({ ruta: '/sesiones', texto: 'Programar sesión' });
     if (p(Permiso.ParticiparEnCasos)) r.push({ ruta: '/mis-sesiones', texto: 'Ir a mis casos' });
     if (p(Permiso.ConsultarResultadosPropios)) r.push({ ruta: '/mis-resultados', texto: 'Ver mis resultados' });
-    if (this.sesion.esAdministrador()) r.push({ ruta: '/docentes', texto: 'Gestionar docentes' });
+    if (this.sesion.esAdministrador()) { r.push({ ruta: '/docentes', texto: 'Gestionar docentes' }); r.push({ ruta: '/usuarios', texto: 'Administrar usuarios' }); }
     return r;
   });
   protected readonly publicados = computed(() => this.casos.datos().filter((c) => c.estado === 'PUBLICADO').length);

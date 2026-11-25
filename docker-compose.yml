@@ -1,8 +1,9 @@
-# Servicios de apoyo del backend único: la base MySQL 8 de los seis módulos y un servidor de correo de
-# pruebas (Mailpit) para ver las convocatorias, cambios, calificaciones y retroalimentaciones (RF-21, RF-27).
-#   docker compose up -d --build   → backend SOMA en http://localhost:8080, MySQL en localhost:3306 y
-#                                    bandeja de correo en http://localhost:8025
+# Stack de SOMA: interfaz Angular (nginx), backend único, MySQL 8 y Mailpit
+# (convocatorias, cambios, calificaciones y retroalimentaciones; RF-21, RF-27).
+#   docker compose up -d --build   → interfaz en http://localhost:4200, backend en http://localhost:8080,
+#                                    MySQL en localhost:3306 y bandeja de correo en http://localhost:8025
 #   docker compose up -d db correo → sólo los servicios de apoyo (para correr el backend desde el IDE)
+#   docker compose stop web        → libera el puerto 4200 para `npm start` en frontend/soma-web
 # Por defecto el backend arranca con el perfil `pruebas` (datos semilla para Postman). Para producción:
 #   SPRING_PROFILES_ACTIVE=default docker compose up -d --build
 services:
@@ -45,7 +46,7 @@ services:
       JWT_SECRETO: ${JWT_SECRETO:-}
       JWT_MINUTOS: ${JWT_MINUTOS:-60}
       DOMINIO_INSTITUCIONAL: ${DOMINIO_INSTITUCIONAL:-institucion.edu.co}
-      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200}
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200,http://127.0.0.1:4200}
       MAIL_HOST: correo
       MAIL_PORT: 1025
       MAIL_FROM: ${MAIL_FROM:-no-reply@institucion.edu.co}
@@ -53,6 +54,16 @@ services:
       POLITICA_INGRESO_TARDIO: ${POLITICA_INGRESO_TARDIO:-mitad}
     ports:
       - "${SERVER_PORT:-8080}:8080"
+
+  web:
+    build: ./frontend/soma-web
+    image: soma-web:1.0.0
+    container_name: soma_web
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${WEB_PORT:-4200}:80"
 
   correo:
     image: axllent/mailpit:latest

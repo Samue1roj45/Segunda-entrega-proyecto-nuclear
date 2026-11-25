@@ -163,6 +163,12 @@ class CasosApiIntegracionTest {
         return id;
     }
 
+    private static List<Long> ids(Respuesta listado) {
+        List<Long> ids = new ArrayList<>();
+        listado.cuerpo().forEach(c -> ids.add(c.get("id").asLong()));
+        return ids;
+    }
+
     private static List<String> reglas(JsonNode incumplimientos) {
         List<String> reglas = new ArrayList<>();
         incumplimientos.forEach(i -> reglas.add(i.get("regla").asString()));
@@ -387,6 +393,40 @@ class CasosApiIntegracionTest {
         assertThat(archivado.cuerpo().get("escenarios")).hasSize(1);
         assertThat(post(CASOS + "/" + id + "/publicacion", token, null).estado()).isEqualTo(409);
         assertThat(post(CASOS + "/" + id + "/archivo", token, null).estado()).isEqualTo(409);
+    }
+
+    @Test
+    @DisplayName("Recuperar: un caso archivado vuelve a PUBLICADO con su contenido; publicar sigue siendo solo para borradores")
+    void recuperacion() throws Exception {
+        String token = carlos();
+        long borrador = importarCasoValido(token);
+        assertThat(post(CASOS + "/" + borrador + "/recuperacion", token, null).estado()).isEqualTo(409);
+
+        long id = casoPublicado(token);
+        assertThat(post(CASOS + "/" + id + "/recuperacion", token, null).estado()).isEqualTo(409);
+        assertThat(post(CASOS + "/" + id + "/archivo", token, null).estado()).isEqualTo(200);
+        assertThat(ids(get(CASOS + "?estado=ARCHIVADO", token))).contains(id);
+        assertThat(ids(get(CASOS + "?estado=PUBLICADO", token))).doesNotContain(id);
+
+        Respuesta recuperado = post(CASOS + "/" + id + "/recuperacion", token, null);
+        assertThat(recuperado.estado()).isEqualTo(200);
+        assertThat(recuperado.cuerpo().get("estado").asString()).isEqualTo("PUBLICADO");
+        assertThat(recuperado.cuerpo().get("fechaArchivado").isNull()).isTrue();
+        assertThat(recuperado.cuerpo().get("fechaPublicacion").isNull()).isFalse();
+        assertThat(recuperado.cuerpo().get("escenarios")).hasSize(1);
+        assertThat(ids(get(CASOS + "?estado=PUBLICADO", token))).contains(id);
+        assertThat(ids(get(CASOS + "?estado=ARCHIVADO", token))).doesNotContain(id);
+        assertThat(post(CASOS + "/" + id + "/recuperacion", token, null).estado()).isEqualTo(409);
+    }
+
+    @Test
+    @DisplayName("Recuperar exige el permiso de gestionar casos y la propiedad del caso")
+    void recuperacionAjena() throws Exception {
+        long id = casoPublicado(carlos());
+        assertThat(post(CASOS + "/" + id + "/archivo", carlos(), null).estado()).isEqualTo(200);
+        assertThat(post(CASOS + "/" + id + "/recuperacion", null, null).estado()).isEqualTo(401);
+        assertThat(post(CASOS + "/" + id + "/recuperacion", laura(), null).estado()).isEqualTo(403);
+        assertThat(post(CASOS + "/" + id + "/recuperacion", estudiante(), null).estado()).isEqualTo(403);
     }
 
     @Test

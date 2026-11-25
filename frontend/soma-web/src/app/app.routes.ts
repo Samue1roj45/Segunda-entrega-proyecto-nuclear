@@ -61,6 +61,10 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/admin/componentes').then((m) => m.Componentes), title: 'Componentes · SOMA',
       },
       {
+        path: 'usuarios', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        loadComponent: () => import('./paginas/admin/usuarios').then((m) => m.Usuarios), title: 'Usuarios · SOMA',
+      },
+      {
         path: 'docentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
         loadComponent: () => import('./paginas/admin/docentes').then((m) => m.Docentes), title: 'Docentes · SOMA',
       },

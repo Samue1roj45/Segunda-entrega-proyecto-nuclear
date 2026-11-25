@@ -6,9 +6,13 @@ le permiten (la autorización real la hace el servidor).
 
 ## Ejecutar
 
-Con el backend en `http://localhost:8080` (por ejemplo `docker compose up -d` desde la raíz):
+Con Docker, desde la raíz del repositorio: `docker compose up -d --build`. La interfaz queda en
+http://localhost:4200 y nginx reenvía `/api` al backend.
+
+Para desarrollarla con recarga automática (el contenedor `web` ocupa el 4200):
 
 ```bash
+docker compose stop web
 cd frontend/soma-web
 npm ci
 npm start          # http://localhost:4200 (las peticiones /api van al backend por proxy.conf.json)
