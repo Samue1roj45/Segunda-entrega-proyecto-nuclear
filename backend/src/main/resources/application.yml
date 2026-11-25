@@ -37,6 +37,13 @@ server:
 app:
   # Zona horaria de las fechas de sesiones, intentos y notificaciones (Clock único de la aplicación).
   zona-horaria: ${ZONA_HORARIA:America/Bogota}
+  ecos:
+    # URL pública que el juego usa para hablar con SOMA (va dentro del enlace ecos://).
+    api-publica: ${ECOS_API_URL:http://localhost:8080/api/ecos/v1}
+    minutos-codigo: 30
+    horas-token: 6
+    max-intentos: ${ECOS_MAX_INTENTOS:1}
+    tolerancia-segundos: 10
   autenticacion:
     # Dominio aceptado por RF-01. Se configura por entorno.
     dominio-institucional: ${DOMINIO_INSTITUCIONAL:institucion.edu.co}

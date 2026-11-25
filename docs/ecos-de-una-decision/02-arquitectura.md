@@ -1,3 +1,5 @@
+> **SUPERADO:** este documento describe la idea inicial con Pixel Streaming, que se descartó. El lanzamiento real es por protocolo `ecos://` y el intercambio de datos está en `03-contrato.md`.
+
 # Ecos de una decisión · Fase 2: arquitectura y contratos
 
 Documento de diseño. Todavía no hay código de esta integración. Lo marcado **[pendiente Unreal]** depende de datos del proyecto de Unreal que no se han podido leer.

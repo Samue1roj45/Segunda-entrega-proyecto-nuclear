@@ -38,17 +38,34 @@ public class ConfiguracionSeguridad {
                 .authorizeHttpRequests(reglas -> reglas
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/salud").permitAll()
+                        // Ecos: el juego se identifica con el código de sesión o con su propio token; lo valida el servicio.
+                        .requestMatchers(HttpMethod.POST, "/api/ecos/v1/sesiones/*/canje",
+                                "/api/ecos/v1/sesiones/*/eventos", "/api/ecos/v1/sesiones/*/resultado").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(recurso -> recurso
                         .jwt(Customizer.withDefaults())
+                        .bearerTokenResolver(resolutorDeToken())
                         .authenticationEntryPoint(respuestasError)
                         .accessDeniedHandler(respuestasError))
                 .exceptionHandling(errores -> errores
                         .authenticationEntryPoint(respuestasError)
                         .accessDeniedHandler(respuestasError));
         return http.build();
+    }
+
+    private static final java.util.regex.Pattern RUTAS_DEL_JUEGO =
+            java.util.regex.Pattern.compile("^/api/ecos/v1/sesiones/[^/]+/(canje|eventos|resultado)$");
+
+    /**
+     * El token del juego NO es un JWT web: en las rutas del juego se ignora el encabezado Authorization aquí, para que el
+     * filtro web no lo rechace; ServicioEcos lo valida con su propia clave.
+     */
+    private static org.springframework.security.oauth2.server.resource.web.BearerTokenResolver resolutorDeToken() {
+        var porDefecto = new org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver();
+        return solicitud -> "POST".equals(solicitud.getMethod()) && RUTAS_DEL_JUEGO.matcher(solicitud.getRequestURI()).matches()
+                ? null : porDefecto.resolve(solicitud);
     }
 
     /** Los frontends Angular (puerto 4200 en desarrollo) llaman a la API desde otro origen. */
