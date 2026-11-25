@@ -93,4 +93,10 @@ public final class ModeloEcos {
     public record EstadoEstudiante(String caso, boolean disponible, int maxIntentos, int usados, int restantes,
                                    List<IntentoEcos> intentos) {
     }
+
+    /** Fila de la vista del docente: un resultado de Ecos de uno de sus estudiantes. */
+    public record ResultadoDocente(String sesionId, String estudiante, int intento, BigDecimal puntaje, BigDecimal nota,
+                                   String nivel, String desenlace, String protagonista, BigDecimal segundos, boolean revision,
+                                   LocalDateTime fin, List<String> fortalezas, List<String> mejoras) {
+    }
 }

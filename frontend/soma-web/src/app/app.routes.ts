@@ -53,6 +53,18 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/estudiante/mis-resultados').then((m) => m.MisResultados), title: 'Mis resultados · SOMA',
       },
       {
+        path: 'ecos', canActivate: [guardiaPermiso(Permiso.ParticiparEnCasos)],
+        loadComponent: () => import('./paginas/ecos/ecos-estudiante').then((m) => m.EcosEstudiante), title: 'Ecos de una decisión · SOMA',
+      },
+      {
+        path: 'ecos-resultados', canActivate: [guardiaPermiso(Permiso.ConsultarParticipaciones)],
+        loadComponent: () => import('./paginas/ecos/ecos-docente').then((m) => m.EcosDocente), title: 'Ecos · resultados · SOMA',
+      },
+      {
+        path: 'ecos-catalogo', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        loadComponent: () => import('./paginas/ecos/ecos-catalogo').then((m) => m.EcosCatalogo), title: 'Ecos · catálogo · SOMA',
+      },
+      {
         path: 'auditoria', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
         loadComponent: () => import('./paginas/admin/auditoria').then((m) => m.Auditoria), title: 'Auditoría · SOMA',
       },

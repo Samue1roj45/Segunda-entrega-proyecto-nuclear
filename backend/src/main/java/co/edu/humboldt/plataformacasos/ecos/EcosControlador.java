@@ -45,6 +45,13 @@ public class EcosControlador {
         return ecos.estado(autorizacion.exigirPermiso(Permiso.PARTICIPAR_EN_CASOS).id());
     }
 
+    // ---- Docente (JWT web) ----
+
+    @GetMapping("/resultados")
+    public java.util.List<ResultadoDocente> resultadosDelDocente() {
+        return ecos.resultadosDelDocente(autorizacion.exigirPermiso(Permiso.CONSULTAR_PARTICIPACIONES).id());
+    }
+
     // ---- Administrador (JWT web) ----
 
     @PostMapping("/catalogo")

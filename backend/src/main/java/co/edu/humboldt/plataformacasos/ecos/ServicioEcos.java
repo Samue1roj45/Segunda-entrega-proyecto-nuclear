@@ -217,6 +217,32 @@ public class ServicioEcos {
         return new EstadoEstudiante(nombre, usados < max, max, usados, Math.max(0, max - usados), intentos);
     }
 
+    /** Resultados de los estudiantes convocados por este docente en alguna de sus sesiones. */
+    @Transactional(readOnly = true)
+    public List<ResultadoDocente> resultadosDelDocente(Long docenteId) {
+        Map<String, List<String>> fortalezas = new LinkedHashMap<>();
+        Map<String, List<String>> mejoras = new LinkedHashMap<>();
+        jdbc.query("""
+                SELECT rc.envio_id, rc.criterio_id, rc.tipo FROM ecos_resultado_criterio rc
+                 WHERE rc.tipo IN ('FORTALEZA','MEJORA') ORDER BY rc.criterio_id""", rs -> {
+            (rs.getString(3).equals("FORTALEZA") ? fortalezas : mejoras)
+                    .computeIfAbsent(rs.getString(1), k -> new ArrayList<>()).add(rs.getString(2));
+        });
+        return jdbc.query("""
+                SELECT r.envio_id, s.sesion_id, u.nombre_completo, s.intento, r.puntaje, r.nota, r.nivel, r.desenlace,
+                       r.protagonista, r.segundos, r.difiere, r.fin
+                  FROM ecos_resultado r
+                  JOIN ecos_sesion s ON s.sesion_id = r.sesion_id
+                  JOIN usuario u ON CAST(u.id AS CHAR) = s.estudiante_id
+                 WHERE EXISTS (SELECT 1 FROM autorizaciones a JOIN practicas p ON p.id_practica = a.id_practica
+                                WHERE a.id_estudiante = u.id AND a.estado = 'ACTIVA' AND p.id_docente = ?)
+                 ORDER BY r.fin DESC LIMIT 500""",
+                (rs, n) -> new ResultadoDocente(rs.getString(2), rs.getString(3), rs.getInt(4), rs.getBigDecimal(5), rs.getBigDecimal(6),
+                        rs.getString(7), rs.getString(8), rs.getString(9), rs.getBigDecimal(10), rs.getBoolean(11),
+                        rs.getTimestamp(12).toLocalDateTime(), fortalezas.getOrDefault(rs.getString(1), List.of()),
+                        mejoras.getOrDefault(rs.getString(1), List.of())), docenteId);
+    }
+
     /** Intentos que cuentan: los cerrados y los canjeados que siguen vigentes (el token aún no venció). */
     private int ocupados(String estudiante, String casoId, String exceptoSesion, LocalDateTime ahora) {
         LocalDateTime limite = ahora.minusHours(propiedades.horasToken());

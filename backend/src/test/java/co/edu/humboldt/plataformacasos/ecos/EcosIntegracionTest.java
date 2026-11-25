@@ -298,4 +298,26 @@ class EcosIntegracionTest {
         assertThat(r.codigo()).isEqualTo("SESION_VENCIDA");
         assertThat(jdbc.queryForObject("SELECT estado FROM ecos_sesion WHERE sesion_id = ?", String.class, sesion)).isEqualTo("VENCIDA");
     }
+
+    @Test
+    @Order(6)
+    @DisplayName("El docente ve los resultados de sus estudiantes; quien no tiene el permiso no")
+    void resultadosDelDocente() throws Exception {
+        Resp sinPermiso = pedir("/api/ecos/v1/resultados", tokenWeb("laura.mejia@institucion.edu.co", "Clave-Docente-02", false));
+        assertThat(sinPermiso.estado()).isEqualTo(403);
+        assertThat(pedir("/api/ecos/v1/resultados", ana()).estado()).isEqualTo(403);
+        jdbc.update("INSERT INTO usuario_permiso (usuario_id, permiso) SELECT id, 'CONSULTAR_PARTICIPACIONES' FROM usuario WHERE correo_institucional = 'carlos.gomez@institucion.edu.co' AND NOT EXISTS (SELECT 1 FROM usuario_permiso up WHERE up.usuario_id = usuario.id AND up.permiso = 'CONSULTAR_PARTICIPACIONES')");
+        Resp carlos = pedir("/api/ecos/v1/resultados", tokenWeb("carlos.gomez@institucion.edu.co", "Clave-Docente-01", false));
+        assertThat(carlos.estado()).isEqualTo(200);
+        assertThat(carlos.cuerpo().isArray()).isTrue();
+        // Si Ana está convocada por Carlos en la semilla, su resultado de la prueba de flujo aparece con la nota de SOMA.
+        long convocada = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM autorizaciones a JOIN practicas p ON p.id_practica = a.id_practica
+                  JOIN usuario d ON d.id = p.id_docente JOIN usuario u ON u.id = a.id_estudiante
+                 WHERE u.correo_institucional = ? AND d.correo_institucional = 'carlos.gomez@institucion.edu.co' AND a.estado = 'ACTIVA'""",
+                Long.class, ANA);
+        if (convocada > 0) {
+            assertThat(carlos.cuerpo().toString()).contains("\"nota\":3.0").contains("\"nivel\":\"Básico\"");
+        }
+    }
 }
