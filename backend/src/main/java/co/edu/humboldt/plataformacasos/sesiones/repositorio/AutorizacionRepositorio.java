@@ -91,14 +91,13 @@ public class AutorizacionRepositorio {
                 MAPA, idEstudiante);
     }
 
-    /** RF-20: hashes de los códigos con los que el estudiante aún puede entrar (sesión no finalizada). */
-    public List<String> hashesVigentes(Long idEstudiante) {
-        return jdbc.queryForList("""
-                SELECT a.codigo_hash
-                  FROM autorizaciones a
-                  JOIN practicas p ON p.id_practica = a.id_practica
-                 WHERE a.id_estudiante = ? AND a.estado = 'ACTIVA' AND p.estado_practica <> 'FINALIZADO'
-                """, String.class, idEstudiante);
+    /**
+     * Hashes de los códigos con los que el estudiante puede entrar a la plataforma. El código es su contraseña: sirve
+     * siempre, sin importar si lo retiraron de una sesión o si la sesión ya finalizó. Retirarlo lo saca de ESA sesión
+     * (no verá ese caso), nunca de la plataforma.
+     */
+    public List<String> hashesDeEstudiante(Long idEstudiante) {
+        return jdbc.queryForList("SELECT codigo_hash FROM autorizaciones WHERE id_estudiante = ?", String.class, idEstudiante);
     }
 
     /** RF-25: repeticiones excepcionales concedidas a la autorización (tabla autorizaciones_repeticion). */

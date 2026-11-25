@@ -11,7 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
  #REQUISITO RF-20 (puerto del módulo 1, RF-01)
  Para qué sirve: implementación oficial de VerificadorCodigoAutorizacion. El módulo 1 pregunta si el
  código es válido para el estudiante sin saber cómo se guarda: es válido si coincide con el de alguna
- autorización ACTIVA del estudiante en una sesión que todavía no ha finalizado.
+ autorización del estudiante. El código es su contraseña: sirve aunque lo hayan retirado de una sesión o la
+ sesión haya finalizado (retirar no lo saca de la plataforma).
  */
 @Component
 public class VerificadorCodigoAcceso implements VerificadorCodigoAutorizacion {
@@ -27,7 +28,7 @@ public class VerificadorCodigoAcceso implements VerificadorCodigoAutorizacion {
     @Override
     @Transactional(readOnly = true)
     public boolean esValido(Long estudianteId, String codigoAutorizacion) {
-        return autorizaciones.hashesVigentes(estudianteId).stream()
+        return autorizaciones.hashesDeEstudiante(estudianteId).stream()
                 .anyMatch(hash -> codificador.matches(codigoAutorizacion, hash));
     }
 }

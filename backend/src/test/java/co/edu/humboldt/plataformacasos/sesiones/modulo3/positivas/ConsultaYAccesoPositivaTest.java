@@ -42,7 +42,7 @@ class ConsultaYAccesoPositivaTest {
     void CP_RF20_01_accesoConCodigoValido() {
         AutorizacionRepositorio repo = mock(AutorizacionRepositorio.class);
         BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
-        when(repo.hashesVigentes(3L)).thenReturn(List.of(bcrypt.encode("OTRO1234"), bcrypt.encode("ABCD2345")));
+        when(repo.hashesDeEstudiante(3L)).thenReturn(List.of(bcrypt.encode("OTRO1234"), bcrypt.encode("ABCD2345")));
 
         assertThat(new VerificadorCodigoAcceso(repo, bcrypt).esValido(3L, "ABCD2345")).isTrue();
     }

@@ -36,12 +36,12 @@ class ConsultaYAccesoNegativaTest {
     }
 
     @Test
-    @DisplayName("CP-RF20-02 Un código que no coincide, o de una sesión ya finalizada, no es válido")
+    @DisplayName("CP-RF20-02 Un código que no coincide, o de un estudiante sin ninguna autorización, no es válido")
     void CP_RF20_02_rechazaCodigoInvalido() {
         AutorizacionRepositorio repo = mock(AutorizacionRepositorio.class);
         BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
-        when(repo.hashesVigentes(3L)).thenReturn(List.of(bcrypt.encode("ABCD2345")));
-        when(repo.hashesVigentes(4L)).thenReturn(List.of());   // su única sesión ya finalizó
+        when(repo.hashesDeEstudiante(3L)).thenReturn(List.of(bcrypt.encode("ABCD2345")));
+        when(repo.hashesDeEstudiante(4L)).thenReturn(List.of());   // nunca fue convocado
 
         VerificadorCodigoAcceso verificador = new VerificadorCodigoAcceso(repo, bcrypt);
 

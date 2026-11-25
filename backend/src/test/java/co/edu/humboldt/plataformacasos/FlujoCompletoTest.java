@@ -171,7 +171,7 @@ class FlujoCompletoTest {
         assertThat(estadoDe(participaciones, idSegundo)).isEqualTo("INCOMPLETA");
         assertThat(estadoDeEstudiante(participaciones, idLuis)).isEqualTo("NO_INICIADA");          // ausencia
         assertThat(loginEstudiante(ANA, codigoAna).getResponse().getStatus())
-                .as("el código deja de servir cuando la sesión finaliza").isEqualTo(401);
+                .as("el código es la contraseña del estudiante: sigue sirviendo aunque la sesión finalice").isEqualTo(200);
 
         // ---------- Módulos 5 y 6 (RF-14, RF-16, RF-26, RF-27) ----------
         enviar(post("/api/resultados/nota-oficial"), carlos, """
