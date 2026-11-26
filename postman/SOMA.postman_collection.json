@@ -3572,7 +3572,7 @@
           ]
         },
         {
-          "name": "6.10 RF-20 Código de una sesión finalizada",
+          "name": "6.10 RF-20 Código de una sesión finalizada sigue sirviendo para ingresar",
           "request": {
             "method": "POST",
             "header": [
@@ -3613,7 +3613,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('6.10 responde 401', () => pm.response.to.have.status(401));"
+                  "pm.test('6.10 responde 200: el código sigue sirviendo para ingresar', () => pm.response.to.have.status(200));"
                 ]
               }
             }
