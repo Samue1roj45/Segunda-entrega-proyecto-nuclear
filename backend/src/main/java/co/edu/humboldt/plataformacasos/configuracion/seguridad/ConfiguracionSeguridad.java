@@ -75,8 +75,8 @@ public class ConfiguracionSeguridad {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOrigins(origenes);
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        cors.setExposedHeaders(List.of("Content-Disposition"));
+        cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Caso-Version"));
+        cors.setExposedHeaders(List.of("Content-Disposition", "X-Caso-Version"));
         UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
         fuente.registerCorsConfiguration("/api/**", cors);
         return fuente;

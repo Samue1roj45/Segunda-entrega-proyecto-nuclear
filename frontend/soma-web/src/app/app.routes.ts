@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { guardiaPermiso, guardiaSesion } from './core/acceso';
+import { guardiaDesarrollo, guardiaPermiso, guardiaSesion } from './core/acceso';
 import { Permiso } from './core/modelos/permiso';
 import { Inicio } from './paginas/inicio/inicio';
 import { Login } from './paginas/login/login';
@@ -69,7 +69,7 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/admin/auditoria').then((m) => m.Auditoria), title: 'Auditoría · SOMA',
       },
       {
-        path: 'componentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        path: 'componentes', canActivate: [guardiaDesarrollo],
         loadComponent: () => import('./paginas/admin/componentes').then((m) => m.Componentes), title: 'Componentes · SOMA',
       },
       {

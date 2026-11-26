@@ -27,3 +27,40 @@ public class ManejadorErroresPublicacion {
                 e.getMessage(), solicitud.getRequestURI(), e.informe().incumplimientos());
     }
 }
+
+/**
+ * Devuelve la versión del caso después de guardarlo, también cuando la respuesta
+ * no es el detalle completo (escenario, pregunta, rúbrica).
+ */
+@RestControllerAdvice
+class VersionCasoRespuesta implements org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice<Object> {
+
+    @Override
+    public boolean supports(org.springframework.core.MethodParameter returnType,
+                            Class<? extends org.springframework.http.converter.HttpMessageConverter<?>> converterType) {
+        return true;
+    }
+
+    @Override
+    public Object beforeBodyWrite(Object body, org.springframework.core.MethodParameter returnType,
+                                  org.springframework.http.MediaType selectedContentType,
+                                  Class<? extends org.springframework.http.converter.HttpMessageConverter<?>> selectedConverterType,
+                                  org.springframework.http.server.ServerHttpRequest request,
+                                  org.springframework.http.server.ServerHttpResponse response) {
+        org.springframework.web.context.request.RequestAttributes atributos =
+                org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+        if (atributos == null
+                || !(response instanceof org.springframework.http.server.ServletServerHttpResponse servlet)) {
+            return body;
+        }
+        Object caso = atributos.getAttribute(
+                co.edu.humboldt.plataformacasos.casos.servicio.AccesoCasos.ATRIBUTO_CASO,
+                org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST);
+        if (caso instanceof co.edu.humboldt.plataformacasos.casos.dominio.CasoEstudio estudio) {
+            servlet.getServletResponse().setHeader(
+                    co.edu.humboldt.plataformacasos.casos.servicio.AccesoCasos.ENCABEZADO_VERSION,
+                    Long.toString(estudio.getVersion()));
+        }
+        return body;
+    }
+}
