@@ -34,11 +34,11 @@ Apache POI 5.4.1 · Angular 21 en los frontends.
 │       │   ├── sesiones/                                                            módulos 3 y 4
 │       │   └── evaluacion/                                                          módulos 5 y 6
 │       ├── main/resources/  application.yml · db/migration (V1-V9 M1, V20-V29 M2, V30-V39 M3-4, V40-V49 M5-6) · db/semilla
-│       └── test/            274 pruebas
+│       └── test/            315 pruebas
 ├── frontend/
-│   ├── soma-web/             Angular: interfaz única (Dockerfile + nginx, puerto 4200)
-│   ├── usuarios-y-permisos/  Angular: login, menú por rol, docentes y permisos
-│   └── casos/                Angular: panel de casos y constructor
+│   ├── soma-web/             Angular: interfaz única de los seis módulos (Dockerfile + nginx, puerto 4200)
+│   ├── usuarios-y-permisos/  Angular (anterior, reemplazado por soma-web): login, menú por rol, docentes y permisos
+│   └── casos/                Angular (anterior, reemplazado por soma-web): panel de casos y constructor
 ├── docs/                   documentación por módulo, PATRONES.md y ANTIPATRONES.md
 ├── postman/                colección y entorno de Postman (75 peticiones con pruebas)
 ├── docker-compose.yml      interfaz + backend SOMA + MySQL 8 + Mailpit (correo de pruebas)
@@ -139,20 +139,22 @@ publicado y una sesión SIN_INICIAR con Ana y Luis convocados (códigos `CODIGO_
 Usuarios y claves en [docs/modulo-1-usuarios-permisos.md](docs/modulo-1-usuarios-permisos.md#ejecutar). Flyway crea todas las tablas al arrancar; si
 la base tenía un esquema anterior a la integración, créela de nuevo (vacía).
 
-Frontends (en otra terminal): `cd frontend/usuarios-y-permisos && npm ci && npm start` (o `frontend/casos`). El servidor de
-desarrollo envía `/api` a `localhost:8080`.
+Frontend (en otra terminal): `cd frontend/soma-web && npm ci && npm start` → http://localhost:4200. El servidor de
+desarrollo envía `/api` a `localhost:8080`. Si el contenedor `web` de Docker está arriba, primero `docker compose stop web`
+para liberar el puerto 4200.
 
 ## Compilar y probar
 
 | Qué | Comando (desde `backend/`) | Pruebas |
 |---|---|---|
-| Todo el backend | `mvn verify` | 274 |
-| Módulo 1 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.autenticacion.**.*Test,co.edu.humboldt.plataformacasos.autorizacion.**.*Test,co.edu.humboldt.plataformacasos.usuarios.**.*Test,co.edu.humboldt.plataformacasos.configuracion.**.*Test,co.edu.humboldt.plataformacasos.compartido.**.*Test'` | 62 |
-| Módulo 2 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.casos.**.*Test'` | 88 (17 solo con MySQL) |
-| Módulos 3 y 4 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.sesiones.**.*Test'` | 60 |
+| Todo el backend | `mvn verify` | 315 (21 solo con MySQL) |
+| Módulo 1 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.autenticacion.**.*Test,co.edu.humboldt.plataformacasos.autorizacion.**.*Test,co.edu.humboldt.plataformacasos.usuarios.**.*Test,co.edu.humboldt.plataformacasos.configuracion.**.*Test,co.edu.humboldt.plataformacasos.compartido.**.*Test'` | 76 |
+| Módulo 2 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.casos.**.*Test'` | 96 (20 solo con MySQL) |
+| Módulos 3 y 4 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.sesiones.**.*Test'` | 61 |
 | Módulos 5 y 6 | `mvn test -Dtest='co.edu.humboldt.plataformacasos.evaluacion.**.*Test'` | 61 |
+| Avisos y Ecos de una decisión | `mvn test -Dtest='co.edu.humboldt.plataformacasos.avisos.**.*Test,co.edu.humboldt.plataformacasos.ecos.**.*Test'` | 18 |
 | Punta a punta | `mvn test -Dtest='FlujoCompleto*Test,SaludControladorTest'` | 3 (1 solo con MySQL) |
-| Frontends | `cd frontend/usuarios-y-permisos && npm ci && npx ng test --watch=false` (igual en `frontend/casos`) | 20 y 4 |
+| Frontend | `cd frontend/soma-web && npm ci && npx ng test --watch=false` | 27 |
 
 Las pruebas usan H2 en memoria. Para repetirlas sobre MySQL 8 real, con bases vacías y desechables:
 
@@ -179,7 +181,8 @@ ausencias), nota oficial, retroalimentación, reporte y avisos.
 
 ## Pendiente
 
-- Frontends de los módulos 3-4 y 5-6: no están en el repositorio.
-- Unir los frontends de los módulos 1 y 2 en una sola aplicación Angular (hoy son dos proyectos con el mismo login).
+- Decidir si se eliminan `frontend/usuarios-y-permisos` y `frontend/casos`: `frontend/soma-web` ya reúne las pantallas
+  de los seis módulos y es el único que usan Docker y `iniciar-soma.bat`.
+- Correo real (SMTP) para producción: en desarrollo los correos llegan a Mailpit (http://localhost:8025).
 - Supuestos por validar con la docente: ingreso del personal con contraseña (módulo 1), pesos de las preguntas y
   escala de la nota (hoy todas pesan 1 y la escala es el mayor rango de la rúbrica), y la regla OCL-13 (RF-28).

@@ -43,7 +43,7 @@ import { SomaApiService } from '../../core/soma-api.service';
               <button type="button" class="boton-suave" [disabled]="reportes.generando('xlsx', practica)" (click)="descargar('xlsx')">{{ reportes.generando('xlsx', practica) ? 'Generando…' : 'Reporte Excel' }}</button>
             }
           </div>
-          <p class="ayuda">«Cerrar intentos pendientes» evalúa los intentos incompletos o sin responder. «Publicar calificaciones» envía la nota oficial a cada estudiante por correo.</p>
+          <p class="ayuda">«Cerrar intentos pendientes» evalúa los intentos incompletos o sin responder. «Publicar calificaciones» envía a cada estudiante, por correo, la nota de cada uno de sus intentos.</p>
         }
       </section>
 
@@ -365,7 +365,7 @@ export class ResultadosDocente implements OnInit {
   }
 
   protected publicar(): void {
-    void this.dialogos.confirmar({ titulo: 'Publicar calificaciones', mensaje: 'Se enviará un correo a cada estudiante con su nota oficial.', confirmar: 'Publicar' }).then((ok) => {
+    void this.dialogos.confirmar({ titulo: 'Publicar calificaciones', mensaje: 'Se enviará a cada estudiante un correo por cada intento, con la nota de ese intento.', confirmar: 'Publicar' }).then((ok) => {
       if (!ok) return;
       this.ejecutar(this.api.publicarCalificaciones(this.practica!), (r) => `Calificaciones publicadas: ${r.enviadas} enviada(s), ${r.omitidasDuplicado} ya enviada(s), ${r.errores} con error.`);
     });
