@@ -5,7 +5,7 @@ import { RegistroErroresService } from '../../core/registro-errores.service';
 import { ToastService } from '../../core/toast.service';
 import { guardarArchivo } from '../../compartido/formato';
 
-/** Catálogo vivo de los componentes de SOMA (para mantener la interfaz coherente) y visor del registro de errores. */
+/** Catálogo visual y visor del registro local de errores. No está en el menú: en producción la ruta no abre esta pantalla. */
 @Component({
   selector: 'app-componentes',
   imports: [Barras, Histograma],

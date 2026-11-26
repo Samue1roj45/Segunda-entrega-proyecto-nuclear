@@ -69,6 +69,10 @@ public class CasoEstudio {
     @Column(name = "fecha_archivado")
     private LocalDateTime fechaArchivado;
 
+    /** Aumenta en cada cambio de contenido. Quien guarda envía la que leyó; si no coincide, no se pisa. */
+    @Column(nullable = false)
+    private long version;
+
     @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden ASC, id ASC")
     @BatchSize(size = LimitesDsl.TAMANO_LOTE_CONSULTA)
@@ -219,6 +223,7 @@ public class CasoEstudio {
             throw new ConflictoException("El caso está " + estado + " y su contenido no se puede modificar.");
         }
         fechaActualizacion = LocalDateTime.now();
+        version = version + 1;
     }
 
     public boolean perteneceA(Long idDocente) {
@@ -267,6 +272,10 @@ public class CasoEstudio {
 
     public LocalDateTime getFechaArchivado() {
         return fechaArchivado;
+    }
+
+    public long getVersion() {
+        return version;
     }
 
     public List<Escenario> getEscenarios() {

@@ -11,7 +11,7 @@ public record CasoDetalleDTO(Long id, Long docenteId, String nombre, String desa
                              String contextoHistoria, Integer tiempoEstimadoMinutos, EstadoCaso estado,
                              LocalDateTime fechaCreacion, LocalDateTime fechaActualizacion,
                              LocalDateTime fechaPublicacion, LocalDateTime fechaArchivado,
-                             List<EscenarioDTO> escenarios, RubricaDTO rubrica) {
+                             List<EscenarioDTO> escenarios, RubricaDTO rubrica, long version) {
 
     public static CasoDetalleDTO de(CasoEstudio caso) {
         return new CasoDetalleDTO(caso.getId(), caso.getDocenteId(), caso.getNombre(),
@@ -19,6 +19,7 @@ public record CasoDetalleDTO(Long id, Long docenteId, String nombre, String desa
                 caso.getEstado(), caso.getFechaCreacion(), caso.getFechaActualizacion(),
                 caso.getFechaPublicacion(), caso.getFechaArchivado(),
                 caso.getEscenarios().stream().map(EscenarioDTO::de).toList(),
-                caso.getRubrica() == null ? null : RubricaDTO.de(caso.getRubrica()));
+                caso.getRubrica() == null ? null : RubricaDTO.de(caso.getRubrica()),
+                caso.getVersion());
     }
 }

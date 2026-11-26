@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { isDevMode, inject } from '@angular/core';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { Permiso } from './modelos/permiso';
 import { SesionService } from './sesion.service';
@@ -28,6 +28,17 @@ export const autenticacionInterceptor: HttpInterceptorFn = (solicitud, siguiente
 /** Exige una sesión iniciada; si no la hay, lleva al inicio de sesión (CP-RF02-06). */
 export const guardiaSesion: CanActivateFn = () =>
   inject(SesionService).autenticado() || inject(Router).createUrlTree(['/login']);
+
+/**
+ * El catálogo visual y el visor de errores locales no son una pantalla de administración.
+ * En desarrollo se abre con la sesión ya exigida por el panel. En una compilación de producción
+ * la dirección lleva al inicio y la herramienta no se muestra.
+ */
+export function accesoDesarrollo(enDesarrollo: boolean): true | UrlTree {
+  return enDesarrollo ? true : inject(Router).createUrlTree(['/inicio']);
+}
+
+export const guardiaDesarrollo: CanActivateFn = () => accesoDesarrollo(isDevMode());
 
 /**
  * Exige un permiso para abrir la pantalla (RF-02). Sin sesión lleva al inicio de sesión y, con sesión

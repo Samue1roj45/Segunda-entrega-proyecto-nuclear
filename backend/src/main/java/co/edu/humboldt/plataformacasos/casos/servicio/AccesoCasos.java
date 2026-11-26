@@ -4,8 +4,14 @@ import co.edu.humboldt.plataformacasos.autorizacion.ServicioAutorizacion;
 import co.edu.humboldt.plataformacasos.casos.dominio.CasoEstudio;
 import co.edu.humboldt.plataformacasos.casos.repositorio.CasoEstudioRepositorio;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.AccesoDenegadoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.ConflictoException;
 import co.edu.humboldt.plataformacasos.compartido.excepcion.RecursoNoEncontradoException;
+import co.edu.humboldt.plataformacasos.compartido.excepcion.SolicitudInvalidaException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Optional;
 
@@ -15,6 +21,9 @@ import java.util.Optional;
  */
 @Component
 public class AccesoCasos {
+
+    public static final String ENCABEZADO_VERSION = "X-Caso-Version";
+    public static final String ATRIBUTO_CASO = "soma.casoEnEdicion";
 
     private final CasoEstudioRepositorio casos;
     private final ServicioAutorizacion autorizacion;
@@ -33,12 +42,48 @@ public class AccesoCasos {
     }
 
     public CasoEstudio paraConsultar(Long idCaso) {
-        return delDocenteActual(casos.findById(idCaso));
+        CasoEstudio caso = delDocenteActual(casos.findById(idCaso));
+        recordar(caso);
+        return caso;
     }
 
-    /** Debe llamarse dentro de una transacción: bloquea el caso hasta que esta termine. */
+    /**
+     * Debe llamarse dentro de una transacción: bloquea el caso hasta que esta termine.
+     * Si la petición trae la versión que el docente leyó y ya no coincide, no se aplica el cambio.
+     */
     public CasoEstudio paraModificar(Long idCaso) {
-        return delDocenteActual(casos.buscarParaModificar(idCaso));
+        CasoEstudio caso = delDocenteActual(casos.buscarParaModificar(idCaso));
+        Long esperada = versionEsperada();
+        if (esperada != null && esperada != caso.getVersion()) {
+            throw new ConflictoException(
+                    "Este apartado cambió en otro lugar. Lo que escribiste sigue en la pantalla; carga la versión guardada antes de reemplazarla.");
+        }
+        recordar(caso);
+        return caso;
+    }
+
+    private static void recordar(CasoEstudio caso) {
+        RequestAttributes atributos = RequestContextHolder.getRequestAttributes();
+        if (atributos != null) {
+            atributos.setAttribute(ATRIBUTO_CASO, caso, RequestAttributes.SCOPE_REQUEST);
+        }
+    }
+
+    private static Long versionEsperada() {
+        RequestAttributes atributos = RequestContextHolder.getRequestAttributes();
+        if (!(atributos instanceof ServletRequestAttributes servlet)) {
+            return null;
+        }
+        HttpServletRequest solicitud = servlet.getRequest();
+        String crudo = solicitud.getHeader(ENCABEZADO_VERSION);
+        if (crudo == null || crudo.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.valueOf(crudo.trim());
+        } catch (NumberFormatException e) {
+            throw new SolicitudInvalidaException("La versión del caso no es válida.");
+        }
     }
 
     private CasoEstudio delDocenteActual(Optional<CasoEstudio> posibleCaso) {
@@ -49,3 +94,4 @@ public class AccesoCasos {
         return caso;
     }
 }
+
