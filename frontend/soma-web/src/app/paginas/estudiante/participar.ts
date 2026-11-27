@@ -24,7 +24,7 @@ import { SomaApiService } from '../../core/soma-api.service';
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando el caso"><i></i><i></i><i></i></div> }
 
-      @if (esEcos()) { <app-ecos-estudiante /> }
+      @if (esEcos()) { <app-ecos-estudiante [autoIniciar]="true" /> }
 
       @if (contextoNormal(); as c) {
         <header class="cristal bloque cabecera-participacion">

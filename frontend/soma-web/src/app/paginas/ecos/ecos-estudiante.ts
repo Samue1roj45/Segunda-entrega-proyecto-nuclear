@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { AvanceSesionEcos, ConfigPixelStreaming, EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
 import { MensajeVisor, SesionParaJuego, VisorPixelStreaming } from './visor-pixel-streaming';
@@ -136,12 +136,29 @@ export function apiParaJuego(ubicacion: { hostname: string; origin: string }, ap
   `,
 })
 export class EcosEstudiante implements OnInit, OnDestroy {
+  constructor() {
+    // Apertura automática (solo con autoIniciar y Pixel Streaming): una vez, cuando ya se sabe que hay intentos disponibles.
+    effect(() => {
+      const s = this.estado();
+      if (!this.autoIniciar() || this.autoIntentado || !this.streamingConsultado() || !s) { return; }
+      this.autoIntentado = true;
+      if (this.streaming() && s.caso && s.disponible && !this.sesion()) { this.jugar(); }
+    });
+  }
+
   private readonly ecos = inject(EcosService);
   private readonly sanitizador = inject(DomSanitizer);
   protected readonly estado = signal<EstadoEcos | null>(null);
   protected readonly sesion = signal<SesionEcos | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly ocupado = signal(false);
+  /**
+   * Dentro de la participación (Mis casos → Comenzar) el estudiante ya eligió jugar: con Pixel Streaming el juego se abre
+   * solo, sin pedir otro clic en «Jugar». En la página «Ecos de una decisión» del menú sigue el botón.
+   */
+  readonly autoIniciar = input(false);
+  private readonly streamingConsultado = signal(false);
+  private autoIntentado = false;
   private readonly ahora = signal(Date.now());
   private temporizador?: ReturnType<typeof setInterval>;
   private ciclo = 0;
@@ -187,7 +204,10 @@ export class EcosEstudiante implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
-    this.ecos.pixelStreaming().subscribe({ next: (p) => this.streaming.set(p.activo ? p : null), error: () => this.streaming.set(null) });
+    this.ecos.pixelStreaming().subscribe({
+      next: (p) => { this.streaming.set(p.activo ? p : null); this.streamingConsultado.set(true); },
+      error: () => { this.streaming.set(null); this.streamingConsultado.set(true); },
+    });
     this.temporizador = setInterval(() => {
       this.ahora.set(Date.now());
       const c = this.sesion();
