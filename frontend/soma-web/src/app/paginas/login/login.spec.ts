@@ -112,12 +112,10 @@ describe('Login', () => {
     expect(JSON.stringify(localStorage)).not.toContain('secreta');
   });
 
-  it('sin ID de cliente deja un solo botón de Google (sin Microsoft ni Apple) que avisa que no está disponible', async () => {
-    const { fixture, el } = await crear();
-    expect(el.querySelectorAll('.sociales button').length).toBe(1);
-    expect(el.textContent).not.toContain('Microsoft');
-    el.querySelector<HTMLButtonElement>('.social-ancho')!.click();
-    fixture.detectChanges();
-    expect(el.textContent).toContain('Google no está disponible');
+  it('no ofrece Google ni registro: las cuentas las crea el administrador', async () => {
+    const { el } = await crear();
+    expect(el.textContent).not.toContain('Google');
+    expect(el.textContent).not.toContain('Regístrate');
+    expect(sesion.clienteGoogle).not.toHaveBeenCalled();
   });
 });
