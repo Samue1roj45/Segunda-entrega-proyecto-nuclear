@@ -52,12 +52,12 @@ import { SesionService } from '../../core/sesion.service';
 
           @if (esEstudiante()) {
             <label class="campo c2" [class.invalido]="enviado() && campoCodigo.invalid">
-              <span class="sr-only">Código de acceso</span>
+              <span class="sr-only">Contraseña</span>
               <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4" /><path d="M12 12h9m-3 0v3m-3-3v2" /></svg>
-              <input id="codigo-login" name="codigo" placeholder="Código de acceso" autocomplete="one-time-code" required autocapitalize="none" spellcheck="false" maxlength="64" [attr.aria-invalid]="enviado() && campoCodigo.invalid" aria-describedby="aviso-login"
+              <input id="codigo-login" name="codigo" type="password" placeholder="Contraseña" autocomplete="current-password" required autocapitalize="none" spellcheck="false" maxlength="64" [attr.aria-invalid]="enviado() && campoCodigo.invalid" aria-describedby="aviso-login"
                      [(ngModel)]="codigo" #campoCodigo="ngModel" />
             </label>
-            @if (enviado() && campoCodigo.invalid) { <span class="sr-only" role="alert">Escribe el código que recibiste por correo.</span> }
+            @if (enviado() && campoCodigo.invalid) { <span class="sr-only" role="alert">Escribe tu contraseña.</span> }
           } @else {
             <label class="campo c2" [class.invalido]="enviado() && campoClave.invalid">
               <span class="sr-only">Contraseña</span>
@@ -108,7 +108,7 @@ import { SesionService } from '../../core/sesion.service';
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.15" /><path d="M5.2 19.2c.9-3.3 3.4-5 6.8-5s5.9 1.7 6.8 5" /></svg>
             <span class="cambio-texto">
               <span class="cambio-titulo">{{ esEstudiante() ? 'Ingresar como docente o administrador' : 'Ingresar como estudiante' }}</span>
-              @if (!esEstudiante()) { <span class="cambio-sub">Accede con tu código de acceso.</span> }
+              @if (!esEstudiante()) { <span class="cambio-sub">Accede con tu contraseña.</span> }
             </span>
           </button>
         </div>
@@ -436,7 +436,7 @@ export class Login extends ConOperaciones implements AfterViewInit {
       que === 'recuperar'
         ? 'Para restablecer tu contraseña, comunícate con el administrador de SOMA.'
         : que === 'registro'
-          ? 'Las cuentas las crea el administrador; los estudiantes entran con el código de su convocatoria.'
+          ? 'Los estudiantes crean su cuenta desde el enlace que su docente les envía por correo. Pídele una invitación.'
           : 'El ingreso con Google, Microsoft o Apple estará disponible próximamente.',
     );
   }

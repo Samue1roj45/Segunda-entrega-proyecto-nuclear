@@ -7,6 +7,8 @@ import { Panel } from './paginas/panel/panel';
 
 export const routes: Routes = [
   { path: 'login', component: Login, title: 'Iniciar sesión · SOMA' },
+  // Pública: el estudiante llega desde el correo de invitación y crea su cuenta (sin sesión).
+  { path: 'registro/:token', loadComponent: () => import('./paginas/registro/registro').then((m) => m.Registro), title: 'Crea tu cuenta · SOMA' },
   {
     path: '',
     component: Panel,
@@ -57,7 +59,15 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/ecos/ecos-estudiante').then((m) => m.EcosEstudiante), title: 'Ecos de una decisión · SOMA',
       },
       {
-        path: 'ecos-resultados', canActivate: [guardiaPermiso(Permiso.ConsultarParticipaciones)],
+        path: 'mis-estudiantes', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
+        loadComponent: () => import('./paginas/ecos/mis-estudiantes').then((m) => m.MisEstudiantes), title: 'Mis estudiantes · SOMA',
+      },
+      {
+        path: 'ecos-en-vivo', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
+        loadComponent: () => import('./paginas/ecos/ecos-en-vivo').then((m) => m.EcosEnVivo), title: 'Ecos · en vivo · SOMA',
+      },
+      {
+        path: 'ecos-resultados', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
         loadComponent: () => import('./paginas/ecos/ecos-docente').then((m) => m.EcosDocente), title: 'Ecos · resultados · SOMA',
       },
       {

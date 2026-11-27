@@ -27,7 +27,7 @@ import { EcosService, ResultadoEcosDocente } from '../../core/ecos.service';
                 <tr>
                   <td>{{ r.estudiante }} @if (r.revision) { <span class="etiqueta mal" title="La nota del juego no coincide con la calculada por SOMA">Revisar</span> }</td>
                   <td>{{ r.intento }}</td>
-                  <td><strong>{{ r.nota | number: '1.1-1' }}</strong> <small>({{ r.puntaje | number: '1.0-2' }} pts)</small></td>
+                  <td><strong>{{ r.nota | number: '1.1-1' }}</strong> <small>({{ r.puntaje | number: '1.0-2' }} pts)</small> @if (r.oficial) { <span class="etiqueta ok" title="Es el mejor intento de este estudiante">Oficial</span> }</td>
                   <td>{{ r.nivel }}</td>
                   <td>{{ r.desenlace.replace('FIN_', '').toLowerCase() }} · {{ r.protagonista }}</td>
                   <td>{{ r.fortalezas.join(', ') || '—' }}</td>

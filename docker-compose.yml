@@ -47,8 +47,15 @@ services:
       JWT_MINUTOS: ${JWT_MINUTOS:-60}
       DOMINIO_INSTITUCIONAL: ${DOMINIO_INSTITUCIONAL:-institucion.edu.co}
       CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200,http://127.0.0.1:4200}
-      MAIL_HOST: correo
-      MAIL_PORT: 1025
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      # Por defecto el correo se captura en Mailpit (http://localhost:8025) y NO llega a bandejas reales.
+      # Para enviar correos de verdad, define SMTP_HOST, SMTP_PORT, SMTP_USUARIO, SMTP_CLAVE (ver .env.example).
+      MAIL_HOST: ${SMTP_HOST:-correo}
+      MAIL_PORT: ${SMTP_PORT:-1025}
+      MAIL_USERNAME: ${SMTP_USUARIO:-}
+      MAIL_PASSWORD: ${SMTP_CLAVE:-}
+      MAIL_SMTP_AUTH: ${SMTP_AUTH:-false}
+      MAIL_STARTTLS: ${SMTP_STARTTLS:-false}
       MAIL_FROM: ${MAIL_FROM:-no-reply@institucion.edu.co}
       ZONA_HORARIA: ${ZONA_HORARIA:-America/Bogota}
       POLITICA_INGRESO_TARDIO: ${POLITICA_INGRESO_TARDIO:-mitad}

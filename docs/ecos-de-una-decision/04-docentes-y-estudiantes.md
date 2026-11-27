@@ -1,0 +1,23 @@
+# Docentes, estudiantes e invitaciones
+
+## Cómo entra un estudiante
+1. El docente (con el permiso **Invitar estudiantes**, que da el administrador en *Docentes*) abre **Mis estudiantes** y escribe los correos institucionales.
+2. SOMA manda un correo con un enlace personal (`/registro/<token>`, vale 7 días). El token se guarda solo como hash.
+3. El estudiante abre el enlace y llega a **Crea tu cuenta**. El correo viene de la invitación y no se puede cambiar. Llena: nombre completo, tipo y número de documento, fecha de nacimiento (mínimo 14 años), teléfono (opcional), contraseña (8+ caracteres con mayúscula, minúscula y número) y autoriza el tratamiento de datos.
+4. Entra con su correo y su contraseña. Queda en la lista del docente.
+
+Si el correo ya tenía cuenta de estudiante, solo se agrega a la lista del docente. Si el correo no llega, el docente ve el enlace y puede copiarlo.
+
+**Retirar** a un estudiante lo saca solo de la lista de ese docente: su cuenta y sus resultados no se borran.
+
+## Ecos de una decisión
+- **Intentos:** 1 por defecto (`ECOS_MAX_INTENTOS`); el docente puede dar intentos adicionales a un estudiante suyo (*Dar otro intento*).
+- **Nota oficial:** el mejor intento (a igual nota, el primero).
+- **En vivo:** el docente ve quién tiene código, quién juega y en qué acto va (se actualiza cada 5 s).
+- **Reanudar desde otro PC:** no se admite (el juego devuelve `reanudar=false`); requiere un cambio en el juego.
+
+## Correo
+Por defecto los correos van a Mailpit (`http://localhost:8025`) y **no llegan a bandejas reales**. Para enviar de verdad, definir `SMTP_*` en `.env` (ver `.env.example`) y `FRONTEND_URL` con la dirección pública del frontend.
+
+## Limpiar los datos de casos
+`docs/limpiar-datos-de-casos.sql` borra casos, sesiones, convocatorias, participaciones, resultados y avisos; conserva usuarios, invitaciones y todo lo de Ecos. Deja a Ana y Luis con contraseña propia (`Clave-Estudiante-01/02`) y vinculados a Carlos.

@@ -65,6 +65,7 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
                 @for (i of s.intentos; track i.sesionId) {
                   <article class="cristal tarjeta-item">
                     <span [class]="'etiqueta ' + (i.estado === 'CERRADA' ? 'ok' : '')">{{ etiqueta(i.estado) }}</span>
+                    @if (i.oficial) { <span class="etiqueta ok" title="Tu mejor intento es el que cuenta">Nota oficial</span> }
                     <h4>Intento {{ i.intento }}</h4>
                     @if (i.nota !== null) {
                       <p class="nota-grande">{{ i.nota | number: '1.1-1' }} <small>/ 5.0 · {{ i.nivel }}</small></p>
@@ -85,6 +86,7 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
     .et { text-transform: uppercase; letter-spacing: .16em; font-size: .72rem; color: var(--lila-700); margin: 0; }
     .codigo { font: 700 2.4rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .18em; margin: .2rem 0; }
     .ayuda-juego { margin-top: 1rem; } .ayuda-juego pre { white-space: pre-wrap; word-break: break-all; padding: .7rem; border-radius: 10px; background: rgba(0,0,0,.06); }
+    .nota-grande { font-size: 2.2rem; font-weight: 600; margin: 0; } .nota-grande small { font-size: .9rem; font-weight: 400; color: var(--tinta-suave); }
     a.boton-primario { text-decoration: none; display: inline-block; }
   `,
 })
