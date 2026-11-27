@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+  Simulador del reproductor de Pixel Streaming para probar SOMA sin Unreal ni GPU.
+  Imita window.pixelStreaming del reproductor de Epic y se comporta como el juego: canjea el código, informa seis actos
+  y envía un resultado real a SOMA (contrato ecos-soma/1). Usa el MISMO soma-puente.js que va en el reproductor real.
+
+  Uso local:  python -m http.server 8090 --directory pixel-streaming
+              ECOS_PIXEL_STREAMING_URL=http://localhost:8090/simulador/
+              CORS_ORIGENES=...,http://localhost:8090   (solo el simulador llama a la API desde el navegador; Unreal no)
+-->
+<html lang="es" style="width:100%;height:100%">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulador de Pixel Streaming · Ecos</title>
+  <style>
+    body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0d0a16; font-family: system-ui, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <canvas id="pantalla"></canvas>
+  <script src="simulador.js"></script>
+  <script defer src="../soma-puente.js"></script>
+</body>
+</html>

@@ -57,6 +57,10 @@ app:
     horas-token: 6
     max-intentos: ${ECOS_MAX_INTENTOS:1}
     tolerancia-segundos: 10
+    pixel-streaming:
+      # Reproductor de Pixel Streaming (http/https). Si se define, el juego se ve dentro de la página del estudiante;
+      # vacío = se abre en el computador con el enlace ecos://, como antes.
+      url: ${ECOS_PIXEL_STREAMING_URL:}
   autenticacion:
     # Dominios aceptados por RF-01 (uno o varios, separados por coma). institucion.edu.co es el de las cuentas de prueba.
     dominio-institucional: ${DOMINIO_INSTITUCIONAL:unihumboldt.edu.co,cue.edu.co,gmail.com,institucion.edu.co}
