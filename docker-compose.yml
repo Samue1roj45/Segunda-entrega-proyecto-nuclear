@@ -51,7 +51,7 @@ services:
       GOOGLE_DOMINIOS: ${GOOGLE_DOMINIOS:-unihumboldt.edu.co,cue.edu.co,gmail.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       # Reproductor de Pixel Streaming de Ecos (vacío = el juego se abre con ecos:// en el computador del estudiante).
-      ECOS_PIXEL_STREAMING_URL: ${ECOS_PIXEL_STREAMING_URL:-}
+      ECOS_PIXEL_STREAMING_URL: ${ECOS_PIXEL_STREAMING_URL:-https://stars-placing-headlines-adapter.trycloudflare.com/?StreamerId=DefaultStreamer&AutoConnect=true&AutoPlayVideo=true&HoveringMouse=true}
       # Por defecto el correo se captura en Mailpit (http://localhost:8025) y NO llega a bandejas reales.
       # Para enviar correos de verdad, define SMTP_HOST, SMTP_PORT, SMTP_USUARIO, SMTP_CLAVE (ver .env.example).
       MAIL_HOST: ${SMTP_HOST:-correo}
