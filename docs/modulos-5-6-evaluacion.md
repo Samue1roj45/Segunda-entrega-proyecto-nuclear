@@ -145,7 +145,8 @@ La integración real con los demás módulos está en `FlujoCompletoTest` (`back
 
 ## Pendiente
 
-- El frontend Angular de este módulo no está en el repositorio.
+- Frontend: las pantallas de este módulo están en `frontend/soma-web` (`paginas/evaluacion` para el docente y
+  `paginas/estudiante` para el estudiante).
 - SMTP real: en desarrollo los correos llegan a Mailpit (`docker compose up -d`, http://localhost:8025).
 - OpenPDF 2.0.3 (MPL-2.0 / LGPL-2.1+): ya estaba en el esqueleto; si el equipo exige licencia Apache exclusiva, cambiar
   a PDFBox (Apache 2.0).

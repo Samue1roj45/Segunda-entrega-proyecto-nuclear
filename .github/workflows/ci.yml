@@ -44,7 +44,8 @@ jobs:
           DB_URL: jdbc:mysql://127.0.0.1:3306/plataforma_casos?serverTimezone=America/Bogota
           DB_USER: plataforma
           DB_PASSWORD: clave-ci
-          JWT_SECRETO: secreto-solo-para-ci-con-mas-de-treinta-y-dos-caracteres
+          # Base64 de "secreto-solo-para-ci-con-mas-de-treinta-y-dos-caracteres" (ConfiguracionJwt exige Base64)
+          JWT_SECRETO: c2VjcmV0by1zb2xvLXBhcmEtY2ktY29uLW1hcy1kZS10cmVpbnRhLXktZG9zLWNhcmFjdGVyZXM=
           SPRING_PROFILES_ACTIVE: pruebas
           AVISOS_CORREO: 'false'
         run: |

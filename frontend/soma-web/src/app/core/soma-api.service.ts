@@ -25,6 +25,14 @@ export interface Sesion {
   readonly accionesPermitidas: readonly string[];
 }
 
+/** GET/POST /api/admin/estudiantes (módulo 1): registro de estudiantes por el administrador. */
+export interface EstudianteAdmin {
+  readonly id: number;
+  readonly correoInstitucional: string;
+  readonly nombreCompleto: string;
+  readonly activo: boolean;
+}
+
 /** GET /api/casos (módulo 2). */
 export interface CasoResumen {
   readonly id: number;
@@ -189,6 +197,8 @@ export class SomaApiService {
   // ---------- Administración ----------
   docentes(): Observable<M.Docente[]> { return this.http.get<M.Docente[]>('/api/admin/docentes'); }
   crearDocente(nombreCompleto: string, correoInstitucional: string): Observable<M.Docente> { return this.http.post<M.Docente>('/api/admin/docentes', { nombreCompleto, correoInstitucional }); }
+  estudiantesAdmin(): Observable<EstudianteAdmin[]> { return this.http.get<EstudianteAdmin[]>('/api/admin/estudiantes'); }
+  crearEstudiante(nombreCompleto: string, correoInstitucional: string): Observable<EstudianteAdmin> { return this.http.post<EstudianteAdmin>('/api/admin/estudiantes', { nombreCompleto, correoInstitucional }); }
   asignarPermisos(id: number, permisos: string[]): Observable<M.Docente> { return this.http.put<M.Docente>(`/api/admin/docentes/${id}/permisos`, { permisos }); }
   usuarios(activos: boolean, rol?: string): Observable<M.UsuarioAdmin[]> { return this.http.get<M.UsuarioAdmin[]>('/api/admin/usuarios', { params: filtros({ activos: String(activos), rol }) }); }
   archivarUsuario(id: number): Observable<M.UsuarioAdmin> { return this.http.post<M.UsuarioAdmin>(`/api/admin/usuarios/${id}/archivo`, null); }

@@ -10,7 +10,7 @@ import { ToastService } from '../../core/toast.service';
 
 const NOMBRES: Record<string, string> = {
   INGRESO: 'Ingreso', CUENTA_BLOQUEADA: 'Cuenta bloqueada', CASO_ELIMINADO: 'Caso eliminado', CASO_RESTAURADO: 'Caso restaurado', CASO_BORRADO_DEFINITIVO: 'Caso borrado para siempre',
-  DOCENTE_CREADO: 'Docente creado', PERMISOS_ACTUALIZADOS: 'Permisos actualizados',
+  DOCENTE_CREADO: 'Docente creado', ESTUDIANTE_CREADO: 'Estudiante creado', PERMISOS_ACTUALIZADOS: 'Permisos actualizados',
   USUARIO_ARCHIVADO: 'Cuenta archivada', USUARIO_REACTIVADO: 'Cuenta reactivada', USUARIO_ELIMINADO: 'Cuenta eliminada', USUARIO_ELIMINACION_BLOQUEADA: 'Eliminación de cuenta bloqueada',
   CASO_ARCHIVADO: 'Caso archivado', CASO_RECUPERADO: 'Caso recuperado',
   AUDITORIA_LIMPIADA: 'Historial limpiado', AUDITORIA_LIMPIEZA_FALLIDA: 'Limpieza fallida',

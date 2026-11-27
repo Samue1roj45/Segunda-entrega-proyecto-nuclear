@@ -97,7 +97,7 @@ import { SomaApiService } from '../../core/soma-api.service';
 
         <section class="cristal bloque">
           @if (cerrada()) {
-            <p class="aviso-ok">Tu intento terminó. Puedes ver tu resultado cuando el docente lo publique.</p>
+            <p class="aviso-ok">Tu intento terminó. Ya puedes ver tu resultado en Mis resultados.</p>
             <a routerLink="/mis-resultados" class="boton-primario enlace-boton" style="width:fit-content">Ir a mis resultados</a>
           } @else {
             <p class="suave">Revisa tus respuestas. Puedes volver y cambiarlas hasta que finalices o se acabe el tiempo.</p>

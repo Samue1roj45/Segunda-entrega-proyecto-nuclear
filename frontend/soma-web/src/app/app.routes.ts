@@ -80,6 +80,10 @@ export const routes: Routes = [
         path: 'docentes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
         loadComponent: () => import('./paginas/admin/docentes').then((m) => m.Docentes), title: 'Docentes · SOMA',
       },
+      {
+        path: 'estudiantes', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
+        loadComponent: () => import('./paginas/admin/estudiantes').then((m) => m.Estudiantes), title: 'Estudiantes · SOMA',
+      },
       { path: 'acceso-denegado', loadComponent: () => import('./paginas/admin/acceso-denegado').then((m) => m.AccesoDenegado), title: 'Acceso denegado · SOMA' },
       { path: 'perfil', loadComponent: () => import('./paginas/perfil/perfil').then((m) => m.Perfil), title: 'Mi perfil · SOMA' },
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
