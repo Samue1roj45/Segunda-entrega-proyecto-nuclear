@@ -10,6 +10,10 @@ export interface IntentoEcos {
   oficial: boolean;
 }
 export interface EstadoEcos { caso: string | null; disponible: boolean; maxIntentos: number; usados: number; restantes: number; intentos: IntentoEcos[]; }
+/** Reproductor de Pixel Streaming: con activo=true el juego se ve dentro de la página (origen = dueño de los mensajes). */
+export interface ConfigPixelStreaming { activo: boolean; url: string; origen: string; }
+/** Lo último que el juego informó de la sesión (POST /sesiones/{id}/eventos). */
+export interface AvanceSesionEcos { sesionId: string; estado: IntentoEcos['estado']; ultimoPunto: string | null; ultimoActo: number | null; ultimoEventoEn: string | null; }
 export type EstadoJuego = 'SIN_JUGAR' | 'CODIGO_GENERADO' | 'JUGANDO' | 'TERMINADO';
 export interface EstudianteDocente {
   id: number; nombre: string; correo: string; vinculadoEn: string; intentosUsados: number; intentosMaximos: number;
@@ -23,6 +27,8 @@ export class EcosService {
   private readonly base = '/api/ecos/v1';
 
   estado(): Observable<EstadoEcos> { return this.http.get<EstadoEcos>(`${this.base}/mis-intentos`); }
+  pixelStreaming(): Observable<ConfigPixelStreaming> { return this.http.get<ConfigPixelStreaming>(`${this.base}/pixel-streaming`); }
+  avance(sesionId: string): Observable<AvanceSesionEcos> { return this.http.get<AvanceSesionEcos>(`${this.base}/sesiones/${encodeURIComponent(sesionId)}/avance`); }
   crearSesion(): Observable<SesionEcos> { return this.http.post<SesionEcos>(`${this.base}/sesiones`, null); }
   misEstudiantes(): Observable<EstudianteDocente[]> { return this.http.get<EstudianteDocente[]>(`${this.base}/mis-estudiantes`); }
   retirarEstudiante(id: number): Observable<void> { return this.http.delete<void>(`${this.base}/mis-estudiantes/${id}`); }

@@ -3,16 +3,18 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { mensajeDeError } from '../../core/con-operaciones';
-import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
+import { AvanceSesionEcos, ConfigPixelStreaming, EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
+import { MensajeVisor, SesionParaJuego, VisorPixelStreaming } from './visor-pixel-streaming';
 
 /**
  * "Ecos de una decisión" para el estudiante. El juego (Unreal Engine) corre en este computador: SOMA crea una sesión,
  * muestra el código de un solo uso y el enlace ecos:// que abre el juego ya conectado; al terminar, el juego envía el
  * resultado y SOMA calcula la nota. Mientras hay un código vigente la página consulta el avance cada pocos segundos.
+ * Con Pixel Streaming (ECOS_PIXEL_STREAMING_URL) el juego se ve dentro de esta misma página y su avance sale en «En vivo».
  */
 @Component({
   selector: 'app-ecos-estudiante',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, VisorPixelStreaming],
   template: `
     <div class="pagina">
       <div class="cabecera-pagina"><h2 class="sr-only">Ecos de una decisión</h2>
@@ -27,6 +29,31 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
             <p class="meta"><span>Intentos usados {{ s.usados }} de {{ s.maxIntentos }}</span><span>Te quedan {{ s.restantes }}</span></p>
 
             @if (sesion(); as c) {
+              @if (streaming(); as ps) {
+                <div class="juego-en-pagina">
+                  <app-visor-pixel-streaming [url]="ps.url" [origen]="ps.origen" [sesion]="sesionJuego()" (mensaje)="alMensaje($event)" />
+                  <aside class="en-vivo cristal" aria-live="polite" aria-label="Lo que pasa en el juego">
+                    <h4>En vivo</h4>
+                    <dl>
+                      <div><dt>Conexión</dt><dd>{{ textoConexion() }}</dd></div>
+                      <div><dt>Juego</dt><dd>{{ textoFase() }}</dd></div>
+                      <div><dt>Acto</dt><dd>{{ acto() ?? '—' }} de 6</dd></div>
+                      <div><dt>Último punto</dt><dd>{{ punto() ?? '—' }}</dd></div>
+                    </dl>
+                    @if (resultadoSesion(); as r) {
+                      <p class="nota-vivo">{{ r.nota | number: '1.1-1' }} <small>/ 5.0 · {{ r.nivel }}</small></p>
+                    }
+                    @if (faseActual() === 'CREADA' && puente() !== 'instalado') {
+                      <p class="ayuda codigo-mini">Si el juego te pide un código, escribe <strong>{{ c.codigo }}</strong> (vale {{ restante() }}).</p>
+                    }
+                    @if (feed().length) {
+                      <ol class="feed">
+                        @for (f of feed(); track f.id) { <li><time>{{ f.hora | date: 'HH:mm:ss' }}</time> {{ f.texto }}</li> }
+                      </ol>
+                    }
+                  </aside>
+                </div>
+              } @else {
               <div class="codigo-caja" aria-live="polite">
                 <p class="et">Tu código de sesión</p>
                 <p class="codigo">{{ c.codigo }}</p>
@@ -50,9 +77,10 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
                   <li>Si el código venció, vuelve a esta página y genera otro.</li>
                 </ol>
               </details>
+              }
             } @else if (s.disponible) {
               <div class="acciones"><button type="button" class="boton-primario" [disabled]="ocupado()" (click)="jugar()">Jugar</button></div>
-              <p class="ayuda">Se generará un código para abrir el juego en este computador.</p>
+              <p class="ayuda">{{ streaming() ? 'El juego se abrirá aquí mismo, dentro de esta página.' : 'Se generará un código para abrir el juego en este computador.' }}</p>
             } @else {
               <p class="aviso-info">Ya usaste todos tus intentos.</p>
             }
@@ -88,6 +116,17 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
     .ayuda-juego { margin-top: 1rem; } .ayuda-juego pre { white-space: pre-wrap; word-break: break-all; padding: .7rem; border-radius: 10px; background: rgba(0,0,0,.06); }
     .nota-grande { font-size: 2.2rem; font-weight: 600; margin: 0; } .nota-grande small { font-size: .9rem; font-weight: 400; color: var(--tinta-suave); }
     a.boton-primario { text-decoration: none; display: inline-block; }
+    .juego-en-pagina { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; align-items: start; margin-top: 1rem; }
+    @media (max-width: 1100px) { .juego-en-pagina { grid-template-columns: 1fr; } }
+    .en-vivo { padding: 1rem 1.1rem; display: grid; gap: .6rem; }
+    .en-vivo h4 { margin: 0; font-size: 1rem; }
+    .en-vivo dl { margin: 0; display: grid; gap: .35rem; }
+    .en-vivo dl > div { display: flex; justify-content: space-between; gap: .8rem; font-size: .88rem; }
+    .en-vivo dt { color: var(--tinta-suave); } .en-vivo dd { margin: 0; font-weight: 600; text-align: right; }
+    .nota-vivo { font-size: 1.8rem; font-weight: 600; margin: 0; } .nota-vivo small { font-size: .85rem; font-weight: 400; color: var(--tinta-suave); }
+    .codigo-mini { margin: 0; }
+    .feed { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; max-height: 220px; overflow: auto; font-size: .82rem; }
+    .feed time { color: var(--tinta-suave); font-variant-numeric: tabular-nums; margin-right: .35rem; }
   `,
 })
 export class EcosEstudiante implements OnInit, OnDestroy {
@@ -100,6 +139,33 @@ export class EcosEstudiante implements OnInit, OnDestroy {
   private readonly ahora = signal(Date.now());
   private temporizador?: ReturnType<typeof setInterval>;
   private ciclo = 0;
+
+  // ---- Pixel Streaming: el juego se ve en la página y lo que informa se refleja en el panel «En vivo».
+  /** Reproductor configurado en el servidor (ECOS_PIXEL_STREAMING_URL); null = se usa el enlace ecos:// como antes. */
+  protected readonly streaming = signal<ConfigPixelStreaming | null>(null);
+  protected readonly puente = signal<'esperando' | 'instalado' | 'ausente'>('esperando');
+  private readonly conexion = signal('conectando');
+  private readonly avance = signal<AvanceSesionEcos | null>(null);
+  private readonly actoJuego = signal<number | null>(null);
+  private readonly puntoJuego = signal<string | null>(null);
+  protected readonly feed = signal<{ id: number; hora: Date; texto: string }[]>([]);
+  private idFeed = 0;
+  private faseAnunciada: string | null = null;
+
+  protected readonly acto = computed(() => this.actoJuego() ?? this.avance()?.ultimoActo ?? null);
+  protected readonly punto = computed(() => this.puntoJuego() ?? this.avance()?.ultimoPunto ?? null);
+  protected readonly resultadoSesion = computed(() => {
+    const c = this.sesion();
+    const i = c ? this.estado()?.intentos.find((x) => x.sesionId === c.sesionId) : undefined;
+    return i && i.nota !== null ? i : null;
+  });
+  protected readonly textoConexion = computed(() => ({
+    conectando: 'Conectando con el servidor…', conectado: 'Conectado', video: 'Transmitiendo', desconectado: 'Desconectado',
+    'sin-puente': 'Solo video (sin puente)',
+  } as Record<string, string>)[this.conexion()] ?? this.conexion());
+  protected readonly textoFase = computed(() => ({
+    CREADA: 'Esperando que el juego se conecte', CANJEADA: 'Jugando', CERRADA: 'Terminado', VENCIDA: 'El código venció',
+  } as Record<string, string>)[this.faseActual() ?? ''] ?? '—');
 
   /** Fase de la sesión que se está mostrando, según el último estado consultado. */
   protected readonly faseActual = computed(() => {
@@ -115,14 +181,66 @@ export class EcosEstudiante implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargar();
+    this.ecos.pixelStreaming().subscribe({ next: (p) => this.streaming.set(p.activo ? p : null), error: () => this.streaming.set(null) });
     this.temporizador = setInterval(() => {
       this.ahora.set(Date.now());
       const c = this.sesion();
-      if (c && ++this.ciclo % 4 === 0 && this.faseActual() !== 'CERRADA') { this.cargar(); }
+      if (c && ++this.ciclo % 4 === 0 && this.faseActual() !== 'CERRADA') {
+        this.cargar();
+        if (this.streaming()) { this.consultarAvance(c.sesionId); }
+      }
     }, 1000);
   }
 
   ngOnDestroy(): void { clearInterval(this.temporizador); }
+
+  /** Datos que el puente le entrega al juego: los mismos del enlace ecos:// (código de un solo uso y URL de la API). */
+  protected readonly sesionJuego = computed<SesionParaJuego | null>(() => {
+    const c = this.sesion();
+    return c ? { sesionId: c.sesionId, codigo: c.codigo, api: this.api(c) } : null;
+  });
+
+  protected alMensaje(m: MensajeVisor): void {
+    switch (m.tipo) {
+      case 'puente':
+        this.puente.set(m.instalado ? 'instalado' : 'ausente');
+        if (!m.instalado) {
+          this.conexion.set('sin-puente');
+          this.anotar('El reproductor no tiene el puente de SOMA: si el juego lo pide, escribe el código.');
+        }
+        break;
+      case 'estado':
+        this.conexion.set(m.estado);
+        break;
+      case 'entregada':
+        this.anotar('Código de sesión entregado al juego.');
+        break;
+      case 'juego': {
+        const d = m.datos;
+        if (typeof d['acto'] === 'number') { this.actoJuego.set(d['acto']); }
+        if (typeof d['punto'] === 'string') { this.puntoJuego.set(d['punto']); }
+        const texto = typeof d['texto'] === 'string' ? d['texto'] : typeof d['mensaje'] === 'string' ? d['mensaje'] : this.resumen(d);
+        this.anotar(texto);
+        // Lo que el juego anuncia se confirma contra SOMA, que es la fuente de verdad (estado y nota).
+        const c = this.sesion();
+        if (c) { this.cargar(); this.consultarAvance(c.sesionId); }
+        break;
+      }
+    }
+  }
+
+  private consultarAvance(sesionId: string): void {
+    this.ecos.avance(sesionId).subscribe({ next: (a) => this.avance.set(a), error: () => undefined });
+  }
+
+  private anotar(texto: string): void {
+    const t = texto.length > 160 ? texto.slice(0, 157) + '…' : texto;
+    this.feed.update((f) => [{ id: ++this.idFeed, hora: new Date(), texto: t }, ...f].slice(0, 12));
+  }
+
+  private resumen(d: Record<string, unknown>): string {
+    return Object.entries(d).filter(([, v]) => ['string', 'number', 'boolean'].includes(typeof v)).map(([k, v]) => `${k}: ${v}`).join(' · ') || 'Evento del juego';
+  }
 
   protected jugar(): void {
     this.ocupado.set(true);
@@ -134,7 +252,23 @@ export class EcosEstudiante implements OnInit, OnDestroy {
   }
 
   private cargar(): void {
-    this.ecos.estado().subscribe({ next: (s) => this.estado.set(s), error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)) });
+    this.ecos.estado().subscribe({
+      next: (s) => { this.estado.set(s); this.anunciarFase(); },
+      error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)),
+    });
+  }
+
+  /** En modo streaming, cada cambio de fase confirmado por SOMA queda en el panel «En vivo». */
+  private anunciarFase(): void {
+    const f = this.faseActual();
+    if (!this.streaming() || !f || f === this.faseAnunciada) { return; }
+    this.faseAnunciada = f;
+    const r = this.resultadoSesion();
+    const textos: Record<string, string> = {
+      CANJEADA: 'El juego se conectó con SOMA.',
+      CERRADA: r && r.nota !== null ? `SOMA recibió el resultado: ${r.nota.toFixed(1)} / 5.0 (${r.nivel}).` : 'SOMA recibió el resultado.',
+    };
+    if (textos[f]) { this.anotar(textos[f]); }
   }
 
   /**

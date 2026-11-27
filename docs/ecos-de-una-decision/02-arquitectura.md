@@ -1,4 +1,5 @@
 > **SUPERADO:** este documento describe la idea inicial con Pixel Streaming, que se descartó. El lanzamiento real es por protocolo `ecos://` y el intercambio de datos está en `03-contrato.md`.
+> **Actualización:** Pixel Streaming se retomó de forma más simple (reproductor dentro de la página y el mismo contrato `ecos-soma/1`): ver `05-pixel-streaming.md`.
 
 # Ecos de una decisión · Fase 2: arquitectura y contratos
 
