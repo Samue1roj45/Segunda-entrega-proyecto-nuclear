@@ -183,7 +183,7 @@ public class ServicioInvitaciones {
     @Transactional(readOnly = true)
     public InvitacionPublica consultar(String token) {
         Map<String, Object> i = invitacionVigente(token);
-        return new InvitacionPublica((String) i.get("correo"), (String) i.get("docente"), ((Timestamp) i.get("vence_en")).toLocalDateTime());
+        return new InvitacionPublica((String) i.get("correo"), (String) i.get("docente"), aFecha(i.get("vence_en")));
     }
 
     @Transactional
@@ -251,6 +251,11 @@ public class ServicioInvitaciones {
         }
     }
 
+    /** MySQL entrega LocalDateTime y H2 entrega Timestamp: se aceptan ambos. */
+    private static LocalDateTime aFecha(Object valor) {
+        return valor instanceof Timestamp t ? t.toLocalDateTime() : (LocalDateTime) valor;
+    }
+
     /** Busca la invitación por el hash del token y explica por qué no sirve si no sirve. */
     private Map<String, Object> invitacionVigente(String token) {
         List<Map<String, Object>> f = jdbc.queryForList("""
@@ -268,7 +273,7 @@ public class ServicioInvitaciones {
         if ("CANCELADA".equals(estado)) {
             throw new EcosException(HttpStatus.GONE, "INVITACION_CANCELADA", "Tu docente canceló esta invitación. Pídele una nueva.");
         }
-        if (((Timestamp) i.get("vence_en")).toLocalDateTime().isBefore(LocalDateTime.now(reloj))) {
+        if (aFecha(i.get("vence_en")).isBefore(LocalDateTime.now(reloj))) {
             throw new EcosException(HttpStatus.GONE, "INVITACION_VENCIDA", "Esta invitación venció. Pídele a tu docente que te la reenvíe.");
         }
         return i;

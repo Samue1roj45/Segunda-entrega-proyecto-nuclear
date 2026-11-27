@@ -40,7 +40,7 @@ services:
         condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-pruebas}
-      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-plataforma_casos}?serverTimezone=America/Bogota
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-plataforma_casos}?serverTimezone=America/Bogota&connectionCollation=utf8mb4_unicode_ci
       DB_USER: ${MYSQL_USER:-plataforma}
       DB_PASSWORD: ${MYSQL_PASSWORD:-cambiar-esta-clave}
       JWT_SECRETO: ${JWT_SECRETO:-}
