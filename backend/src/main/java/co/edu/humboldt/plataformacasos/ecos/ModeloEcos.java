@@ -86,8 +86,9 @@ public final class ModeloEcos {
                                     String nivel, boolean revision, List<String> fortalezas, List<String> mejoras) {
     }
 
+    /** oficial: el mejor intento del estudiante (a igual nota, el primero) es el que cuenta como nota oficial. */
     public record IntentoEcos(String sesionId, int intento, String estado, LocalDateTime creada, BigDecimal puntaje,
-                              BigDecimal nota, String nivel, String desenlace, LocalDateTime fin) {
+                              BigDecimal nota, String nivel, String desenlace, LocalDateTime fin, boolean oficial) {
     }
 
     public record EstadoEstudiante(String caso, boolean disponible, int maxIntentos, int usados, int restantes,
@@ -97,6 +98,16 @@ public final class ModeloEcos {
     /** Fila de la vista del docente: un resultado de Ecos de uno de sus estudiantes. */
     public record ResultadoDocente(String sesionId, String estudiante, int intento, BigDecimal puntaje, BigDecimal nota,
                                    String nivel, String desenlace, String protagonista, BigDecimal segundos, boolean revision,
-                                   LocalDateTime fin, List<String> fortalezas, List<String> mejoras) {
+                                   LocalDateTime fin, List<String> fortalezas, List<String> mejoras, boolean oficial) {
+    }
+
+    /** Una fila del tablero en vivo del docente: quién está jugando y en qué punto va. */
+    public record EnVivo(String sesionId, String estudiante, String estado, int intento, String ultimoPunto, Integer ultimoActo,
+                         LocalDateTime canjeadaEn, LocalDateTime ultimoEventoEn, LocalDateTime venceEn, BigDecimal nota, String nivel) {
+    }
+
+    /** Un estudiante del docente con su avance en Ecos. estadoActual: SIN_JUGAR, CODIGO_GENERADO, JUGANDO o TERMINADO. */
+    public record EstudianteDocente(long id, String nombre, String correo, LocalDateTime vinculadoEn, int intentosUsados,
+                                    int intentosMaximos, int repeticiones, BigDecimal mejorNota, String nivel, String estadoActual) {
     }
 }

@@ -27,6 +27,9 @@ spring:
     properties:
       mail:
         smtp:
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
           auth: ${MAIL_SMTP_AUTH:false}
           starttls:
             enable: ${MAIL_STARTTLS:false}
@@ -37,6 +40,11 @@ server:
 app:
   # Zona horaria de las fechas de sesiones, intentos y notificaciones (Clock único de la aplicación).
   zona-horaria: ${ZONA_HORARIA:America/Bogota}
+  invitaciones:
+    # Base del enlace que llega por correo: dirección donde corre el frontend.
+    url-frontend: ${FRONTEND_URL:http://localhost:4200}
+    dias-vigencia: 7
+    edad-minima: 14
   ecos:
     # URL pública que el juego usa para hablar con SOMA (va dentro del enlace ecos://).
     api-publica: ${ECOS_API_URL:http://localhost:8080/api/ecos/v1}

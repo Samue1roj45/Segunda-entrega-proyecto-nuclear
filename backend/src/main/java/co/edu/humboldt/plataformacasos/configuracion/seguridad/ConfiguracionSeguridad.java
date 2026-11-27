@@ -38,6 +38,9 @@ public class ConfiguracionSeguridad {
                 .authorizeHttpRequests(reglas -> reglas
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/salud").permitAll()
+                        // Invitaciones: quien abre el enlace aún no tiene cuenta; el token del enlace es la credencial.
+                        .requestMatchers(HttpMethod.GET, "/api/invitaciones/publica/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/invitaciones/publica/*/aceptar").permitAll()
                         // Ecos: el juego se identifica con el código de sesión o con su propio token; lo valida el servicio.
                         .requestMatchers(HttpMethod.POST, "/api/ecos/v1/sesiones/*/canje",
                                 "/api/ecos/v1/sesiones/*/eventos", "/api/ecos/v1/sesiones/*/resultado").permitAll()

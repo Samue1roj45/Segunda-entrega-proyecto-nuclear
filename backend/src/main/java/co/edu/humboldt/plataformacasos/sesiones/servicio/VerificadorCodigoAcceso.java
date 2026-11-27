@@ -28,7 +28,13 @@ public class VerificadorCodigoAcceso implements VerificadorCodigoAutorizacion {
     @Override
     @Transactional(readOnly = true)
     public boolean esValido(Long estudianteId, String codigoAutorizacion) {
+        // 1) La contraseña propia del estudiante (la crea al aceptar la invitación de su docente).
+        if (autorizaciones.claveHashDeEstudiante(estudianteId).map(h -> codificador.matches(codigoAutorizacion, h)).orElse(false)) {
+            return true;
+        }
+        // 2) El código de autorización de una sesión (flujo anterior): se genera en mayúsculas.
+        String codigo = codigoAutorizacion.toUpperCase(java.util.Locale.ROOT);
         return autorizaciones.hashesDeEstudiante(estudianteId).stream()
-                .anyMatch(hash -> codificador.matches(codigoAutorizacion, hash));
+                .anyMatch(hash -> codificador.matches(codigo, hash));
     }
 }

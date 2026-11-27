@@ -45,11 +45,36 @@ public class EcosControlador {
         return ecos.estado(autorizacion.exigirPermiso(Permiso.PARTICIPAR_EN_CASOS).id());
     }
 
-    // ---- Docente (JWT web) ----
+    // ---- Docente (JWT web): sus estudiantes, su tablero en vivo y sus resultados ----
+
+    private Long docente() {
+        return autorizacion.exigirPermiso(Permiso.INVITAR_ESTUDIANTES).id();
+    }
+
+    @GetMapping("/mis-estudiantes")
+    public java.util.List<EstudianteDocente> misEstudiantes() {
+        return ecos.estudiantesDelDocente(docente());
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/mis-estudiantes/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retirar(@PathVariable long id) {
+        ecos.retirarEstudiante(docente(), id);
+    }
+
+    @PostMapping("/mis-estudiantes/{id}/repeticion")
+    public EstudianteDocente repeticion(@PathVariable long id) {
+        return ecos.concederRepeticion(docente(), id);
+    }
+
+    @GetMapping("/en-vivo")
+    public java.util.List<EnVivo> enVivo() {
+        return ecos.enVivo(docente());
+    }
 
     @GetMapping("/resultados")
     public java.util.List<ResultadoDocente> resultadosDelDocente() {
-        return ecos.resultadosDelDocente(autorizacion.exigirPermiso(Permiso.CONSULTAR_PARTICIPACIONES).id());
+        return ecos.resultadosDelDocente(docente());
     }
 
     // ---- Administrador (JWT web) ----

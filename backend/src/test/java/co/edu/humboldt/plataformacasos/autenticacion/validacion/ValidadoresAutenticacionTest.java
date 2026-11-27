@@ -118,6 +118,8 @@ class ValidadoresAutenticacionTest {
 
         private final ValidadorCodigoAutorizacion validador = new ValidadorCodigoAutorizacion(
                 (estudianteId, codigo) -> estudianteId == ID_ANA && codigo.equals("CODIGO_VALIDO_01"));
+        private final ValidadorCodigoAutorizacion validadorSensible = new ValidadorCodigoAutorizacion(
+                (estudianteId, codigo) -> estudianteId == ID_ANA && codigo.equals("Clave-Propia-01"));
 
         private Usuario ana() {
             Usuario ana = mock(Usuario.class);
@@ -126,9 +128,12 @@ class ValidadoresAutenticacionTest {
         }
 
         @Test
-        void aceptaElCodigoDelEstudianteSinImportarMayusculasNiEspacios() {
-            IntentoAutenticacion intento = new IntentoAutenticacion(Optional.of(ana()), "  codigo_valido_01 ");
-            assertThat(validador.validar(intento).aprobado()).isTrue();
+        void quitaLosEspaciosPeroNoCambiaLasMayusculas() {
+            // La contraseña propia distingue mayúsculas: el eslabón entrega el texto tal cual, sin espacios en los bordes.
+            // (El código de sesión, que es en mayúsculas, lo normaliza el verificador.)
+            IntentoAutenticacion intento = new IntentoAutenticacion(Optional.of(ana()), "  Clave-Propia-01 ");
+            assertThat(validadorSensible.validar(intento).aprobado()).isTrue();
+            assertThat(validadorSensible.validar(new IntentoAutenticacion(Optional.of(ana()), "clave-propia-01")).aprobado()).isFalse();
         }
 
         @Test

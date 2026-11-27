@@ -18,6 +18,7 @@ public enum Permiso {
     REGISTRAR_RETROALIMENTACION("Registrar valoración docente (RF-26)", true),
     AUTORIZAR_REPETICION("Autorizar repetición excepcional (RF-25)", true),
     ELIMINAR_CASOS("Eliminar casos propios que no tengan sesiones (permiso adicional)", true),
+    INVITAR_ESTUDIANTES("Invitar estudiantes por correo, administrarlos y ver sus resultados de Ecos de una decisión", true),
 
     // Propio del rol Administrador (no asignable a docentes)
     ADMINISTRAR_DOCENTES("Crear docentes y asignar permisos (RF-03)", false);

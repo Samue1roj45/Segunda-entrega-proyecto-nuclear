@@ -6,7 +6,6 @@ import co.edu.humboldt.plataformacasos.autenticacion.puerto.VerificadorCodigoAut
 import co.edu.humboldt.plataformacasos.compartido.validacion.ResultadoValidacion;
 import co.edu.humboldt.plataformacasos.compartido.validacion.ValidadorBase;
 
-import java.util.Locale;
 import java.util.Objects;
 
 // Patrón Chain of Responsibility: eslabón que verifica el código de acceso del estudiante a través del puerto VerificadorCodigoAutorizacion.
@@ -25,7 +24,8 @@ public class ValidadorCodigoAutorizacion extends ValidadorBase<IntentoAutenticac
     @Override
     protected ResultadoValidacion validarCondicion(IntentoAutenticacion intento) {
         Long estudianteId = intento.usuario().map(u -> u.getId()).orElse(null);
-        String codigo = intento.codigoAutorizacion().trim().toUpperCase(Locale.ROOT);
+        // Sin pasar a mayúsculas: la contraseña distingue mayúsculas. El verificador normaliza solo el código de sesión.
+        String codigo = intento.codigoAutorizacion().trim();
         return estudianteId != null && verificador.esValido(estudianteId, codigo)
                 ? ResultadoValidacion.exito()
                 : ResultadoValidacion.rechazo(MensajesAutenticacion.CREDENCIALES_INVALIDAS);

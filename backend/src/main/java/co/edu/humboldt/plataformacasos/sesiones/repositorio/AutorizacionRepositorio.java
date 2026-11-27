@@ -100,6 +100,12 @@ public class AutorizacionRepositorio {
         return jdbc.queryForList("SELECT codigo_hash FROM autorizaciones WHERE id_estudiante = ?", String.class, idEstudiante);
     }
 
+    /** Hash de la contraseña propia del estudiante (la que crea al aceptar una invitación), si la tiene. */
+    public Optional<String> claveHashDeEstudiante(Long idEstudiante) {
+        return jdbc.queryForList("SELECT clave_hash FROM usuario WHERE id = ? AND clave_hash IS NOT NULL", String.class, idEstudiante)
+                .stream().findFirst();
+    }
+
     /** RF-25: repeticiones excepcionales concedidas a la autorización (tabla autorizaciones_repeticion). */
     public int contarRepeticiones(Long idAutorizacion) {
         Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM autorizaciones_repeticion WHERE id_autorizacion = ?",

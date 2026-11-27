@@ -170,7 +170,7 @@ public class ServicioEcos {
                 new EcosException(HttpStatus.CONFLICT, "SIN_CATALOGO", "El caso Ecos de una decisión aún no está disponible."));
         String casoId = jdbc.queryForObject("SELECT caso_id FROM ecos_caso WHERE caso_version = ?", String.class, version);
         LocalDateTime ahora = LocalDateTime.now(reloj);
-        if (ocupados(estudiante, casoId, "", ahora) >= propiedades.maxIntentos()) {
+        if (ocupados(estudiante, casoId, "", ahora) >= maximo(estudiante)) {
             throw new EcosException(HttpStatus.LOCKED, "INTENTOS_AGOTADOS", "Ya usaste todos tus intentos.");
         }
         // Un solo código válido por estudiante: los anteriores sin canjear dejan de servir.
@@ -199,9 +199,10 @@ public class ServicioEcos {
     @Transactional(readOnly = true)
     public EstadoEstudiante estado(Long usuarioId) {
         String estudiante = String.valueOf(usuarioId);
+        int max = maximo(estudiante);
         Optional<String> version = versionVigente();
         if (version.isEmpty()) {
-            return new EstadoEstudiante(null, false, propiedades.maxIntentos(), 0, propiedades.maxIntentos(), List.of());
+            return new EstadoEstudiante(null, false, max, 0, max, List.of());
         }
         String casoId = jdbc.queryForObject("SELECT caso_id FROM ecos_caso WHERE caso_version = ?", String.class, version.get());
         String nombre = jdbc.queryForObject("SELECT nombre FROM ecos_caso WHERE caso_version = ?", String.class, version.get());
@@ -212,35 +213,135 @@ public class ServicioEcos {
                  WHERE s.estudiante_id = ? AND s.estado <> 'VENCIDA' ORDER BY s.creada_en DESC LIMIT 50
                 """, (rs, n) -> new IntentoEcos(rs.getString(1), rs.getInt(2), rs.getString(3), rs.getTimestamp(4).toLocalDateTime(),
                 rs.getBigDecimal(5), rs.getBigDecimal(6), rs.getString(7), rs.getString(8),
-                rs.getTimestamp(9) == null ? null : rs.getTimestamp(9).toLocalDateTime()), estudiante);
-        int max = propiedades.maxIntentos();
-        return new EstadoEstudiante(nombre, usados < max, max, usados, Math.max(0, max - usados), intentos);
+                rs.getTimestamp(9) == null ? null : rs.getTimestamp(9).toLocalDateTime(), false), estudiante);
+        // Nota oficial = el mejor intento terminado; si empatan, el primero.
+        IntentoEcos mejor = intentos.stream().filter(i -> i.nota() != null)
+                .max(java.util.Comparator.comparing(IntentoEcos::nota).thenComparing(java.util.Comparator.comparingInt(IntentoEcos::intento).reversed()))
+                .orElse(null);
+        List<IntentoEcos> marcados = intentos.stream().map(i -> new IntentoEcos(i.sesionId(), i.intento(), i.estado(), i.creada(),
+                i.puntaje(), i.nota(), i.nivel(), i.desenlace(), i.fin(), i == mejor)).toList();
+        return new EstadoEstudiante(nombre, usados < max, max, usados, Math.max(0, max - usados), marcados);
     }
 
-    /** Resultados de los estudiantes convocados por este docente en alguna de sus sesiones. */
+    /** Intentos permitidos al estudiante: los base de la configuración más una repetición por cada una que concedió un docente. */
+    private int maximo(String estudiante) {
+        Integer extra = jdbc.queryForObject("SELECT COUNT(*) FROM ecos_repeticion WHERE estudiante_id = ?", Integer.class, estudiante);
+        return propiedades.maxIntentos() + (extra == null ? 0 : extra);
+    }
+
+    // ===================================================================== docente
+
+    /** Resultados de Ecos de los estudiantes de este docente (los que lo aceptaron como docente). */
     @Transactional(readOnly = true)
     public List<ResultadoDocente> resultadosDelDocente(Long docenteId) {
         Map<String, List<String>> fortalezas = new LinkedHashMap<>();
         Map<String, List<String>> mejoras = new LinkedHashMap<>();
         jdbc.query("""
-                SELECT rc.envio_id, rc.criterio_id, rc.tipo FROM ecos_resultado_criterio rc
+                SELECT rc.envio_id, rc.criterio_id, rc.tipo
+                  FROM ecos_resultado_criterio rc
+                  JOIN ecos_resultado r ON r.envio_id = rc.envio_id
+                  JOIN ecos_sesion s ON s.sesion_id = r.sesion_id
+                  JOIN docente_estudiante de ON CAST(de.estudiante_id AS CHAR) = s.estudiante_id AND de.docente_id = ?
                  WHERE rc.tipo IN ('FORTALEZA','MEJORA') ORDER BY rc.criterio_id""", rs -> {
             (rs.getString(3).equals("FORTALEZA") ? fortalezas : mejoras)
                     .computeIfAbsent(rs.getString(1), k -> new ArrayList<>()).add(rs.getString(2));
-        });
-        return jdbc.query("""
+        }, docenteId);
+        record Fila(ResultadoDocente r, String estudianteId) {
+        }
+        List<Fila> filas = jdbc.query("""
                 SELECT r.envio_id, s.sesion_id, u.nombre_completo, s.intento, r.puntaje, r.nota, r.nivel, r.desenlace,
-                       r.protagonista, r.segundos, r.difiere, r.fin
+                       r.protagonista, r.segundos, r.difiere, r.fin, s.estudiante_id
                   FROM ecos_resultado r
                   JOIN ecos_sesion s ON s.sesion_id = r.sesion_id
                   JOIN usuario u ON CAST(u.id AS CHAR) = s.estudiante_id
-                 WHERE EXISTS (SELECT 1 FROM autorizaciones a JOIN practicas p ON p.id_practica = a.id_practica
-                                WHERE a.id_estudiante = u.id AND a.estado = 'ACTIVA' AND p.id_docente = ?)
+                  JOIN docente_estudiante de ON de.estudiante_id = u.id AND de.docente_id = ?
                  ORDER BY r.fin DESC LIMIT 500""",
-                (rs, n) -> new ResultadoDocente(rs.getString(2), rs.getString(3), rs.getInt(4), rs.getBigDecimal(5), rs.getBigDecimal(6),
+                (rs, n) -> new Fila(new ResultadoDocente(rs.getString(2), rs.getString(3), rs.getInt(4), rs.getBigDecimal(5), rs.getBigDecimal(6),
                         rs.getString(7), rs.getString(8), rs.getString(9), rs.getBigDecimal(10), rs.getBoolean(11),
                         rs.getTimestamp(12).toLocalDateTime(), fortalezas.getOrDefault(rs.getString(1), List.of()),
-                        mejoras.getOrDefault(rs.getString(1), List.of())), docenteId);
+                        mejoras.getOrDefault(rs.getString(1), List.of()), false), rs.getString(13)), docenteId);
+        // Oficial por estudiante: la mejor nota; si empatan, el primer intento.
+        Map<String, Fila> mejorDe = new LinkedHashMap<>();
+        for (Fila f : filas) {
+            Fila actual = mejorDe.get(f.estudianteId());
+            if (actual == null || f.r().nota().compareTo(actual.r().nota()) > 0
+                    || (f.r().nota().compareTo(actual.r().nota()) == 0 && f.r().intento() < actual.r().intento())) {
+                mejorDe.put(f.estudianteId(), f);
+            }
+        }
+        return filas.stream().map(f -> {
+            ResultadoDocente r = f.r();
+            return new ResultadoDocente(r.sesionId(), r.estudiante(), r.intento(), r.puntaje(), r.nota(), r.nivel(), r.desenlace(), r.protagonista(),
+                    r.segundos(), r.revision(), r.fin(), r.fortalezas(), r.mejoras(), mejorDe.get(f.estudianteId()) == f);
+        }).toList();
+    }
+
+    /** Quién está jugando ahora: códigos sin abrir, partidas en curso y las terminadas hace menos de 15 minutos. */
+    @Transactional(readOnly = true)
+    public List<EnVivo> enVivo(Long docenteId) {
+        LocalDateTime ahora = LocalDateTime.now(reloj);
+        return jdbc.query("""
+                SELECT s.sesion_id, u.nombre_completo, s.estado, s.intento, s.ultimo_punto, s.ultimo_acto, s.canjeada_en,
+                       s.ultimo_evento_en, s.vence_en, r.nota, r.nivel
+                  FROM ecos_sesion s
+                  JOIN usuario u ON CAST(u.id AS CHAR) = s.estudiante_id
+                  JOIN docente_estudiante de ON de.estudiante_id = u.id AND de.docente_id = ?
+                  LEFT JOIN ecos_resultado r ON r.sesion_id = s.sesion_id
+                 WHERE (s.estado = 'CREADA' AND s.vence_en > ?)
+                    OR (s.estado = 'CANJEADA' AND s.canjeada_en > ?)
+                    OR (s.estado = 'CERRADA' AND r.recibido_en > ?)
+                 ORDER BY COALESCE(s.ultimo_evento_en, s.canjeada_en, s.creada_en) DESC LIMIT 100
+                """, (rs, n) -> new EnVivo(rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getString(5),
+                rs.getObject(6) == null ? null : rs.getInt(6), fecha(rs.getTimestamp(7)), fecha(rs.getTimestamp(8)),
+                fecha(rs.getTimestamp(9)), rs.getBigDecimal(10), rs.getString(11)),
+                docenteId, Timestamp.valueOf(ahora), Timestamp.valueOf(ahora.minusHours(propiedades.horasToken())),
+                Timestamp.valueOf(ahora.minusMinutes(15)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EstudianteDocente> estudiantesDelDocente(Long docenteId) {
+        LocalDateTime ahora = LocalDateTime.now(reloj);
+        Timestamp vigenteDesde = Timestamp.valueOf(ahora.minusHours(propiedades.horasToken()));
+        return jdbc.query("""
+                SELECT u.id, u.nombre_completo, u.correo_institucional, de.vinculado_en,
+                  (SELECT COUNT(*) FROM ecos_repeticion er WHERE er.estudiante_id = CAST(u.id AS CHAR)),
+                  (SELECT COUNT(*) FROM ecos_sesion s WHERE s.estudiante_id = CAST(u.id AS CHAR)
+                      AND (s.estado = 'CERRADA' OR (s.estado = 'CANJEADA' AND s.canjeada_en > ?))),
+                  (SELECT MAX(r.nota) FROM ecos_resultado r JOIN ecos_sesion s ON s.sesion_id = r.sesion_id WHERE s.estudiante_id = CAST(u.id AS CHAR)),
+                  (SELECT COUNT(*) FROM ecos_sesion s WHERE s.estudiante_id = CAST(u.id AS CHAR) AND s.estado = 'CANJEADA' AND s.canjeada_en > ?),
+                  (SELECT COUNT(*) FROM ecos_sesion s WHERE s.estudiante_id = CAST(u.id AS CHAR) AND s.estado = 'CREADA' AND s.vence_en > ?)
+                  FROM docente_estudiante de JOIN usuario u ON u.id = de.estudiante_id
+                 WHERE de.docente_id = ? ORDER BY u.nombre_completo
+                """, (rs, n) -> {
+            BigDecimal mejor = rs.getBigDecimal(7);
+            int usados = rs.getInt(6);
+            String estado = rs.getInt(8) > 0 ? "JUGANDO" : rs.getInt(9) > 0 ? "CODIGO_GENERADO" : mejor != null ? "TERMINADO" : "SIN_JUGAR";
+            int repeticiones = rs.getInt(5);
+            return new EstudianteDocente(rs.getLong(1), rs.getString(2), rs.getString(3), fecha(rs.getTimestamp(4)), usados,
+                    propiedades.maxIntentos() + repeticiones, repeticiones, mejor, mejor == null ? null : CalculoEcos.nivel(mejor), estado);
+        }, vigenteDesde, vigenteDesde, Timestamp.valueOf(ahora), docenteId);
+    }
+
+    /** Retirar saca al estudiante de la lista de este docente; su cuenta y sus resultados no se tocan. */
+    @Transactional
+    public void retirarEstudiante(Long docenteId, long estudianteId) {
+        if (jdbc.update("DELETE FROM docente_estudiante WHERE docente_id = ? AND estudiante_id = ?", docenteId, estudianteId) == 0) {
+            throw new EcosException(HttpStatus.NOT_FOUND, "ESTUDIANTE_NO_ENCONTRADO", "Ese estudiante no está en tu lista.");
+        }
+    }
+
+    /** Un intento más para un estudiante del docente (por ejemplo, si el juego se cerró antes de terminar). */
+    @Transactional
+    public EstudianteDocente concederRepeticion(Long docenteId, long estudianteId) {
+        if (jdbc.queryForObject("SELECT COUNT(*) FROM docente_estudiante WHERE docente_id = ? AND estudiante_id = ?", Integer.class, docenteId, estudianteId) == 0) {
+            throw new EcosException(HttpStatus.NOT_FOUND, "ESTUDIANTE_NO_ENCONTRADO", "Ese estudiante no está en tu lista.");
+        }
+        jdbc.update("INSERT INTO ecos_repeticion (estudiante_id, docente_id, concedida_en) VALUES (?,?,?)", String.valueOf(estudianteId), docenteId, ahora());
+        return estudiantesDelDocente(docenteId).stream().filter(e -> e.id() == estudianteId).findFirst().orElseThrow();
+    }
+
+    private static LocalDateTime fecha(Timestamp t) {
+        return t == null ? null : t.toLocalDateTime();
     }
 
     /** Intentos que cuentan: los cerrados y los canjeados que siguen vigentes (el token aún no venció). */
@@ -290,7 +391,7 @@ public class ServicioEcos {
             throw new EcosException(HttpStatus.GONE, "SESION_VENCIDA", "El código de sesión venció. Genera uno nuevo desde SOMA.");
         }
         String casoId = jdbc.queryForObject("SELECT caso_id FROM ecos_caso WHERE caso_version = ?", String.class, s.casoVersion());
-        if (ocupados(s.estudianteId(), casoId, s.id(), ahora) >= propiedades.maxIntentos()) {
+        if (ocupados(s.estudianteId(), casoId, s.id(), ahora) >= maximo(s.estudianteId())) {
             throw new EcosException(HttpStatus.LOCKED, "INTENTOS_AGOTADOS", "Ya usaste todos tus intentos.");
         }
         int tomado = jdbc.update("UPDATE ecos_sesion SET estado = 'CANJEADA', canjeada_en = ? WHERE sesion_id = ? AND estado = 'CREADA'",
@@ -312,7 +413,7 @@ public class ServicioEcos {
         if (e == null || vacio(e.punto()) || e.punto().length() > 16 || (e.acto() != null && (e.acto() < 0 || e.acto() > 9))) {
             throw new EcosException(HttpStatus.UNPROCESSABLE_ENTITY, "VALIDACION", "Evento inválido.");
         }
-        jdbc.update("UPDATE ecos_sesion SET ultimo_punto = ?, ultimo_acto = ? WHERE sesion_id = ?", e.punto(), e.acto(), sesionId);
+        jdbc.update("UPDATE ecos_sesion SET ultimo_punto = ?, ultimo_acto = ?, ultimo_evento_en = ? WHERE sesion_id = ?", e.punto(), e.acto(), ahora(), sesionId);
     }
 
     /** @return true si se creó (201); false si ya estaba recibido (200, mismo envioId). */

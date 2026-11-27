@@ -301,23 +301,65 @@ class EcosIntegracionTest {
 
     @Test
     @Order(6)
-    @DisplayName("El docente ve los resultados de sus estudiantes; quien no tiene el permiso no")
-    void resultadosDelDocente() throws Exception {
-        Resp sinPermiso = pedir("/api/ecos/v1/resultados", tokenWeb("laura.mejia@institucion.edu.co", "Clave-Docente-02", false));
-        assertThat(sinPermiso.estado()).isEqualTo(403);
+    @DisplayName("El docente ve a sus estudiantes, su tablero en vivo, la nota oficial y puede conceder una repetición")
+    void panelDelDocente() throws Exception {
+        assertThat(pedir("/api/ecos/v1/resultados", tokenWeb("laura.mejia@institucion.edu.co", "Clave-Docente-02", false)).estado()).isEqualTo(403);
         assertThat(pedir("/api/ecos/v1/resultados", ana()).estado()).isEqualTo(403);
-        jdbc.update("INSERT INTO usuario_permiso (usuario_id, permiso) SELECT id, 'CONSULTAR_PARTICIPACIONES' FROM usuario WHERE correo_institucional = 'carlos.gomez@institucion.edu.co' AND NOT EXISTS (SELECT 1 FROM usuario_permiso up WHERE up.usuario_id = usuario.id AND up.permiso = 'CONSULTAR_PARTICIPACIONES')");
-        Resp carlos = pedir("/api/ecos/v1/resultados", tokenWeb("carlos.gomez@institucion.edu.co", "Clave-Docente-01", false));
-        assertThat(carlos.estado()).isEqualTo(200);
-        assertThat(carlos.cuerpo().isArray()).isTrue();
-        // Si Ana está convocada por Carlos en la semilla, su resultado de la prueba de flujo aparece con la nota de SOMA.
-        long convocada = jdbc.queryForObject("""
-                SELECT COUNT(*) FROM autorizaciones a JOIN practicas p ON p.id_practica = a.id_practica
-                  JOIN usuario d ON d.id = p.id_docente JOIN usuario u ON u.id = a.id_estudiante
-                 WHERE u.correo_institucional = ? AND d.correo_institucional = 'carlos.gomez@institucion.edu.co' AND a.estado = 'ACTIVA'""",
-                Long.class, ANA);
-        if (convocada > 0) {
-            assertThat(carlos.cuerpo().toString()).contains("\"nota\":3.0").contains("\"nivel\":\"Básico\"");
+        jdbc.update("INSERT INTO usuario_permiso (usuario_id, permiso) SELECT id, 'INVITAR_ESTUDIANTES' FROM usuario WHERE correo_institucional = 'carlos.gomez@institucion.edu.co' AND NOT EXISTS (SELECT 1 FROM usuario_permiso up WHERE up.usuario_id = usuario.id AND up.permiso = 'INVITAR_ESTUDIANTES')");
+        String carlos = tokenWeb("carlos.gomez@institucion.edu.co", "Clave-Docente-01", false);
+        // Sin vínculo, Carlos no ve nada de Ana.
+        jdbc.update("DELETE FROM docente_estudiante");
+        assertThat(pedir("/api/ecos/v1/resultados", carlos).cuerpo().size()).isZero();
+        jdbc.update("INSERT INTO docente_estudiante (docente_id, estudiante_id, vinculado_en) SELECT d.id, u.id, CURRENT_TIMESTAMP FROM usuario d, usuario u WHERE d.correo_institucional = 'carlos.gomez@institucion.edu.co' AND u.correo_institucional = ?", ANA);
+
+        JsonNode resultados = pedir("/api/ecos/v1/resultados", carlos).cuerpo();
+        assertThat(resultados.size()).isEqualTo(1);
+        assertThat(resultados.get(0).get("nota").asDouble()).isEqualTo(3.0);
+        assertThat(resultados.get(0).get("nivel").asString()).isEqualTo("Básico");
+        assertThat(resultados.get(0).get("oficial").asBoolean()).isTrue();
+
+        JsonNode lista = pedir("/api/ecos/v1/mis-estudiantes", carlos).cuerpo();
+        assertThat(lista.size()).isEqualTo(1);
+        assertThat(lista.get(0).get("estadoActual").asString()).isEqualTo("TERMINADO");
+        assertThat(lista.get(0).get("intentosMaximos").asInt()).isEqualTo(1);
+        long idAna = lista.get(0).get("id").asLong();
+
+        // Tablero en vivo: lo terminado hace menos de 15 minutos aparece con su nota.
+        JsonNode vivo = pedir("/api/ecos/v1/en-vivo", carlos).cuerpo();
+        assertThat(vivo.toString()).contains("\"estado\":\"CERRADA\"").contains("\"nota\":3.0");
+
+        // Repetición: +1 intento y Ana puede volver a jugar; el nuevo intento queda en curso en el tablero.
+        assertThat(enviar("/api/ecos/v1/sesiones", ana(), null).codigo()).isEqualTo("INTENTOS_AGOTADOS");
+        Resp conc = enviar("/api/ecos/v1/mis-estudiantes/" + idAna + "/repeticion", carlos, null);
+        assertThat(conc.estado()).isEqualTo(200);
+        assertThat(conc.cuerpo().get("intentosMaximos").asInt()).isEqualTo(2);
+        assertThat(conc.cuerpo().get("repeticiones").asInt()).isEqualTo(1);
+        Resp segundo = iniciar(ana())[1];
+        assertThat(pedir("/api/ecos/v1/en-vivo", carlos).cuerpo().toString()).contains("\"estado\":\"CANJEADA\"");
+        String ruta = "/api/ecos/v1/sesiones/" + segundo.cuerpo().get("sesionId").asString();
+        enviar(ruta + "/eventos", tokenJuego(segundo), Map.of("envioId", UUID.randomUUID().toString(), "punto", "Hospital", "acto", 5));
+        assertThat(pedir("/api/ecos/v1/en-vivo", carlos).cuerpo().toString()).contains("\"ultimoPunto\":\"Hospital\"").contains("\"ultimoActo\":5");
+        assertThat(pedir("/api/ecos/v1/mis-estudiantes", carlos).cuerpo().get(0).get("estadoActual").asString()).isEqualTo("JUGANDO");
+
+        // Nota oficial = el mejor intento: este segundo intento es perfecto (5,0) y pasa a ser el oficial.
+        Map<String, String> perfectas = new LinkedHashMap<>();
+        perfectas.put("P1", "A"); perfectas.put("P2", "A"); perfectas.put("P3", "A"); perfectas.put("P4", "A");
+        assertThat(enviar(ruta + "/resultado", tokenJuego(segundo), envio(segundo, perfectas, 5.0, 1.5)).estado()).isEqualTo(201);
+        JsonNode despues = pedir("/api/ecos/v1/resultados", carlos).cuerpo();
+        assertThat(despues.size()).isEqualTo(2);
+        for (JsonNode r : despues) {
+            assertThat(r.get("oficial").asBoolean()).isEqualTo(r.get("nota").asDouble() == 5.0);
         }
+        JsonNode intentos = pedir("/api/ecos/v1/mis-intentos", ana()).cuerpo().get("intentos");
+        for (JsonNode i : intentos) {
+            assertThat(i.get("oficial").asBoolean()).isEqualTo(i.get("nota").asDouble() == 5.0);
+        }
+
+        // Retirar solo saca a Ana de la lista del docente: su cuenta y sus resultados siguen ahí.
+        assertThat(enviar("/api/ecos/v1/mis-estudiantes/" + idAna, carlos, null).estado()).isNotEqualTo(204);
+        assertThat(mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/ecos/v1/mis-estudiantes/" + idAna)
+                .header("Authorization", "Bearer " + carlos)).andReturn().getResponse().getStatus()).isEqualTo(204);
+        assertThat(pedir("/api/ecos/v1/mis-estudiantes", carlos).cuerpo().size()).isZero();
+        assertThat(pedir("/api/ecos/v1/mis-intentos", ana()).estado()).isEqualTo(200);
     }
 }
