@@ -29,3 +29,5 @@ app:
     # Las tareas programadas no corren durante las pruebas (se invocan a mano cuando se prueban).
     intervalo-cierre-ms: 3600000
     intervalo-expiracion-ms: 3600000
+  ecos:
+    catalogo-inicial: false

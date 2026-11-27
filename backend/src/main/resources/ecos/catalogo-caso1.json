@@ -1,0 +1,518 @@
+{
+ "casoVersion": "6db325f15d1a743338bcfd1fb9d668d9",
+ "casoId": "Caso1",
+ "nombre": "Ecos de una decisión",
+ "creditoParcial": true,
+ "criterios": [
+  {
+   "id": "C1",
+   "nombre": "Priorización de la atención inmediata"
+  },
+  {
+   "id": "C2",
+   "nombre": "Contención emocional y escucha activa"
+  },
+  {
+   "id": "C3",
+   "nombre": "Respeto por la dignidad y los derechos"
+  },
+  {
+   "id": "C4",
+   "nombre": "Identificación del riesgo"
+  },
+  {
+   "id": "C5",
+   "nombre": "Rutas de protección y derivación"
+  },
+  {
+   "id": "C6",
+   "nombre": "Marco normativo y protocolos"
+  },
+  {
+   "id": "C7",
+   "nombre": "Coordinación interdisciplinaria"
+  },
+  {
+   "id": "C8",
+   "nombre": "Justificación ética"
+  }
+ ],
+ "preguntas": [
+  {
+   "id": "N2",
+   "escenario": "Actos1-2",
+   "nucleo": false,
+   "puntos": 2,
+   "enunciado": "Doña Gladys (la tienda) dice: «La Daniela es una santa. El marido es celoso, pero cosas de pareja. Él le da todo.» ¿Cómo respondes?",
+   "criterios": [
+    "C2",
+    "C4"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Soltar una risa y seguirle la corriente.",
+     "retroalimentacion": "Validar la normalización de la violencia refuerza la idea de que es un asunto privado."
+    },
+    {
+     "id": "B",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "¿Qué ha visto usted? A veces lo que parece de pareja no es tan privado.",
+     "retroalimentacion": "Obtiene información de contexto sin confrontar y siembra una idea protectora en la comunidad."
+    },
+    {
+     "id": "C",
+     "grado": "Partial",
+     "credito": 0.5,
+     "texto": "Eso que usted dice es violencia, señora, y no se puede normalizar.",
+     "retroalimentacion": "El mensaje es correcto, pero la forma genera resistencia y cierra el diálogo con una fuente clave del barrio."
+    }
+   ]
+  },
+  {
+   "id": "N1",
+   "escenario": "Actos1-2",
+   "nucleo": false,
+   "puntos": 4,
+   "enunciado": "En la fila de vacunación a Daniela se le sube la manga: hay un moretón en el antebrazo. Dice: «Me pegué con la puerta del lavadero.» ¿Cómo la abordas?",
+   "criterios": [
+    "C2",
+    "C3"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "¿Su pareja le pega? Puede decírmelo.",
+     "retroalimentacion": "Exponerla en público y delante de su hija puede ponerla en riesgo y genera vergüenza; suele producir negación y cierra la puerta a pedir ayuda."
+    },
+    {
+     "id": "B",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Mientras vacunan a Luna, ¿me acompaña un momento a la carpa? Le quiero dejar una información.",
+     "retroalimentacion": "Respeta su autonomía y su seguridad, abre un canal de confianza y deja información útil para cuando decida buscar ayuda."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Ah, bueno. Siga a la mesa de vacunación.",
+     "retroalimentacion": "Ignorar señales de riesgo es una forma de naturalización de la violencia; se pierde una oportunidad de prevención."
+    }
+   ]
+  },
+  {
+   "id": "E1_Q1",
+   "escenario": "Acto3",
+   "nucleo": true,
+   "puntos": 10,
+   "enunciado": "Rosalba pregunta: «¿Dónde está mi hija? ¿Dónde está la niña? ¡Nadie nos dice nada!» ¿En qué se debe centrar la intervención inmediata?",
+   "criterios": [
+    "C1",
+    "C2"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Notificar a la madre y la familia sobre la muerte de la niña de inmediato.",
+     "retroalimentacion": "Comunicar una muerte en pleno estado de alteración, sin preparar el entorno ni estabilizar la crisis, aumenta el riesgo de desorganización emocional y omite los primeros pasos del protocolo EPICEE. La noticia debe darse, pero no como primera acción."
+    },
+    {
+     "id": "B",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Contención emocional a la familia, acompañamiento en el duelo inicial y estabilización de la crisis (Primeros Auxilios Psicológicos, PAP).",
+     "retroalimentacion": "Los PAP buscan seguridad, calma y conexión en la fase aguda. Mientras la víctima está en manejo médico, la familia es la población que el psicólogo puede y debe atender."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Interrogar a la víctima herida para obtener detalles del agresor antes de que entre a cirugía.",
+     "retroalimentacion": "La prioridad es preservar la vida (shock hipovolémico). Interrogar a la víctima no es función del psicólogo en la urgencia, retrasa la atención médica y la revictimiza."
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "escenario": "Acto3",
+   "nucleo": false,
+   "puntos": 3,
+   "enunciado": "Kevin quiere salir a buscar al agresor. ¿Cómo intervienes con él?",
+   "criterios": [
+    "C2"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Acercarte con calma: «Tienes toda la razón en sentir rabia. Si sales ahora, tu mamá se queda sola y tú te pones en riesgo. Ella te necesita aquí.»",
+     "retroalimentacion": "Validar la emoción y ofrecer una acción concreta reduce la activación, como recomiendan los PAP."
+    },
+    {
+     "id": "B",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Pedirle al guarda de seguridad que lo saque del hospital.",
+     "retroalimentacion": "Puede ser necesario si hay riesgo físico inminente, pero como primera respuesta escala el conflicto y deja a la familia sin apoyo."
+    },
+    {
+     "id": "C",
+     "grado": "Partial",
+     "credito": 0.5,
+     "texto": "«Cálmese, así no le ayuda a nadie.»",
+     "retroalimentacion": "La intención es buena, pero invalidar la emoción suele aumentar la agitación."
+    }
+   ]
+  },
+  {
+   "id": "N4",
+   "escenario": "Acto3",
+   "nucleo": false,
+   "puntos": 2,
+   "enunciado": "Yuliana, la hermana de 15 años, permanece en silencio. ¿Qué haces con ella?",
+   "criterios": [
+    "C3"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Acercarte, ofrecerle agua y un lugar más tranquilo, y asegurarte de que un adulto de confianza esté con ella.",
+     "retroalimentacion": "Reconoce a la adolescente como persona vulnerable dentro de la familia y la protege del caos de la sala."
+    },
+    {
+     "id": "B",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Concentrarte en los adultos. Ella parece tranquila.",
+     "retroalimentacion": "El silencio de una adolescente no significa que esté bien; puede ser una reacción de shock."
+    }
+   ]
+  },
+  {
+   "id": "E1_Q2",
+   "escenario": "Acto3",
+   "nucleo": true,
+   "puntos": 10,
+   "enunciado": "La Dra. Quintero pregunta, antes de entrar y para el registro: ¿bajo qué marco normativo y técnico estamos actuando?",
+   "criterios": [
+    "C6"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Partial",
+     "credito": 0.4,
+     "texto": "Resolución 459 de 2012 (Protocolo de atención integral a violencias sexuales y basadas en género).",
+     "retroalimentacion": "Incompleta: omite la Ley 1257 de 2008, marco específico de las violencias contra las mujeres y de sus medidas de protección."
+    },
+    {
+     "id": "B",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Resolución 459 de 2012 y Ley 1257 de 2008.",
+     "retroalimentacion": "Combina el protocolo de atención integral en salud con la ley que reconoce los derechos de las mujeres víctimas y regula las medidas de protección."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Resolución 459 de 2012 y Ley 1448 de 2011.",
+     "retroalimentacion": "La Ley 1448 es la Ley de Víctimas del conflicto armado; la agresión ocurrió en la pareja y la familia."
+    }
+   ]
+  },
+  {
+   "id": "N5",
+   "escenario": "Acto3",
+   "nucleo": false,
+   "puntos": 6,
+   "enunciado": "Dar la noticia a la familia con el protocolo EPICEE (entorno, percepción, invitación, conocimiento, empatía y estrategia). ¿Cuántas de las seis decisiones adecuadas tomaste? Cada decisión adecuada suma 1: 6 aciertos = 100 %, 4–5 = 66 %, 2–3 = 33 %, 0–1 = 0 %.",
+   "criterios": [
+    "C2",
+    "C6"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "6 aciertos: sala privada y sentarte a su altura; preguntar qué les han dicho; pedir permiso para dar la información; decirlo con claridad y sin eufemismos; acompañar en silencio con empatía; explicar qué pasa ahora y a quién llamar.",
+     "retroalimentacion": "Aplicó completo el protocolo EPICEE (SPIKES)."
+    },
+    {
+     "id": "B",
+     "grado": "Partial",
+     "credito": 0.66,
+     "texto": "4 o 5 aciertos en las seis decisiones del protocolo.",
+     "retroalimentacion": "Aplicó gran parte del protocolo, pero omitió algún paso: entorno, percepción, invitación, conocimiento, empatía o estrategia."
+    },
+    {
+     "id": "C",
+     "grado": "Partial",
+     "credito": 0.33,
+     "texto": "2 o 3 aciertos en las seis decisiones del protocolo.",
+     "retroalimentacion": "Aplicó el protocolo de forma parcial; revisa cada paso: entorno, percepción, invitación, conocimiento, empatía y estrategia."
+    },
+    {
+     "id": "D",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "0 o 1 aciertos en las seis decisiones del protocolo.",
+     "retroalimentacion": "El protocolo EPICEE no se aplicó: dar la noticia en el pasillo, con eufemismos o sin acompañamiento aumenta el daño emocional."
+    }
+   ]
+  },
+  {
+   "id": "N6",
+   "escenario": "Acto3",
+   "nucleo": false,
+   "puntos": 2,
+   "enunciado": "En la habitación 214, Daniela despierta y pregunta: «¿Dónde está Luna?» ¿Cómo le respondes?",
+   "criterios": [
+    "C3",
+    "C8"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Acompañarla sin mentirle y acordar con el equipo cuándo darle la noticia, cuando esté estable.",
+     "retroalimentacion": "Respeta su derecho a la verdad sin comprometer su estabilidad clínica, y coordina con el equipo."
+    },
+    {
+     "id": "B",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "«Tranquila, Luna está bien.»",
+     "retroalimentacion": "Mentir rompe la confianza y genera un daño mayor cuando conozca la verdad."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "«Daniela, ¿qué pasó exactamente esta noche? ¿Con qué la atacó?»",
+     "retroalimentacion": "Revictimiza y desconoce su estado clínico."
+    }
+   ]
+  },
+  {
+   "id": "E1_Q3",
+   "escenario": "Acto3",
+   "nucleo": true,
+   "puntos": 15,
+   "enunciado": "Plan de intervención antes de firmar el escenario 1. Para actuar técnica y éticamente, ¿qué se debe hacer y qué se debe evitar?",
+   "criterios": [
+    "C2",
+    "C6",
+    "C7",
+    "C8"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Escucha activa sin juicios, intervenir la disonancia cognitiva, preguntar sobre los antecedentes de la relación, activar ruta por psicología clínica y psiquiatría.",
+     "retroalimentacion": "Se centra solo en la víctima y omite la familia y la comunicación protocolizada de la noticia; la disonancia cognitiva no es pertinente en la fase aguda."
+    },
+    {
+     "id": "B",
+     "grado": "Partial",
+     "credito": 0.4,
+     "texto": "PAP para la familia, escucha activa y sin juicios a la víctima (cuando esté consciente), protocolo EPICEE (SPIKES) para dar la noticia del fallecimiento de la menor.",
+     "retroalimentacion": "Adecuada para lo inmediato, pero omite la evaluación psicosocial de la familia frente al duelo y el manejo interdisciplinario."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "PAP para la familia, escucha a la víctima, EPICEE, preguntar antecedentes de la relación para determinar el ciclo de la violencia y manejo interdisciplinar.",
+     "retroalimentacion": "Preguntar antecedentes a una víctima recién operada no respeta su estado ni el momento; corresponde a la Comisaría. No evalúa a la familia."
+    },
+    {
+     "id": "D",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "PAP para la familia, escucha a la víctima (cuando esté consciente), EPICEE, evaluación psicosocial de la familia (factores protectores y de riesgo frente al duelo) y manejo interdisciplinar (psiquiatría y psicoterapia).",
+     "retroalimentacion": "La única que integra contención, noticia protocolizada, evaluación del sistema familiar y coordinación interdisciplinaria."
+    }
+   ]
+  },
+  {
+   "id": "E2_Q1",
+   "escenario": "Actos4-5",
+   "nucleo": true,
+   "puntos": 15,
+   "enunciado": "En la Comisaría de Familia, ¿cuál es la prioridad en la asesoría psicosocial a Daniela?",
+   "criterios": [
+    "C3",
+    "C4",
+    "C5"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Instar a la mujer para que escuche al agresor en pro de la unión familiar (mediación) y el perdón.",
+     "retroalimentacion": "En violencia contra la mujer no procede la mediación con el agresor: aumenta el riesgo para su vida y la revictimiza. Daniela responde: «¡Él mató a mi hija!»"
+    },
+    {
+     "id": "B",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Valoración del riesgo de feminicidio, activación de medidas de protección y asesoría sobre sus derechos económicos y de justicia.",
+     "retroalimentacion": "Tras una tentativa de feminicidio, la prioridad es la seguridad de la víctima y el restablecimiento de sus derechos (Ley 1257 de 2008 y Ley 2126 de 2021)."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Realizar una psicoterapia para encontrar los patrones de infancia que desencadenan su elección de pareja.",
+     "retroalimentacion": "Desplaza la responsabilidad hacia la víctima; la psicoterapia se deriva a salud mental. Daniela: «¿Entonces es culpa mía?»"
+    }
+   ]
+  },
+  {
+   "id": "N7",
+   "escenario": "Actos4-5",
+   "nucleo": false,
+   "puntos": 4,
+   "enunciado": "Factores de riesgo y protectores: Daniela cuenta siete hechos y marcas cada uno como factor de riesgo, protector o no relevante. Nivel de acierto: Alto (6 o más aciertos y máximo 1 error) = 100 %; Medio (4 o más aciertos) = 50 %; Bajo = 0 %.",
+   "criterios": [
+    "C4"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Alto: 6 o más aciertos y como máximo 1 error.",
+     "retroalimentacion": "Identificó correctamente los factores de riesgo (control del celular y aislamiento, amenaza con navaja, agresor cerca, mensaje amenazante) y los protectores (apoyo de su madre y hermana, información de la línea)."
+    },
+    {
+     "id": "B",
+     "grado": "Partial",
+     "credito": 0.5,
+     "texto": "Medio: 4 o más aciertos.",
+     "retroalimentacion": "Identificó parte de los factores; revisa cuáles aumentan el riesgo de feminicidio y cuáles protegen a Daniela."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Bajo: menos de 4 aciertos.",
+     "retroalimentacion": "No se identificó con claridad el riesgo; la valoración del riesgo de feminicidio es la prioridad en la Comisaría."
+    }
+   ]
+  },
+  {
+   "id": "N8",
+   "escenario": "Actos4-5",
+   "nucleo": false,
+   "puntos": 2,
+   "enunciado": "Rosalba quiere hablar con la familia del agresor. ¿Qué recomiendas sobre un acercamiento con el agresor o su familia?",
+   "criterios": [
+    "C3",
+    "C5"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Explicarle con respeto que no se recomienda ningún acercamiento ni conciliación: la prioridad es la protección de Daniela.",
+     "retroalimentacion": "En violencia contra la mujer, la conciliación con el agresor no procede y aumenta el riesgo."
+    },
+    {
+     "id": "B",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "«Eso ya es decisión de ustedes, es un asunto familiar.»",
+     "retroalimentacion": "Delegar una decisión de seguridad en la familia desconoce el deber de protección. Rosalba llamará a la madre de él, lo que impide el mejor final."
+    }
+   ]
+  },
+  {
+   "id": "E2_Q2",
+   "escenario": "Actos4-5",
+   "nucleo": true,
+   "puntos": 10,
+   "enunciado": "Ante la comisaria Vargas, ¿qué marco normativo y técnico se debe seguir?",
+   "criterios": [
+    "C6"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Ley 2126 de 2021, Ley 1098 de 2006 y Ley 1257 de 2008.",
+     "retroalimentacion": "La 2126 regula las Comisarías de Familia; la 1098 aplica por la adolescente y el restablecimiento de derechos; la 1257 fundamenta las medidas de protección para la mujer."
+    },
+    {
+     "id": "B",
+     "grado": "Partial",
+     "credito": 0.4,
+     "texto": "Ley 1098 de 2006 y Ley 1257 de 2008.",
+     "retroalimentacion": "Omite la Ley 2126 de 2021, que regula la Comisaría, su equipo y la valoración del riesgo."
+    },
+    {
+     "id": "C",
+     "grado": "Incorrect",
+     "credito": 0.0,
+     "texto": "Ley 1098 de 2006, Ley 1257 de 2008 y Ley 1448 de 2011.",
+     "retroalimentacion": "Agrega la Ley de Víctimas del conflicto armado y omite la Ley 2126 de 2021."
+    }
+   ]
+  },
+  {
+   "id": "E2_Q3",
+   "escenario": "Actos4-5",
+   "nucleo": true,
+   "puntos": 15,
+   "enunciado": "Plan de actuación del equipo en la Comisaría. Para actuar técnica y éticamente, ¿qué se debe hacer y qué se debe evitar?",
+   "criterios": [
+    "C4",
+    "C5",
+    "C7",
+    "C8"
+   ],
+   "opciones": [
+    {
+     "id": "A",
+     "grado": "Partial",
+     "credito": 0.4,
+     "texto": "Escucha activa sin juicios, intervenir la disonancia cognitiva, preguntar antecedentes para detectar ciclos de violencia, valoración de riesgo de feminicidio y ruta por psicología clínica y psiquiatría.",
+     "retroalimentacion": "Incluye el riesgo de feminicidio, pero omite a las personas dependientes o vulnerables de la familia y el nivel de riesgo de vulneración de derechos."
+    },
+    {
+     "id": "B",
+     "grado": "Partial",
+     "credito": 0.4,
+     "texto": "Valoración inicial de la víctima y de las personas dependientes o vulnerables, escucha activa, antecedentes para detectar ciclos de violencia y rutas a salud y salud mental.",
+     "retroalimentacion": "No aplica la valoración del riesgo de feminicidio, que es la prioridad."
+    },
+    {
+     "id": "C",
+     "grado": "Correct",
+     "credito": 1.0,
+     "texto": "Valoración inicial de la víctima y de las personas dependientes o vulnerables, nivel de riesgo de vulneración de derechos, valoración de riesgo de feminicidio y rutas a salud y salud mental.",
+     "retroalimentacion": "Integra todos los elementos del restablecimiento de derechos."
+    }
+   ]
+  }
+ ]
+}

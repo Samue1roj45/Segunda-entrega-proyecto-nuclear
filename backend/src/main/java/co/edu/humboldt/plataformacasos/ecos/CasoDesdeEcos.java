@@ -26,6 +26,13 @@ import java.util.Map;
 public class CasoDesdeEcos {
 
     public static final String NOMBRE = "Ecos de una decisión";
+    private static final Map<String, String> CONTEXTOS = Map.of(
+            "Actos1-2", "Llegas con la brigada de salud al barrio La Esperanza. Debes reunir pistas del contexto y hablar con Daniela, de 22 años, que vive con Julián y con su hija Luna, de 3.",
+            "Acto3", "Esa noche Daniela llega al Hospital San Rafael con heridas de arma cortopunzante y Luna sin signos vitales. Acompañas a la familia (Rosalba, Kevin y Yuliana), das la noticia con el protocolo EPICEE y atiendes a Daniela en la habitación 214.",
+            "Actos4-5", "Quince días después, Daniela decide ir a la Comisaría de Familia. Participas en la valoración psicosocial, entrevistas a Daniela, hablas con Rosalba y Yuliana, y la comisaria Vargas decide las medidas de protección.");
+    private static final Map<String, String> TITULOS = Map.of(
+            "Actos1-2", "Actos 1 y 2: el barrio y la brigada", "Acto3", "Acto 3: el hospital (Escenario 1)",
+            "Actos4-5", "Actos 4 y 5: la Comisaría (Escenario 2)");
     private static final String CODIGOS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private final JdbcTemplate jdbc;
@@ -69,8 +76,9 @@ public class CasoDesdeEcos {
         List<EscenarioDsl> escenarios = new ArrayList<>();
         int n = 1;
         for (Map.Entry<String, List<PreguntaDsl>> acto : porActo.entrySet()) {
-            escenarios.add(new EscenarioDsl("Acto " + n + " (" + acto.getKey() + ")",
-                    "Decisiones del acto " + n + " del videojuego «" + NOMBRE + "». Elige la opción que consideres más adecuada.", acto.getValue()));
+            String nombre = TITULOS.getOrDefault(acto.getKey(), "Acto " + n + " (" + acto.getKey() + ")");
+            escenarios.add(new EscenarioDsl(recortar(nombre, 150), CONTEXTOS.getOrDefault(acto.getKey(),
+                    "Decisiones del videojuego «" + NOMBRE + "». Elige la opción que consideres más adecuada."), acto.getValue()));
             n++;
         }
 
@@ -79,8 +87,8 @@ public class CasoDesdeEcos {
         RubricaDsl rubrica = new RubricaDsl("Criterios de «" + NOMBRE + "»", "Criterios que SOMA evalúa con las decisiones del estudiante.", criterios);
 
         return new DocumentoDsl(DocumentoDsl.NOMBRE, DocumentoDsl.VERSION, new CasoDsl(NOMBRE,
-                "Videojuego en Unreal Engine de seis actos: el estudiante vive situaciones de psicología social y toma decisiones.",
-                "Cada decisión suma puntos según su calidad; SOMA calcula la nota con tus respuestas.", 45, escenarios, rubrica, List.of()));
+                "Caso 1. Violencia familiar y tentativa de feminicidio. Daniela, de 22 años y madre de Luna (3 años), vive en un barrio vulnerable con Julián (28), que la maltrata psicológicamente. Una noche él la ataca con un arma cortopunzante: Luna muere y Daniela sobrevive con 28 heridas. Es una simulación formativa de psicología; no diagnostica ni sustituye la atención profesional.",
+                "Videojuego en Unreal Engine de seis actos. Eliges protagonista (Andrea o Mateo, psicólogos del Hospital San Rafael); la historia es la misma con cualquiera de los dos. La nota va de 0 a 5,0 y la calcula SOMA con tus decisiones (75 puntos de preguntas del caso y 25 de decisiones narrativas).", 50, escenarios, rubrica, List.of()));
     }
 
     /** Una sola correcta (la de mayor crédito); el resto se evalúa por su porcentaje de crédito. */
