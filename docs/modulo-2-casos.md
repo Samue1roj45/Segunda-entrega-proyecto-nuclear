@@ -77,7 +77,7 @@ Errores: 400 valor inválido, 401 sin sesión, 403 sin permiso o caso ajeno, 404
 ## Modelo de datos
 
 Migraciones `V20` a `V24` en `backend/src/main/resources/db/migration`. La numeración desde V20 evita chocar con otros módulos.
-La semilla `db/semilla/V25_1__caso_prueba.sql` (perfiles `pruebas` y `test`) crea un caso PUBLICADO de Carlos para
+La semilla `src/test/resources/db/semilla/V25_1__caso_prueba.sql` (solo en las pruebas automáticas; ya no se siembra en Docker) crea un caso PUBLICADO de Carlos para
 la sesión de prueba de los módulos 3 y 4.
 
 `casos_estudio` 1—N `escenarios` 1—N `preguntas` 1—N `respuestas`; `casos_estudio` 1—0..1 `rubricas` 1—N `criterios_evaluacion`. La base garantiza una rúbrica por caso, el porcentaje entre 0 y 100, `rango_min < rango_max` y los estados válidos.

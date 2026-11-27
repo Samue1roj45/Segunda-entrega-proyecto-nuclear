@@ -89,3 +89,5 @@ spring:
       on-profile: pruebas
   flyway:
     locations: classpath:db/migration,classpath:db/semilla
+    # El caso de prueba ya no se siembra; una base que lo tenía aplicado no debe fallar por su ausencia.
+    ignore-migration-patterns: "*:missing"

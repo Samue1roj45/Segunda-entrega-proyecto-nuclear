@@ -68,6 +68,17 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
         <p class="ayuda">{{ ayudaFiltro() }}</p>
       </section>
 
+      @if (puedeEcos() && (estado() === '' || estado() === 'PUBLICADO')) {
+        <div class="tarjetas">
+          <article class="cristal tarjeta-item">
+            <span class="etiqueta ok">Videojuego</span>
+            <h3><a routerLink="/caso-ecos">Ecos de una decisión</a></h3>
+            <div class="meta"><span>6 actos · Unreal Engine</span><span>Nota calculada por SOMA</span></div>
+            <div class="acciones"><a routerLink="/caso-ecos" class="boton-suave boton-chico enlace-boton">Abrir (en vivo y resultados)</a></div>
+          </article>
+        </div>
+      }
+
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando casos"><i></i><i></i><i></i></div> }
       @else if (casos().length === 0) {
         <p class="cristal vacio">{{ estado() === 'ARCHIVADO' ? 'No tienes casos archivados.' : 'Todavía no hay casos' + (estado() ? ' en esta categoría' : '') + '. Crea el primero con «Nuevo caso».' }}</p>
@@ -143,6 +154,7 @@ export class CasosLista implements OnInit {
   private readonly toasts = inject(ToastService);
   private readonly dialogos = inject(DialogoService);
   private readonly sesiones = inject(SesionService);
+  protected readonly puedeEcos = computed(() => this.sesiones.tienePermiso(Permiso.InvitarEstudiantes));
   protected readonly puedeEliminar = computed(() => this.sesiones.tienePermiso(Permiso.EliminarCasos));
   protected readonly eliminando = signal<number | null>(null);
   protected textoDsl = '';

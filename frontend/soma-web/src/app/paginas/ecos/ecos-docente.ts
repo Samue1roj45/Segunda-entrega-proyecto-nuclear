@@ -1,6 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { EcosService, ResultadoEcosDocente } from '../../core/ecos.service';
 
@@ -10,8 +10,10 @@ import { EcosService, ResultadoEcosDocente } from '../../core/ecos.service';
   imports: [DatePipe, DecimalPipe],
   template: `
     <div class="pagina">
+      @if (!incrustado()) {
       <div class="cabecera-pagina"><h2>Ecos de una decisión · resultados</h2>
         <p class="suave">Estudiantes de tus sesiones que han terminado el videojuego.</p></div>
+      }
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (lista(); as l) {
         @if (l.length === 0) { <p class="cristal vacio">Todavía no hay resultados. Aparecerán cuando tus estudiantes terminen el juego.</p> }
@@ -44,6 +46,7 @@ import { EcosService, ResultadoEcosDocente } from '../../core/ecos.service';
   styles: `.resumen { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; } .tabla-envoltura { overflow-x: auto; }`,
 })
 export class EcosDocente implements OnInit {
+  readonly incrustado = input(false);
   private readonly ecos = inject(EcosService);
   protected readonly lista = signal<ResultadoEcosDocente[] | null>(null);
   protected readonly error = signal<string | null>(null);

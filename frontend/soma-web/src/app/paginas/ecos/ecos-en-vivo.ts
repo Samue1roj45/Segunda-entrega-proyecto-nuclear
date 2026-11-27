@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { EcosService, EnVivoEcos } from '../../core/ecos.service';
 
@@ -12,8 +12,10 @@ const ACTOS = 6;
   imports: [DecimalPipe],
   template: `
     <div class="pagina">
+      @if (!incrustado()) {
       <div class="cabecera-pagina"><h2>Ecos de una decisión · en vivo</h2>
         <p class="suave">Se actualiza solo cada 5 segundos. Aparecen tus estudiantes con código generado, en juego o que terminaron hace menos de 15 minutos.</p></div>
+      }
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (lista(); as l) {
         @if (l.length === 0) { <p class="cristal vacio">Nadie está jugando ahora mismo.</p> }
@@ -45,6 +47,7 @@ const ACTOS = 6;
   `,
 })
 export class EcosEnVivo implements OnInit, OnDestroy {
+  readonly incrustado = input(false);
   private readonly ecos = inject(EcosService);
   protected readonly lista = signal<EnVivoEcos[] | null>(null);
   protected readonly error = signal<string | null>(null);

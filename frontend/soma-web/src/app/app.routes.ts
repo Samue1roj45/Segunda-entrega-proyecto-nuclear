@@ -63,13 +63,11 @@ export const routes: Routes = [
         loadComponent: () => import('./paginas/ecos/mis-estudiantes').then((m) => m.MisEstudiantes), title: 'Mis estudiantes · SOMA',
       },
       {
-        path: 'ecos-en-vivo', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
-        loadComponent: () => import('./paginas/ecos/ecos-en-vivo').then((m) => m.EcosEnVivo), title: 'Ecos · en vivo · SOMA',
+        path: 'caso-ecos', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
+        loadComponent: () => import('./paginas/ecos/ecos-caso').then((m) => m.EcosCaso), title: 'Ecos de una decisión · SOMA',
       },
-      {
-        path: 'ecos-resultados', canActivate: [guardiaPermiso(Permiso.InvitarEstudiantes)],
-        loadComponent: () => import('./paginas/ecos/ecos-docente').then((m) => m.EcosDocente), title: 'Ecos · resultados · SOMA',
-      },
+      { path: 'ecos-en-vivo', redirectTo: 'caso-ecos' },
+      { path: 'ecos-resultados', redirectTo: 'caso-ecos' },
       {
         path: 'ecos-catalogo', canActivate: [guardiaPermiso(Permiso.AdministrarDocentes)],
         loadComponent: () => import('./paginas/ecos/ecos-catalogo').then((m) => m.EcosCatalogo), title: 'Ecos · catálogo · SOMA',
