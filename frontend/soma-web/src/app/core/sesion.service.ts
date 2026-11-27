@@ -30,6 +30,18 @@ export class SesionService {
       .pipe(tap((sesion) => this.guardar(sesion, recordar)));
   }
 
+  /** ID de cliente de Google (público); vacío si el servidor no tiene el ingreso con Google configurado. */
+  clienteGoogle(): Observable<{ clientId: string }> {
+    return this.http.get<{ clientId: string }>('/api/auth/google/config');
+  }
+
+  /** Ingreso con la cuenta de Google de la universidad: el servidor valida el token que entrega Google. */
+  iniciarGoogle(credencial: string, recordar = false): Observable<SesionUsuario> {
+    return this.http
+      .post<SesionUsuario>('/api/auth/google', { credencial })
+      .pipe(tap((sesion) => this.guardar(sesion, recordar)));
+  }
+
   /** Ingreso de docentes y administrador con correo y clave. */
   iniciar(correoInstitucional: string, clave: string, recordar = false): Observable<SesionUsuario> {
     return this.http

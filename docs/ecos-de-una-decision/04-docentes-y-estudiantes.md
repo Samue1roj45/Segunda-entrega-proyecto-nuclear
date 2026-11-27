@@ -21,3 +21,8 @@ Por defecto los correos van a Mailpit (`http://localhost:8025`) y **no llegan a 
 
 ## Limpiar los datos de casos
 `docs/limpiar-datos-de-casos.sql` borra casos, sesiones, convocatorias, participaciones, resultados y avisos; conserva usuarios, invitaciones y todo lo de Ecos. Deja a Ana y Luis con contraseña propia (`Clave-Estudiante-01/02`) y vinculados a Carlos.
+
+## Ingreso con Google
+Botón único «Continuar con Google» en el login. El navegador obtiene un token de Google y el backend lo verifica (firma, vigencia, que sea de esta aplicación y que el correo esté verificado). Solo entran correos `@unihumboldt.edu.co` y `@cue.edu.co` (`GOOGLE_DOMINIOS`) que **ya tengan cuenta en SOMA** (docente/administrador creado por el admin, o estudiante que aceptó una invitación); no se crean cuentas automáticamente.
+
+Configuración: `GOOGLE_CLIENT_ID` en `.env` (solo el ID de cliente; el «secreto del cliente» no se usa). En Google Cloud, en el cliente OAuth, agrega `http://localhost:4200` (y tu dominio real) en «Orígenes autorizados de JavaScript». Mientras la app esté en modo «Pruebas», solo entran los usuarios de prueba que agregues en la pantalla de consentimiento.

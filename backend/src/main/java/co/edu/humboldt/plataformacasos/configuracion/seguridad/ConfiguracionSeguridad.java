@@ -37,7 +37,7 @@ public class ConfiguracionSeguridad {
                 .sessionManagement(sesion -> sesion.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(reglas -> reglas
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/salud").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/salud", "/api/auth/google/config").permitAll()
                         // Invitaciones: quien abre el enlace aún no tiene cuenta; el token del enlace es la credencial.
                         .requestMatchers(HttpMethod.GET, "/api/invitaciones/publica/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/invitaciones/publica/*/aceptar").permitAll()

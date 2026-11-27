@@ -47,6 +47,8 @@ services:
       JWT_MINUTOS: ${JWT_MINUTOS:-60}
       DOMINIO_INSTITUCIONAL: ${DOMINIO_INSTITUCIONAL:-institucion.edu.co}
       CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:4200,http://127.0.0.1:4200}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_DOMINIOS: ${GOOGLE_DOMINIOS:-unihumboldt.edu.co,cue.edu.co}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       # Por defecto el correo se captura en Mailpit (http://localhost:8025) y NO llega a bandejas reales.
       # Para enviar correos de verdad, define SMTP_HOST, SMTP_PORT, SMTP_USUARIO, SMTP_CLAVE (ver .env.example).

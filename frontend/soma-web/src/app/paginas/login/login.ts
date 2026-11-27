@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, inject, signal, viewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -91,15 +91,12 @@ import { SesionService } from '../../core/sesion.service';
 
           <div class="separador"><span>o continúa con</span></div>
           <div class="sociales">
-            <button type="button" class="social" aria-label="Continuar con Google" (click)="noDisponible('social')">
-              <span class="g" aria-hidden="true">G</span>
-            </button>
-            <button type="button" class="social" aria-label="Continuar con Microsoft" (click)="noDisponible('social')">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--d-4a3a6b)" d="M3 3h8.500v8.500H3zM12.500 3H21v8.500h-8.500zM3 12.500h8.500V21H3zM12.500 12.500H21V21h-8.500z" /></svg>
-            </button>
-            <button type="button" class="social" aria-label="Continuar con Apple" (click)="noDisponible('social')">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--d-4a3a6b)" d="M16.400 12.600c0-2.300 1.900-3.400 2-3.500-1.100-1.600-2.800-1.800-3.400-1.800-1.400-.1-2.800.9-3.500.9-.7 0-1.900-.9-3.100-.8-1.600 0-3.100.9-3.900 2.400-1.700 2.900-.4 7.200 1.200 9.600.8 1.200 1.800 2.500 3 2.400 1.200 0 1.700-.8 3.100-.8s1.900.8 3.100.8c1.300 0 2.100-1.200 2.900-2.400.9-1.300 1.300-2.600 1.300-2.700-.1 0-2.600-1-2.700-4.100ZM14.200 5.600c.6-.8 1.100-1.900 1-3-.9 0-2.100.6-2.700 1.400-.6.700-1.100 1.800-1 2.900 1 .1 2.100-.5 2.700-1.300Z"/></svg>
-            </button>
+            <div #botonGoogle class="boton-google" [hidden]="!googleListo()"></div>
+            @if (!googleListo()) {
+              <button type="button" class="social-ancho" (click)="noDisponible('social')">
+                <span class="g" aria-hidden="true">G</span><span>Continuar con Google</span>
+              </button>
+            }
           </div>
 
           <p class="registro">¿No tienes una cuenta? <button type="button" (click)="noDisponible('registro')">Regístrate</button></p>
@@ -287,7 +284,7 @@ import { SesionService } from '../../core/sesion.service';
     .separador { left: calc(var(--u) * 67); width: calc(var(--u) * 478); top: calc(var(--u) * 506); height: calc(var(--u) * 24); display: flex; align-items: center; gap: calc(var(--u) * 22); font-size: max(calc(var(--u) * 15), 12px); color: #7b7092; }
     .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: rgba(110,96,145,.35); }
 
-    .sociales { left: 0; right: 0; top: calc(var(--u) * 546); height: calc(var(--u) * 70); display: flex; justify-content: center; gap: calc(var(--u) * 26); }
+    .sociales { left: calc(var(--u) * 67); width: calc(var(--u) * 478); top: calc(var(--u) * 546); height: calc(var(--u) * 70); align-items: center; display: flex; justify-content: center; gap: calc(var(--u) * 26); }
     .social {
       width: calc(var(--u) * 72); height: calc(var(--u) * 70); border-radius: calc(var(--u) * 20); display: grid; place-items: center; cursor: pointer;
       background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.16)); border: 1px solid rgba(255,255,255,.7);
@@ -295,6 +292,14 @@ import { SesionService } from '../../core/sesion.service';
     }
     .social svg { width: calc(var(--u) * 34); height: calc(var(--u) * 34); }
     .g { font-family: 'Figtree', sans-serif; font-weight: 700; font-size: calc(var(--u) * 34); line-height: 1; color: var(--d-4a3a6b); }
+    .boton-google { display: flex; justify-content: center; width: calc(var(--u) * 478); max-width: 100%; }
+    .social-ancho {
+      width: calc(var(--u) * 478); max-width: 100%; height: calc(var(--u) * 62); border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: .6rem; cursor: pointer;
+      font: 600 max(calc(var(--u) * 20), 14px) 'Figtree', sans-serif; color: var(--d-4a3a6b);
+      background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.4)); border: 1px solid rgba(255,255,255,.8);
+      box-shadow: 0 10px 22px -14px rgba(var(--d-94_74_138),.35), inset 0 1px 0 rgba(255,255,255,.85);
+    }
+    .social-ancho:focus-visible { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; }
     .social:hover { transform: translateY(-2px); background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.5)); }
     .social:focus-visible { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; }
 
@@ -358,6 +363,9 @@ export class Login extends ConOperaciones implements AfterViewInit {
   ];
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
+  private readonly zona = inject(NgZone);
+  private readonly botonGoogle = viewChild<ElementRef<HTMLElement>>('botonGoogle');
+  protected readonly googleListo = signal(false);
 
   protected readonly esEstudiante = signal(false);
   protected readonly verClave = signal(false);
@@ -377,6 +385,7 @@ export class Login extends ConOperaciones implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.prepararGoogle();
     // En pantallas grandes se deja el cursor listo en el primer campo vacío (en móvil no, para no abrir el teclado).
     if (typeof window !== 'undefined' && window.matchMedia?.('(min-width: 900px) and (pointer: fine)')?.matches) {
       this.enfocar(this.correo ? (this.esEstudiante() ? 'codigo' : 'clave') : 'correo');
@@ -437,7 +446,7 @@ export class Login extends ConOperaciones implements AfterViewInit {
         ? 'Para restablecer tu contraseña, comunícate con el administrador de SOMA.'
         : que === 'registro'
           ? 'Los estudiantes crean su cuenta desde el enlace que su docente les envía por correo. Pídele una invitación.'
-          : 'El ingreso con Google, Microsoft o Apple estará disponible próximamente.',
+          : 'El ingreso con Google no está disponible en este momento. Usa tu correo y contraseña.',
     );
   }
 
@@ -466,6 +475,47 @@ export class Login extends ConOperaciones implements AfterViewInit {
         this.guardarCorreo(correo);
         void this.router.navigate(['/inicio']);
       },
+      undefined,
+      () => this.sacudir(),
+    );
+  }
+
+  /** Carga el botón oficial de Google solo si el servidor tiene configurado el ID de cliente. */
+  private prepararGoogle(): void {
+    if (typeof document === 'undefined') { return; }
+    this.sesiones.clienteGoogle().subscribe({
+      next: ({ clientId }) => { if (clientId) { this.cargarScriptGoogle(clientId); } },
+      error: () => { /* sin servidor: se queda el botón de respaldo */ },
+    });
+  }
+
+  private cargarScriptGoogle(clientId: string): void {
+    const iniciar = () => {
+      const gsi = (window as unknown as { google?: { accounts: { id: Record<string, (...a: unknown[]) => void> } } }).google;
+      const destino = this.botonGoogle()?.nativeElement;
+      if (!gsi || !destino) { return; }
+      gsi.accounts.id['initialize']({
+        client_id: clientId,
+        callback: (r: { credential: string }) => this.zona.run(() => this.ingresarConGoogle(r.credential)),
+        ux_mode: 'popup',
+      });
+      const ancho = Math.min(400, Math.max(200, Math.round(destino.parentElement?.getBoundingClientRect().width ?? 320)));
+      gsi.accounts.id['renderButton'](destino, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'center', locale: 'es', width: ancho });
+      this.googleListo.set(true);
+    };
+    if ((window as unknown as { google?: unknown }).google) { iniciar(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.defer = true;
+    s.onload = () => this.zona.run(iniciar);
+    document.head.appendChild(s);
+  }
+
+  private ingresarConGoogle(credencial: string): void {
+    this.operar(
+      this.sesiones.iniciarGoogle(credencial, this.recordar),
+      () => void this.router.navigate(['/inicio']),
       undefined,
       () => this.sacudir(),
     );

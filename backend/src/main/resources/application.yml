@@ -40,6 +40,10 @@ server:
 app:
   # Zona horaria de las fechas de sesiones, intentos y notificaciones (Clock único de la aplicación).
   zona-horaria: ${ZONA_HORARIA:America/Bogota}
+  google:
+    # ID de cliente OAuth de Google (es público; el "secreto del cliente" NO se usa ni se pone aquí).
+    client-id: ${GOOGLE_CLIENT_ID:}
+    dominios: ${GOOGLE_DOMINIOS:unihumboldt.edu.co,cue.edu.co}
   invitaciones:
     # Base del enlace que llega por correo: dirección donde corre el frontend.
     url-frontend: ${FRONTEND_URL:http://localhost:4200}

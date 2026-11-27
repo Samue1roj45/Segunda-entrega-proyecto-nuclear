@@ -6,7 +6,7 @@ import { SesionUsuario } from '../../core/modelos/sesion-usuario';
 import { Login } from './login';
 
 describe('Login', () => {
-  const sesion = { iniciar: vi.fn(), iniciarEstudiante: vi.fn() };
+  const sesion = { iniciar: vi.fn(), iniciarEstudiante: vi.fn(), iniciarGoogle: vi.fn(), clienteGoogle: vi.fn() };
 
   async function crear() {
     TestBed.configureTestingModule({
@@ -31,6 +31,8 @@ describe('Login', () => {
   beforeEach(() => {
     sesion.iniciar.mockReset();
     sesion.iniciarEstudiante.mockReset();
+    sesion.iniciarGoogle.mockReset();
+    sesion.clienteGoogle.mockReset().mockReturnValue(of({ clientId: '' }));
     localStorage.clear();
   });
 
@@ -108,5 +110,14 @@ describe('Login', () => {
     el.querySelector<HTMLButtonElement>('button.ingresar')!.click();
     expect(localStorage.getItem('soma.ultimoCorreo')).toBe('a@b.co');
     expect(JSON.stringify(localStorage)).not.toContain('secreta');
+  });
+
+  it('sin ID de cliente deja un solo botón de Google (sin Microsoft ni Apple) que avisa que no está disponible', async () => {
+    const { fixture, el } = await crear();
+    expect(el.querySelectorAll('.sociales button').length).toBe(1);
+    expect(el.textContent).not.toContain('Microsoft');
+    el.querySelector<HTMLButtonElement>('.social-ancho')!.click();
+    fixture.detectChanges();
+    expect(el.textContent).toContain('Google no está disponible');
   });
 });
