@@ -50,21 +50,47 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
   -webkit-backdrop-filter: blur(26px) saturate(1.7);
 }
 
+/* ---------- Sistema de botones ----------
+   Una sola escala para todas las variantes: misma altura, tipografía, radio, alineación y separación entre
+   ícono y texto. Cada variante solo cambia el color según la naturaleza de la acción:
+   .boton-primario  acción principal de la pantalla o del formulario (Nuevo caso, Programar sesión, Guardar).
+   .boton-suave     acción secundaria, de consulta o de edición (Abrir, Duplicar, Archivar, Restaurar, Cargar más).
+   .boton-peligro   acción destructiva (Eliminar, Retirar, Borrar para siempre).
+   .boton-chico     tamaño compacto para las acciones dentro de listas y tarjetas; se combina con cualquiera.
+   Estado de carga: aria-busy="true" muestra un indicador y bloquea el cursor (el botón además va [disabled]). */
+.boton-primario, .boton-suave, .boton-peligro {
+  --alto-boton: 2.5rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  box-sizing: border-box; min-height: var(--alto-boton); padding: 0 1.15rem; border-radius: 999px;
+  font: inherit; font-size: .92rem; font-weight: 500; line-height: 1.2; letter-spacing: .01em;
+  white-space: nowrap; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer;
+  position: relative; overflow: hidden;
+  transition: translate .2s ease-out, transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
+}
+.boton-primario svg, .boton-suave svg, .boton-peligro svg { width: 1em; height: 1em; flex: none; }
+.boton-chico { --alto-boton: 2rem; padding: 0 .85rem; font-size: .84rem; gap: .35rem; }
+
 .boton-primario {
-  display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
-  border: 0; border-radius: 999px; padding: .95rem 1.6rem;
+  border: 1px solid transparent;
   background: linear-gradient(180deg, var(--lila-800), var(--lila-950));
-  color: #fff; font-weight: 500; letter-spacing: .01em;
+  color: #fff;
   box-shadow: 0 12px 26px -12px rgba(var(--d-42_31_66), 0.7), inset 0 1px 0 rgba(255,255,255,.18);
-  transition: transform .15s ease, box-shadow .15s ease;
 }
 .boton-primario:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 30px -12px rgba(var(--d-42_31_66),.75); }
 
 .boton-suave {
-  border: 1px solid var(--borde-cristal); border-radius: 999px; padding: .55rem 1.1rem;
-  background: var(--cristal-fuerte); color: var(--lila-900); font-weight: 500;
+  border: 1px solid var(--borde-cristal);
+  background: var(--cristal-fuerte); color: var(--lila-900);
 }
-.boton-suave:hover { background: #fff; }
+.boton-suave:hover:not(:disabled) { background: #fff; transform: translateY(-1px); }
+
+.boton-primario:disabled, .boton-suave:disabled, .boton-peligro:disabled { transform: none; box-shadow: none; }
+.boton-primario[aria-busy='true'], .boton-suave[aria-busy='true'], .boton-peligro[aria-busy='true'] { cursor: progress; }
+.boton-primario[aria-busy='true']::before, .boton-suave[aria-busy='true']::before, .boton-peligro[aria-busy='true']::before {
+  content: ''; width: .85em; height: .85em; flex: none; border-radius: 50%;
+  border: 2px solid currentColor; border-right-color: transparent; animation: giro-boton .7s linear infinite;
+}
+@keyframes giro-boton { to { transform: rotate(360deg); } }
 
 .etiqueta {
   display: inline-block; padding: .2rem .65rem; border-radius: 999px; font-size: .75rem; font-weight: 500;
@@ -93,10 +119,14 @@ button:disabled { cursor: not-allowed; opacity: 0.65; }
 .migas a { color: var(--lila-800); text-decoration: none; }
 .migas a:hover { text-decoration: underline; }
 
-.boton-peligro { border: 1px solid rgba(181,82,59,.35); border-radius: 999px; padding: .5rem 1rem; background: rgba(181,82,59,.08); color: var(--alerta); font-weight: 500; }
-.boton-peligro:hover:not(:disabled) { background: rgba(181,82,59,.16); }
-.boton-chico { padding: .35rem .8rem; font-size: .85rem; }
+.boton-peligro { border: 1px solid rgba(181,82,59,.35); background: rgba(181,82,59,.08); color: var(--alerta); }
+.boton-peligro:hover:not(:disabled) { background: rgba(181,82,59,.16); transform: translateY(-1px); }
 .enlace-boton { display: inline-flex; align-items: center; gap: .4rem; text-decoration: none; }
+/* En pantallas angostas las etiquetas largas pueden partirse en dos líneas sin romper la fila. */
+@media (max-width: 560px) {
+  .boton-primario, .boton-suave, .boton-peligro { white-space: normal; padding-block: .35rem; }
+  .acciones { width: 100%; }
+}
 
 .aviso-ok { padding: .7rem 1rem; border-radius: 14px; background: rgba(63,143,107,.12); color: #2d6a4f; border: 1px solid rgba(63,143,107,.28); font-size: .92rem; }
 .aviso-info { padding: .7rem 1rem; border-radius: 14px; background: rgba(var(--d-94_74_138),.1); color: var(--lila-900); border: 1px solid rgba(var(--d-94_74_138),.2); font-size: .92rem; }
@@ -230,6 +260,16 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 [data-tema='noche'] .linea-tiempo strong { color: var(--n-f1ecff); } [data-tema='noche'] .linea-tiempo li::after { background: var(--n-231b45); }
 [data-tema='noche'] .linea-tiempo li::before { background: rgba(255,255,255,.14); }
 
+/* Fila de una persona (convocados, cuentas): persona | estado | acciones, alineados en columnas. */
+.fila-persona { display: grid; grid-template-columns: minmax(12rem, 1fr) auto auto; align-items: center; gap: .6rem 1rem; }
+.fila-persona .estado-persona { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; }
+.fila-persona .acciones { margin-left: 0; justify-content: flex-end; }
+@media (max-width: 860px) {
+  .fila-persona { grid-template-columns: minmax(0, 1fr) auto; }
+  .fila-persona .acciones { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (max-width: 480px) { .fila-persona { grid-template-columns: minmax(0, 1fr); } }
+
 /* ---------- Selector de estudiantes con búsqueda ---------- */
 .selector-est { display: grid; gap: .6rem; }
 .selector-est .lista-est { display: grid; gap: .3rem; max-height: 260px; overflow-y: auto; padding: .3rem; border-radius: 16px; background: rgba(255,255,255,.4); border: 1px solid rgba(255,255,255,.7); }
@@ -237,7 +277,13 @@ table.tabla { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .selector-est label.fila-est:hover { background: rgba(255,255,255,.7); } .selector-est label.fila-est.sel { background: rgba(var(--d-139_111_224),.16); }
 .selector-est input[type=checkbox] { width: 1.1rem; height: 1.1rem; accent-color: var(--lila-700); }
 .selector-est .avatar-mini { width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 600; color: #fff; background: linear-gradient(135deg, var(--lila-300), var(--lila-800)); }
-.selector-est .quien { display: grid; line-height: 1.2; min-width: 0; flex: 1; } .selector-est .quien small { color: var(--tinta-suave); overflow: hidden; text-overflow: ellipsis; }
+/* Persona (nombre arriba, correo debajo): la usan el selector de estudiantes y la lista de convocados. */
+.quien { display: grid; gap: .15rem; line-height: 1.25; min-width: 0; }
+.quien strong { font-weight: 600; overflow-wrap: anywhere; }
+.quien small { font-size: .82rem; color: var(--tinta-suave); overflow-wrap: anywhere; }
+.selector-est .quien { flex: 1; }
+.lista-auditoria .quien { flex: 1; }
+.lista-auditoria .quien strong { font-weight: 500; }
 [data-tema='noche'] .selector-est .lista-est { background: rgba(255,255,255,.05); border-color: rgba(var(--n-borde),.16); }
 [data-tema='noche'] .selector-est label.fila-est:hover { background: rgba(255,255,255,.1); }
 
@@ -275,7 +321,6 @@ html[data-acento='atardecer'][data-tema='noche'] { --n-3b55b8: #b83ba4; --n-9b3f
 html[data-acento='grafito'][data-tema='noche'] { --n-3b55b8: #b0aeb8; --n-9b3f8f: #95949b; --d-c9b8f0: var(--n-6a4fc2);--lila-700: #b9bed2; --lila-800: #a8aec6; --lila-900: #eceef8; }
 
 /* Botones: onda de luz al pulsar y efecto magnético (translate no choca con transform) */
-.boton-primario, .boton-suave { position: relative; overflow: hidden; transition: translate .2s ease-out, transform .15s ease, box-shadow .15s ease; }
 .onda { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.55), rgba(255,255,255,0) 65%); transform: scale(0); animation: onda .6s ease-out forwards; pointer-events: none; }
 @keyframes onda { to { transform: scale(1); opacity: 0; } }
 
@@ -316,7 +361,7 @@ html[data-quieto] .esqueleto i { animation: none; }
 
 /* Impresión: solo el contenido, sobre blanco */
 @media print {
-  .aurora, .lateral, .chips, .cerebro, .progreso, .subir, soma-paleta, soma-campana, soma-neuronas, soma-toasts, soma-dialogos, button, .boton-primario, .boton-secundario { display: none !important; }
+  .aurora, .lateral, .chips, .cerebro, .progreso, .subir, soma-paleta, soma-campana, soma-neuronas, soma-toasts, soma-dialogos, button, .boton-primario, .boton-suave, .boton-peligro { display: none !important; }
   .marco { display: block !important; max-width: none !important; padding: 0 !important; }
   html, body, :host, soma-panel { background: #fff !important; }
   .cristal { box-shadow: none !important; background: #fff !important; border: 1px solid #ccc !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; break-inside: avoid; }

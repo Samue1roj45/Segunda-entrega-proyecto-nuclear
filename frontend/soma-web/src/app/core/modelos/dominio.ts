@@ -71,6 +71,11 @@ export interface Retroalimentacion {
 export interface PendientesEvaluadas { incompletas: number; ausencias: number; omitidas: number }
 
 export interface Docente { id: number; correoInstitucional: string; nombreCompleto: string; activo: boolean; permisos: string[] }
+/** Cuenta para la administración de usuarios (/api/admin/usuarios). */
+export interface UsuarioAdmin { id: number; correoInstitucional: string; nombreCompleto: string; rol: 'ESTUDIANTE' | 'DOCENTE' | 'ADMINISTRADOR'; activo: boolean; fechaCreacion: string }
+export interface RegistroHistorico { descripcion: string; cantidad: number }
+/** Si la cuenta se puede eliminar; si no, el motivo y el historial que lo impide. */
+export interface EvaluacionEliminacion { permitida: boolean; motivo: string; registros: RegistroHistorico[] }
 
 /** Lo que ve el estudiante. */
 export interface Convocatoria {
@@ -92,3 +97,7 @@ export interface EstudianteResumen { id: number; nombreCompleto: string; correoI
 /** Aviso dentro de la plataforma (campana). */
 export interface Aviso { id: number; tipo: string; titulo: string; mensaje: string; leido: boolean; fecha: string }
 export interface EntradaAuditoria { id: number; fecha: string; actorCorreo: string | null; accion: string; detalle: string }
+/** GET /api/auditoria/limpieza: cuántos registros borraría la limpieza con ese corte. */
+export interface VistaPreviaLimpieza { antesDe: string; registros: number }
+/** POST /api/auditoria/limpieza: resultado real de la limpieza. */
+export interface ResultadoLimpieza { antesDe: string; eliminados: number; fecha: string }

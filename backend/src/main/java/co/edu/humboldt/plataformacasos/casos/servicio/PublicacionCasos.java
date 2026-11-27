@@ -5,7 +5,7 @@ import co.edu.humboldt.plataformacasos.casos.servicio.dto.CasoDetalleDTO;
 import co.edu.humboldt.plataformacasos.casos.validacion.InformeValidacion;
 import co.edu.humboldt.plataformacasos.usuarios.dominio.Permiso;
 
-/** RF-09: validación académica, publicación y archivo del caso. */
+/** RF-09: validación académica, publicación, archivo y recuperación del caso. */
 public interface PublicacionCasos {
 
     /** Evalúa las reglas sin cambiar el estado del caso. */
@@ -19,4 +19,8 @@ public interface PublicacionCasos {
     /** Retira el caso publicado de las nuevas programaciones sin borrar datos. */
     @RequierePermiso(Permiso.GESTIONAR_CASOS)
     CasoDetalleDTO archivar(Long idCaso);
+
+    /** Devuelve un caso archivado a PUBLICADO si sigue cumpliendo las reglas; si no, lanza el informe. */
+    @RequierePermiso(Permiso.GESTIONAR_CASOS)
+    CasoDetalleDTO recuperar(Long idCaso);
 }

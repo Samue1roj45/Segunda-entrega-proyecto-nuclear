@@ -72,6 +72,31 @@ class FachadaPublicacionCasosTest {
     }
 
     @Test
+    @DisplayName("Recupera un caso archivado que sigue cumpliendo las reglas y conserva su contenido")
+    void recuperacion() {
+        CasoEstudio caso = casoValido();
+        caso.publicar();
+        caso.archivar();
+        when(acceso.paraModificar(ID)).thenReturn(caso);
+
+        CasoDetalleDTO recuperado = fachada.recuperar(ID);
+
+        assertThat(recuperado.estado()).isEqualTo(EstadoCaso.PUBLICADO);
+        assertThat(recuperado.fechaArchivado()).isNull();
+        assertThat(recuperado.escenarios()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Recuperar algo que no está archivado es un conflicto y no cambia el estado")
+    void recuperarNoArchivado() {
+        CasoEstudio caso = casoValido();
+        when(acceso.paraModificar(ID)).thenReturn(caso);
+
+        assertThatThrownBy(() -> fachada.recuperar(ID)).isInstanceOf(ConflictoException.class);
+        assertThat(caso.getEstado()).isEqualTo(EstadoCaso.BORRADOR);
+    }
+
+    @Test
     @DisplayName("Validar informa sin cambiar el estado")
     void validarNoCambiaElEstado() {
         CasoEstudio caso = casoValido();

@@ -99,6 +99,25 @@ public class Usuario {
         permisosAsignados.addAll(permisos);
     }
 
+    /**
+     * Archiva la cuenta: deja de poder iniciar sesión y de tener permisos efectivos, pero la fila y todo
+     * lo que la referencia se conservan. No es una eliminación.
+     */
+    public void archivar() {
+        if (!activo) {
+            throw new IllegalStateException("La cuenta ya está archivada");
+        }
+        activo = false;
+    }
+
+    /** Devuelve el acceso a una cuenta archivada con los mismos permisos que tenía. */
+    public void reactivar() {
+        if (activo) {
+            throw new IllegalStateException("La cuenta ya está activa");
+        }
+        activo = true;
+    }
+
     /** RF-02: permisos del rol más los asignados individualmente. */
     public Set<Permiso> permisosEfectivos() {
         Set<Permiso> efectivos = EnumSet.noneOf(Permiso.class);

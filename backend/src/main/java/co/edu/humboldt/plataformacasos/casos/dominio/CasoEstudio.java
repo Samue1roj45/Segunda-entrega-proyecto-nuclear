@@ -69,6 +69,10 @@ public class CasoEstudio {
     @Column(name = "fecha_archivado")
     private LocalDateTime fechaArchivado;
 
+    /** Aumenta en cada cambio de contenido. Quien guarda envía la que leyó; si no coincide, no se pisa. */
+    @Column(nullable = false)
+    private long version;
+
     @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orden ASC, id ASC")
     @BatchSize(size = LimitesDsl.TAMANO_LOTE_CONSULTA)
@@ -175,8 +179,16 @@ public class CasoEstudio {
         }
     }
 
+    /** Solo un BORRADOR se publica; un caso archivado se recupera con {@link #recuperar()}. */
+    public void exigirPublicable() {
+        if (!estado.puedePublicarse()) {
+            throw new ConflictoException("Un caso en estado " + estado + " no se puede publicar.");
+        }
+    }
+
     /** RF-09: quien llama debe haber validado el caso con el validador DSL-CEPS. */
     public void publicar() {
+        exigirPublicable();
         transitarA(EstadoCaso.PUBLICADO);
         fechaPublicacion = fechaActualizacion;
     }
@@ -185,6 +197,18 @@ public class CasoEstudio {
     public void archivar() {
         transitarA(EstadoCaso.ARCHIVADO);
         fechaArchivado = fechaActualizacion;
+    }
+
+    /**
+     * Devuelve un caso archivado a PUBLICADO para volver a programarlo. Conserva la fecha de la primera
+     * publicación y el contenido; quien llama debe haberlo validado otra vez con las reglas vigentes.
+     */
+    public void recuperar() {
+        if (!estado.puedeRecuperarse()) {
+            throw new ConflictoException("Solo se recupera un caso archivado; este está " + estado + ".");
+        }
+        transitarA(EstadoCaso.PUBLICADO);
+        fechaArchivado = null;
     }
 
     private void transitarA(EstadoCaso destino) {
@@ -199,6 +223,7 @@ public class CasoEstudio {
             throw new ConflictoException("El caso está " + estado + " y su contenido no se puede modificar.");
         }
         fechaActualizacion = LocalDateTime.now();
+        version = version + 1;
     }
 
     public boolean perteneceA(Long idDocente) {
@@ -247,6 +272,10 @@ public class CasoEstudio {
 
     public LocalDateTime getFechaArchivado() {
         return fechaArchivado;
+    }
+
+    public long getVersion() {
+        return version;
     }
 
     public List<Escenario> getEscenarios() {

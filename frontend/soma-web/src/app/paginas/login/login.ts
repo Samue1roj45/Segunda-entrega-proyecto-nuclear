@@ -103,10 +103,15 @@ import { SesionService } from '../../core/sesion.service';
           </div>
 
           <p class="registro">¿No tienes una cuenta? <button type="button" (click)="noDisponible('registro')">Regístrate</button></p>
+
+          <button type="button" class="cambio" (click)="alternarTipo()">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.15" /><path d="M5.2 19.2c.9-3.3 3.4-5 6.8-5s5.9 1.7 6.8 5" /></svg>
+            <span class="cambio-texto">
+              <span class="cambio-titulo">{{ esEstudiante() ? 'Ingresar como docente o administrador' : 'Ingresar como estudiante' }}</span>
+              @if (!esEstudiante()) { <span class="cambio-sub">Accede con tu código de acceso.</span> }
+            </span>
+          </button>
         </div>
-        <button type="button" class="cambio" (click)="alternarTipo()">
-          {{ esEstudiante() ? 'Ingresar como docente o administrador' : 'Ingresar como estudiante, con código de acceso' }}
-        </button>
       </form>
     </div>
   `,
@@ -118,7 +123,7 @@ import { SesionService } from '../../core/sesion.service';
     .escena::before { content: ''; position: fixed; left: 0; right: 0; top: 43vh; height: 18vh; background: linear-gradient(180deg, rgba(var(--d-207_198_230),0), rgba(var(--d-207_198_230),.96) 55%); pointer-events: none; }
     /* Móvil / tableta vertical: el render queda de fondo y la tarjeta fluye debajo de la marca. */
     .tarjeta {
-      position: relative; container-type: inline-size; aspect-ratio: 610 / 694;
+      position: relative; container-type: inline-size; aspect-ratio: 610 / 772;
       width: min(92vw, 460px); margin: 3vh auto 5vh; z-index: 1;
       border-radius: 6.6% / 5.8%; overflow: visible;
       background: linear-gradient(160deg, rgba(255,255,255,.62), rgba(var(--d-236_229_250),.5) 55%, rgba(222,212,245,.45));
@@ -180,8 +185,8 @@ import { SesionService } from '../../core/sesion.service';
     .campo.invalido { box-shadow: 0 0 0 2px rgba(194,122,138,.35); }
     .recordar, .social, .ingresar, .cambio, .olvido { user-select: none; }
     .recordar input:checked + .caja::after { animation: marcar .2s ease-out both; }
-    .olvido, .registro button, .cambio { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .25s ease; text-decoration: none !important; }
-    .olvido:hover, .registro button:hover, .cambio:hover, .olvido:focus-visible, .registro button:focus-visible, .cambio:focus-visible { background-size: 100% 1px; }
+    .olvido, .registro button { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .25s ease; text-decoration: none !important; }
+    .olvido:hover, .registro button:hover, .olvido:focus-visible, .registro button:focus-visible { background-size: 100% 1px; }
     .campo input:focus-visible { outline: none; }
     @media (min-aspect-ratio: 3/2) and (min-width: 900px) { .chispas { display: block; } }
     @media (hover: none) { .tarjeta { transform: none !important; } .tarjeta .interior::before { display: none; } .campo:hover, .social:hover, .ingresar:hover { transform: none !important; } }
@@ -191,7 +196,7 @@ import { SesionService } from '../../core/sesion.service';
     }
     @media (max-height: 520px) and (max-width: 899px) { .marca .isotipo { width: 22%; } .marca { margin-top: 2vh; } }
     @media (prefers-contrast: more) { .campo, .social, .tarjeta { border-color: var(--d-43335f) !important; } .campo input::placeholder { color: var(--d-43335f); } }
-    @media (forced-colors: active) { .ingresar, .campo, .social { border: 1px solid ButtonText; } .ingresar:focus-visible, .campo:focus-within { outline: 2px solid Highlight; } }
+    @media (forced-colors: active) { .ingresar, .cambio, .campo, .social { border: 1px solid ButtonText; } .ingresar:focus-visible, .cambio:focus-visible, .campo:focus-within { outline: 2px solid Highlight; } }
     @media (prefers-reduced-transparency: reduce) { .tarjeta { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(var(--d-244_240_251),.96); } }
     @media print { .escena { display: none; } }
     @media (prefers-reduced-motion: reduce) { .marca > *, .tarjeta, .tarjeta::after, .marca .isotipo, .chispas i, .rueda { animation: none !important; } .tarjeta { transform: none !important; } .fondo { transition: none; } .chispas { display: none !important; } }
@@ -263,7 +268,7 @@ import { SesionService } from '../../core/sesion.service';
     .recordar input:checked + .caja::after { content: ''; width: 28%; height: 52%; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-8%) rotate(45deg); }
     .recordar input:focus-visible + .caja { box-shadow: 0 0 0 3px rgba(var(--d-138_119_184),.45); }
     .olvido { right: calc(var(--u) * 65); top: calc(var(--u) * 374); height: calc(var(--u) * 30); border: 0; background: none; padding: 0; font: inherit; font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: var(--d-43355f); cursor: pointer; }
-    .olvido:hover, .registro button:hover, .cambio:hover { text-decoration: underline; }
+    .olvido:hover, .registro button:hover { text-decoration: underline; }
 
     .ingresar {
       left: calc(var(--u) * 67); top: calc(var(--u) * 420); width: calc(var(--u) * 478); height: calc(var(--u) * 65); border-radius: calc(var(--u) * 33);
@@ -296,7 +301,17 @@ import { SesionService } from '../../core/sesion.service';
     .registro { left: 0; right: 0; top: calc(var(--u) * 634); margin: 0; text-align: center; font-size: max(calc(var(--u) * 16.5), 13px); color: #75698d; }
     .registro button { border: 0; background: none; padding: 0; margin-left: calc(var(--u) * 6); font: inherit; font-weight: 600; color: var(--d-43335f); cursor: pointer; }
 
-    .cambio { position: absolute; left: 0; right: 0; top: calc(100% + 14px); border: 0; background: none; font: inherit; font-size: 13.5px; color: #4a3d66; cursor: pointer; text-shadow: 0 1px 8px rgba(255,255,255,.7); }
+    .cambio {
+      left: calc(var(--u) * 67); top: calc(var(--u) * 684); width: calc(var(--u) * 478); height: calc(var(--u) * 68);
+      display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 10);
+      border: 0; border-radius: calc(var(--u) * 34); background: var(--d-4a3a6b); color: #fff;
+    }
+    .cambio svg { width: calc(var(--u) * 22); height: calc(var(--u) * 22); }
+    .cambio-texto { display: flex; flex-direction: column; line-height: 1.15; }
+    .cambio-titulo { font-size: max(calc(var(--u) * 16), 12.5px); font-weight: 600; }
+    .cambio-sub { font-size: max(calc(var(--u) * 12.5), 11px); }
+    .cambio:hover { filter: brightness(1.12); }
+    .cambio:active { filter: brightness(.94); }
     /* ---- Vidrio líquido (estilo iOS): una sola capa esmerilada que cubre las marcas del render ---- */
     .tarjeta { background: none !important; border: 0 !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
     .tarjeta::before {
