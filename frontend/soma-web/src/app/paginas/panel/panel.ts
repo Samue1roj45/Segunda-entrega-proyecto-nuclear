@@ -288,7 +288,6 @@ export class Panel implements OnInit, OnDestroy {
     const u = this.url();
     return SECCIONES.find((s) => s.ruta !== '/inicio' && u.startsWith(s.ruta))
       ?? (u === '/ecos' || u.startsWith('/ecos?') ? { ...SECCIONES.find((s) => s.ruta === '/mis-sesiones')!, titulo: 'Ecos de una decisión' }
-        : u.startsWith('/caso-ecos') ? { ...SECCIONES.find((s) => s.ruta === '/casos')!, titulo: 'Ecos de una decisión' }
         : u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' }
         : u.startsWith('/perfil') ? { ...SECCIONES[0], titulo: 'Mi perfil', grupo: 'Cuenta', ruta: '/perfil' } : SECCIONES[0]);
   });

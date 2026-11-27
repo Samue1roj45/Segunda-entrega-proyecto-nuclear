@@ -8,6 +8,7 @@ import { mensajeDeError } from '../../core/con-operaciones';
 import { DialogoService } from '../../core/dialogo.service';
 import { Permiso } from '../../core/modelos/permiso';
 import { SesionService } from '../../core/sesion.service';
+import { EcosService } from '../../core/ecos.service';
 import { ToastService } from '../../core/toast.service';
 import { CasoEliminado } from '../../core/modelos/dominio';
 
@@ -68,15 +69,12 @@ import { CasoResumen, SomaApiService } from '../../core/soma-api.service';
         <p class="ayuda">{{ ayudaFiltro() }}</p>
       </section>
 
-      @if (puedeEcos() && (estado() === '' || estado() === 'PUBLICADO')) {
-        <div class="tarjetas">
-          <article class="cristal tarjeta-item">
-            <span class="etiqueta ok">Videojuego</span>
-            <h3><a routerLink="/caso-ecos">Ecos de una decisión</a></h3>
-            <div class="meta"><span>6 actos · Unreal Engine</span><span>Nota calculada por SOMA</span></div>
-            <div class="acciones"><a routerLink="/caso-ecos" class="boton-suave boton-chico enlace-boton">Abrir (en vivo y resultados)</a></div>
-          </article>
-        </div>
+      @if (!cargando() && estado() === '' && !tieneEcos()) {
+        <section class="cristal bloque">
+          <h3>Ecos de una decisión</h3>
+          <p class="suave">Videojuego de seis actos. Crea el caso con toda su información (escenarios, preguntas, opciones y rúbrica); después lo editas, publicas y programas como cualquier otro caso.</p>
+          <div class="acciones"><button type="button" class="boton-primario" [disabled]="creandoEcos()" [attr.aria-busy]="creandoEcos()" (click)="crearEcos()">{{ creandoEcos() ? 'Creando…' : 'Crear el caso de Ecos' }}</button></div>
+        </section>
       }
 
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando casos"><i></i><i></i><i></i></div> }
@@ -154,7 +152,17 @@ export class CasosLista implements OnInit {
   private readonly toasts = inject(ToastService);
   private readonly dialogos = inject(DialogoService);
   private readonly sesiones = inject(SesionService);
-  protected readonly puedeEcos = computed(() => this.sesiones.tienePermiso(Permiso.InvitarEstudiantes));
+  private readonly ecos = inject(EcosService);
+  protected readonly creandoEcos = signal(false);
+  protected readonly tieneEcos = computed(() => this.casos().some((c) => c.nombre === 'Ecos de una decisión'));
+
+  protected crearEcos(): void {
+    this.creandoEcos.set(true);
+    this.ecos.crearCaso().subscribe({
+      next: (r) => { this.creandoEcos.set(false); this.toasts.ok('Caso de Ecos creado como borrador.'); void this.router.navigate(['/casos', r.caso.id]); },
+      error: (e: HttpErrorResponse) => { this.creandoEcos.set(false); this.error.set(mensajeDeError(e)); },
+    });
+  }
   protected readonly puedeEliminar = computed(() => this.sesiones.tienePermiso(Permiso.EliminarCasos));
   protected readonly eliminando = signal<number | null>(null);
   protected textoDsl = '';

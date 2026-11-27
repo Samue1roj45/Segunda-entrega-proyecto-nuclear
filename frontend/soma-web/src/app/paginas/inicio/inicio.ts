@@ -307,7 +307,7 @@ export class Inicio implements OnInit {
     if (p(Permiso.GestionarCasos)) r.push({ ruta: '/casos', texto: 'Crear o revisar casos' });
     if (p(Permiso.ProgramarSesiones)) r.push({ ruta: '/sesiones', texto: 'Programar sesión' });
     if (p(Permiso.ParticiparEnCasos)) r.push({ ruta: '/mis-sesiones', texto: 'Ir a mis casos' });
-    if (p(Permiso.InvitarEstudiantes)) r.push({ ruta: '/mis-estudiantes', texto: 'Invitar estudiantes a Ecos' });
+    if (p(Permiso.InvitarEstudiantes)) r.push({ ruta: '/mis-estudiantes', texto: 'Invitar estudiantes' });
     if (p(Permiso.ParticiparEnCasos)) r.push({ ruta: '/ecos', texto: 'Jugar Ecos de una decisión' });
     if (p(Permiso.ConsultarResultadosPropios)) r.push({ ruta: '/mis-resultados', texto: 'Ver mis resultados' });
     if (this.sesion.esAdministrador()) { r.push({ ruta: '/docentes', texto: 'Gestionar docentes' }); r.push({ ruta: '/usuarios', texto: 'Administrar usuarios' }); }

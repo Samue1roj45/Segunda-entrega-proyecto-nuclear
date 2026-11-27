@@ -362,4 +362,24 @@ class EcosIntegracionTest {
         assertThat(pedir("/api/ecos/v1/mis-estudiantes", carlos).cuerpo().size()).isZero();
         assertThat(pedir("/api/ecos/v1/mis-intentos", ana()).estado()).isEqualTo(200);
     }
+
+    @Test
+    @Order(90)
+    @DisplayName("El catálogo de Ecos se convierte en un caso normal que el docente puede publicar")
+    void casoDesdeEcos() throws Exception {
+        cargarCatalogo();
+        String carlos = tokenWeb("carlos.gomez@institucion.edu.co", "Clave-Docente-01", false);
+        jdbc.update("DELETE FROM casos_estudio WHERE nombre = 'Ecos de una decisión'");
+        Resp creado = enviar("/api/ecos/v1/crear-caso", carlos, null);
+        assertThat(creado.estado()).isEqualTo(201);
+        long id = creado.cuerpo().get("caso").get("id").asLong();
+        assertThat(creado.cuerpo().get("caso").get("nombre").asString()).isEqualTo("Ecos de una decisión");
+        assertThat(enviar("/api/ecos/v1/crear-caso", carlos, null).codigo()).isEqualTo("CASO_YA_EXISTE");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM preguntas p JOIN escenarios e ON e.id_escenario = p.id_escenario WHERE e.id_caso = ?", Integer.class, id)).isEqualTo(4);
+        // Una sola correcta por pregunta y porcentaje = crédito.
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM respuestas r JOIN preguntas p ON p.id_pregunta = r.id_pregunta JOIN escenarios e ON e.id_escenario = p.id_escenario WHERE e.id_caso = ? AND r.es_correcta = TRUE", Integer.class, id)).isEqualTo(4);
+        Resp publicado = enviar("/api/casos/" + id + "/publicacion", carlos, null);
+        assertThat(publicado.estado()).as(publicado.cuerpo().toString()).isEqualTo(200);
+        jdbc.update("DELETE FROM casos_estudio WHERE id_caso = ?", id);
+    }
 }

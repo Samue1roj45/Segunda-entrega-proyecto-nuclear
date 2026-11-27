@@ -26,8 +26,10 @@ public class EcosControlador {
 
     private final ServicioEcos ecos;
     private final ServicioAutorizacion autorizacion;
+    private final CasoDesdeEcos casoDesdeEcos;
 
-    public EcosControlador(ServicioEcos ecos, ServicioAutorizacion autorizacion) {
+    public EcosControlador(ServicioEcos ecos, ServicioAutorizacion autorizacion, CasoDesdeEcos casoDesdeEcos) {
+        this.casoDesdeEcos = casoDesdeEcos;
         this.ecos = ecos;
         this.autorizacion = autorizacion;
     }
@@ -43,6 +45,13 @@ public class EcosControlador {
     @GetMapping("/mis-intentos")
     public EstadoEstudiante misIntentos() {
         return ecos.estado(autorizacion.exigirPermiso(Permiso.PARTICIPAR_EN_CASOS).id());
+    }
+
+    /** Crea en los casos del docente el caso «Ecos de una decisión» (borrador) con la información del catálogo. */
+    @PostMapping("/crear-caso")
+    @ResponseStatus(HttpStatus.CREATED)
+    public co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO crearCaso() {
+        return casoDesdeEcos.crear(autorizacion.exigirPermiso(Permiso.GESTIONAR_CASOS).id());
     }
 
     // ---- Docente (JWT web): sus estudiantes, su tablero en vivo y sus resultados ----
