@@ -45,8 +45,9 @@ class CorreoBrevo {
     @Bean
     JavaMailSender javaMailSender(@Value("${BREVO_API_KEY}") String clave,
                                   @Value("${BREVO_URL:https://api.brevo.com/v3/smtp/email}") String url,
-                                  @Value("${MAIL_NOMBRE_REMITENTE:SOMA}") String nombreRemitente) {
-        return new EnviadorBrevo(clave.trim(), URI.create(url), nombreRemitente);
+                                  @Value("${MAIL_NOMBRE_REMITENTE:SOMA}") String nombreRemitente,
+                                  @Value("${app.invitaciones.url-frontend:}") String urlPlataforma) {
+        return new EnviadorBrevo(clave.trim(), URI.create(url), nombreRemitente, urlPlataforma);
     }
 
     /** Hereda de JavaMailSenderImpl para reutilizar la conversión de SimpleMailMessage a MimeMessage. */
@@ -57,12 +58,18 @@ class CorreoBrevo {
         private final String clave;
         private final URI url;
         private final String nombreRemitente;
+        private final String urlPlataforma;
         private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
         EnviadorBrevo(String clave, URI url, String nombreRemitente) {
+            this(clave, url, nombreRemitente, "");
+        }
+
+        EnviadorBrevo(String clave, URI url, String nombreRemitente, String urlPlataforma) {
             this.clave = clave;
             this.url = url;
             this.nombreRemitente = nombreRemitente;
+            this.urlPlataforma = urlPlataforma;
             LOG.info("Correo: se envía por la API de Brevo (no por SMTP).");
         }
 
@@ -118,6 +125,10 @@ class CorreoBrevo {
 
             String[] cuerpo = new String[2]; // [0] texto plano, [1] HTML
             leerCuerpo(mensaje, cuerpo);
+            if (cuerpo[1] == null && cuerpo[0] != null) {
+                // Los avisos y convocatorias se arman en texto plano: se visten con la plantilla de SOMA.
+                cuerpo[1] = PlantillaCorreoTexto.html(mensaje.getSubject(), cuerpo[0], urlPlataforma);
+            }
             if (cuerpo[1] != null) sb.append(",\"htmlContent\":").append(texto(cuerpo[1]));
             if (cuerpo[0] != null) sb.append(",\"textContent\":").append(texto(cuerpo[0]));
             if (cuerpo[0] == null && cuerpo[1] == null) sb.append(",\"textContent\":\" \"");
