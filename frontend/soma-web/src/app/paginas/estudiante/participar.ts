@@ -6,6 +6,7 @@ import { relojDe } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Contexto, Herramienta, Progreso } from '../../core/modelos/dominio';
 import { DialogoService } from '../../core/dialogo.service';
+import { EcosEstudiante } from '../ecos/ecos-estudiante';
 import { ToastService } from '../../core/toast.service';
 import { SomaApiService } from '../../core/soma-api.service';
 
@@ -16,14 +17,16 @@ import { SomaApiService } from '../../core/soma-api.service';
  */
 @Component({
   selector: 'app-participar',
-  imports: [RouterLink],
+  imports: [RouterLink, EcosEstudiante],
   template: `
     <div class="pagina">
       <p class="migas"><a routerLink="/mis-sesiones">Mis casos</a> / {{ contexto()?.nombreCaso ?? 'Participación' }}</p>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando el caso"><i></i><i></i><i></i></div> }
 
-      @if (contexto(); as c) {
+      @if (esEcos()) { <app-ecos-estudiante /> }
+
+      @if (contextoNormal(); as c) {
         <header class="cristal bloque cabecera-participacion">
           <div>
             <h2>{{ c.nombreCaso }}</h2>
@@ -148,6 +151,9 @@ import { SomaApiService } from '../../core/soma-api.service';
 export class Participar implements OnInit, OnDestroy {
   private readonly api = inject(SomaApiService);
   private readonly ruta = inject(ActivatedRoute);
+  /** «Ecos de una decisión» se juega en el simulador: no muestra preguntas, solo la conexión con el juego. */
+  protected readonly esEcos = computed(() => this.contexto()?.nombreCaso === 'Ecos de una decisión');
+  protected readonly contextoNormal = computed(() => (this.esEcos() ? null : this.contexto()));
   private readonly router = inject(Router);
   private readonly toasts = inject(ToastService);
   private readonly dialogos = inject(DialogoService);

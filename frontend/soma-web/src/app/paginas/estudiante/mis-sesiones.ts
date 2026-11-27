@@ -1,32 +1,20 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { claseEstado, nombreEstado } from '../../compartido/formato';
 import { mensajeDeError } from '../../core/con-operaciones';
 import { Convocatoria, EstadoIngreso, ParticipacionLista } from '../../core/modelos/dominio';
 import { SomaApiService } from '../../core/soma-api.service';
-import { SesionService } from '../../core/sesion.service';
-import { Permiso } from '../../core/modelos/permiso';
 
 /** Convocatorias del estudiante (RF-20): a qué sesiones fue invitado, si puede entrar ahora y cuántos intentos le quedan. */
 @Component({
   selector: 'app-mis-sesiones',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe],
   template: `
     <div class="pagina">
       <div class="cabecera-pagina"><h2 class="sr-only">Mis casos</h2></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
-      @if (puedeEcos()) {
-        <div class="tarjetas">
-          <article class="cristal tarjeta-item">
-            <span class="etiqueta ok">Videojuego</span>
-            <h3><a routerLink="/ecos">Ecos de una decisión</a></h3>
-            <p class="suave">Seis actos con decisiones, en el videojuego. SOMA calcula tu nota y cuenta tu mejor intento.</p>
-            <div class="acciones"><a routerLink="/ecos" class="boton-primario enlace-boton">Abrir</a></div>
-          </article>
-        </div>
-      }
       @if (cargando()) { <div class="esqueleto" role="status" aria-label="Cargando tus convocatorias"><i></i><i></i><i></i></div> }
       @else if (lista().length === 0) { <p class="cristal vacio">Todavía no tienes sesiones asignadas. Cuando tu docente te convoque, aparecerán aquí.</p> }
       @else {
@@ -68,8 +56,6 @@ import { Permiso } from '../../core/modelos/permiso';
 export class MisSesiones implements OnInit {
   private readonly api = inject(SomaApiService);
   private readonly router = inject(Router);
-  private readonly sesion = inject(SesionService);
-  protected readonly puedeEcos = computed(() => this.sesion.tienePermiso(Permiso.ParticiparEnCasos));
   protected readonly lista = signal<Convocatoria[]>([]);
   protected readonly propias = signal<ParticipacionLista[]>([]);
   protected readonly ingreso = signal<Record<number, EstadoIngreso>>({});
