@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,8 +109,10 @@ public class ServicioInvitaciones {
             boolean nuevo = vincular(docenteId, estudianteId);
             String texto = nuevo ? "Ya tenía cuenta: quedó agregado a tus estudiantes." : "Ya estaba en tus estudiantes.";
             if (nuevo) {
-                enviar(correoEstudiante, "Un docente te agregó en SOMA", docente + " te agregó a sus estudiantes en SOMA. "
-                        + "Ingresa con tu cuenta: " + propiedades.urlFrontend() + "/login");
+                enviar(correoEstudiante, "Un docente te agregó en SOMA", "Ya estás en la lista de un docente",
+                        List.of(docente + " te agregó a sus estudiantes en SOMA.", "Ingresa con tu cuenta de siempre para ver tus actividades."),
+                        "Entrar a SOMA", propiedades.urlFrontend().replaceAll("/+$", "") + "/login",
+                        "Si no esperabas este correo, puedes ignorarlo.");
             }
             return new ResultadoInvitacion(correoEstudiante, "VINCULADO", texto, null, nuevo);
         }
@@ -133,9 +135,11 @@ public class ServicioInvitaciones {
             resultado = "REENVIADA";
         }
         String enlace = enlace(token);
-        boolean enviado = enviar(correoEstudiante, "Te invitaron a SOMA", docente + " te invitó a SOMA, la plataforma de simulaciones "
-                + "para el aprendizaje en psicología social.\n\nCrea tu cuenta aquí (el enlace vale " + propiedades.diasVigencia()
-                + " días):\n" + enlace + "\n\nSi no esperabas este correo, ignóralo.");
+        String vigencia = propiedades.diasVigencia() + " días";
+        boolean enviado = enviar(correoEstudiante, "Te invitaron a SOMA", "Te invitaron a SOMA",
+                List.of(docente + " te invitó a SOMA, la plataforma de simulaciones para el aprendizaje en psicología social.",
+                        "Crea tu cuenta con este mismo correo: elige tu contraseña y completa tus datos. El enlace es personal y vale " + vigencia + "."),
+                "Crear mi cuenta", enlace, "Si no esperabas este correo, puedes ignorarlo: no se crea ninguna cuenta hasta que abras el enlace.");
         String texto = enviado ? ("ENVIADA".equals(resultado) ? "Invitación enviada." : "Invitación reenviada con un enlace nuevo.")
                 : "La invitación quedó creada, pero el correo no se pudo enviar. Comparte el enlace tú mismo.";
         return new ResultadoInvitacion(correoEstudiante, resultado, texto, enlace, enviado);
@@ -288,16 +292,18 @@ public class ServicioInvitaciones {
                 docenteId, estudianteId, Timestamp.valueOf(LocalDateTime.now(reloj)), docenteId, estudianteId) > 0;
     }
 
-    private boolean enviar(String para, String asunto, String texto) {
+    private boolean enviar(String para, String asunto, String titulo, List<String> parrafos, String textoBoton, String enlace, String nota) {
         try {
-            SimpleMailMessage m = new SimpleMailMessage();
-            m.setFrom(remitente);
-            m.setTo(para);
-            m.setSubject("SOMA · " + asunto);
-            m.setText(texto + "\n\n— Plataforma SOMA");
+            var m = correo.createMimeMessage();
+            var h = new MimeMessageHelper(m, true, "UTF-8");
+            h.setFrom(remitente);
+            h.setTo(para);
+            h.setSubject("SOMA · " + asunto);
+            String plano = titulo + "\n\n" + String.join("\n\n", parrafos) + "\n\n" + textoBoton + ": " + enlace + "\n\n" + nota + "\n\n— Plataforma SOMA";
+            h.setText(plano, PlantillaCorreo.html(titulo, parrafos, textoBoton, enlace, nota));
             correo.send(m);
             return true;
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             LOG.warn("No se pudo enviar el correo a {}: {}", para, e.getMessage());
             return false;
         }
