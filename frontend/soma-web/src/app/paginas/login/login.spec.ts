@@ -59,7 +59,7 @@ describe('Login', () => {
     const acceso = el.querySelector<HTMLButtonElement>('button.cambio')!;
     expect(el.querySelector('.tarjeta .cambio')).toBe(acceso);
     expect(acceso.textContent).toContain('Ingresar como estudiante');
-    expect(acceso.textContent).toContain('Accede con tu código de acceso.');
+    expect(acceso.textContent).toContain('Accede con tu contraseña.');
     acceso.click();
     fixture.detectChanges();
     expect(el.querySelector('#codigo-login')).not.toBeNull();
