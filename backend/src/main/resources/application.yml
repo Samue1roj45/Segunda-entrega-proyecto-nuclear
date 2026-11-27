@@ -64,6 +64,9 @@ app:
     # Si se deja vacía se genera una aleatoria al arrancar (los tokens no sobreviven a un reinicio).
     jwt-secreto: ${JWT_SECRETO:}
     minutos-token: ${JWT_MINUTOS:60}
+  flyway:
+    # Solo para recuperar un despliegue con una migración fallida (ver docs/recuperacion-flyway-render.md).
+    reparar: ${FLYWAY_REPARAR:false}
   cors:
     # Orígenes de los frontends Angular, separados por coma.
     origenes: ${CORS_ORIGENES:http://localhost:4200}

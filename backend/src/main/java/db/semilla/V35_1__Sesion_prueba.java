@@ -18,6 +18,10 @@ import java.util.Map;
  * Datos FICTICIOS (perfiles "pruebas" y "test"): una sesión SIN_INICIAR de Carlos Gómez sobre el caso de
  * prueba del módulo 2, con Ana y Luis convocados. Sus códigos de acceso son los del documento PT-DCP-01
  * (RF-01) y se guardan solo como hash BCrypt. La sesión dura 30 días desde que se crea la base.
+ *
+ * <p>El caso de prueba ya no se siembra (lo pidió el equipo: el caso real es «Ecos de una decisión», que SOMA crea al
+ * arrancar). Por eso esta migración es tolerante: si el caso no existe no hay nada que programar y termina sin error.
+ * Antes fallaba con «Illegal operation on empty result set» al pedir la llave de un INSERT que no insertó nada.
  */
 public class V35_1__Sesion_prueba extends BaseJavaMigration {
 
@@ -44,9 +48,13 @@ public class V35_1__Sesion_prueba extends BaseJavaMigration {
             insercion.setTimestamp(1, Timestamp.valueOf(inicio));
             insercion.setTimestamp(2, Timestamp.valueOf(inicio.plusDays(30)));
             insercion.setTimestamp(3, Timestamp.valueOf(inicio));
-            insercion.executeUpdate();
+            if (insercion.executeUpdate() == 0) {
+                return; // sin caso de prueba no hay sesión de prueba que sembrar
+            }
             try (ResultSet llave = insercion.getGeneratedKeys()) {
-                llave.next();
+                if (!llave.next()) {
+                    return;
+                }
                 idPractica = llave.getLong(1);
             }
         }

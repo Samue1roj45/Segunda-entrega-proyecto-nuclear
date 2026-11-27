@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.io.InputStream;
 
 /** Al arrancar deja cargado el banco de preguntas real de «Ecos de una decisión» (idempotente por casoVersion). */
 @Component
+@Order(10)
 @ConditionalOnProperty(name = "app.ecos.catalogo-inicial", havingValue = "true", matchIfMissing = true)
 class CargaCatalogoInicial implements ApplicationRunner {
 
