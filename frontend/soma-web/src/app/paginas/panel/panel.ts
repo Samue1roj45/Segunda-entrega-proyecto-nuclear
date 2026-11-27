@@ -37,7 +37,6 @@ const SECCIONES: readonly Seccion[] = [
   { titulo: 'Auditoría', icono: 'M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6zM9 12l2 2 4-4', ruta: '/auditoria', permiso: Permiso.AdministrarDocentes, grupo: 'Administración' },
   { titulo: 'Ecos: catálogo', icono: 'M12 3a9 9 0 1 0 9 9M12 7v5l3 2', ruta: '/ecos-catalogo', permiso: Permiso.AdministrarDocentes, grupo: 'Administración' },
   { titulo: 'Mis casos', icono: 'M5 4h10l4 4v12H5zM14 4v5h5M9 14l2 2 4-4', ruta: '/mis-sesiones', permiso: Permiso.ParticiparEnCasos, grupo: 'Mi aprendizaje' },
-  { titulo: 'Ecos de una decisión', icono: 'M12 3a9 9 0 1 0 9 9M12 7v5l3 2', ruta: '/ecos', permiso: Permiso.ParticiparEnCasos, grupo: 'Mi aprendizaje' },
   { titulo: 'Mis resultados', icono: 'M5 20V10m7 10V4m7 16v-7', ruta: '/mis-resultados', permiso: Permiso.ConsultarResultadosPropios, grupo: 'Mi aprendizaje' },
 ];
 
@@ -288,7 +287,9 @@ export class Panel implements OnInit, OnDestroy {
   protected readonly actual = computed(() => {
     const u = this.url();
     return SECCIONES.find((s) => s.ruta !== '/inicio' && u.startsWith(s.ruta))
-      ?? (u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' }
+      ?? (u === '/ecos' || u.startsWith('/ecos?') ? { ...SECCIONES.find((s) => s.ruta === '/mis-sesiones')!, titulo: 'Ecos de una decisión' }
+        : u.startsWith('/caso-ecos') ? { ...SECCIONES.find((s) => s.ruta === '/casos')!, titulo: 'Ecos de una decisión' }
+        : u.startsWith('/participar') ? { ...SECCIONES[6], titulo: 'Participar en el caso' }
         : u.startsWith('/perfil') ? { ...SECCIONES[0], titulo: 'Mi perfil', grupo: 'Cuenta', ruta: '/perfil' } : SECCIONES[0]);
   });
   protected readonly destinos = computed(() => [
