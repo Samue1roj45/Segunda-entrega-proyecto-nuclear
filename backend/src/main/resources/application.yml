@@ -57,8 +57,8 @@ app:
     max-intentos: ${ECOS_MAX_INTENTOS:1}
     tolerancia-segundos: 10
   autenticacion:
-    # Dominio aceptado por RF-01. Se configura por entorno.
-    dominio-institucional: ${DOMINIO_INSTITUCIONAL:institucion.edu.co}
+    # Dominios aceptados por RF-01 (uno o varios, separados por coma). institucion.edu.co es el de las cuentas de prueba.
+    dominio-institucional: ${DOMINIO_INSTITUCIONAL:unihumboldt.edu.co,cue.edu.co,institucion.edu.co}
   seguridad:
     # Clave HMAC (Base64, mínimo 32 bytes) para firmar los tokens de TODOS los módulos.
     # Si se deja vacía se genera una aleatoria al arrancar (los tokens no sobreviven a un reinicio).

@@ -52,6 +52,7 @@ public class ServicioInvitaciones {
     private final PropiedadesInvitaciones propiedades;
     private final PasswordEncoder codificador;
     private final JavaMailSender correo;
+    private final java.util.List<String> dominios;
     private final String dominio;
     private final String remitente;
     private final SecureRandom azar = new SecureRandom();
@@ -64,7 +65,8 @@ public class ServicioInvitaciones {
         this.propiedades = propiedades;
         this.codificador = codificador;
         this.correo = correo;
-        this.dominio = dominio.toLowerCase(Locale.ROOT);
+        this.dominios = java.util.Arrays.stream(dominio.toLowerCase(Locale.ROOT).split(",")).map(String::trim).filter(d -> !d.isEmpty()).toList();
+        this.dominio = String.join(" o @", dominios);
         this.remitente = remitente;
     }
 
@@ -95,7 +97,7 @@ public class ServicioInvitaciones {
         if (!CORREO.matcher(correoEstudiante).matches()) {
             return rechazo(correoEstudiante, "CORREO_INVALIDO", "No parece un correo válido.");
         }
-        if (!correoEstudiante.endsWith("@" + dominio)) {
+        if (dominios.stream().noneMatch(d -> correoEstudiante.endsWith("@" + d))) {
             return rechazo(correoEstudiante, "DOMINIO_INVALIDO", "Debe ser un correo institucional (@" + dominio + ").");
         }
         List<Map<String, Object>> existente = jdbc.queryForList("SELECT id, rol FROM usuario WHERE correo_institucional = ?", correoEstudiante);

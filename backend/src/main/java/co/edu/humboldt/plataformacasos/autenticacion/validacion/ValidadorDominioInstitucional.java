@@ -16,13 +16,17 @@ public class ValidadorDominioInstitucional extends ValidadorBase<SolicitudAutent
     private final String dominio;
     private final Pattern correoDelDominio;
 
-    public ValidadorDominioInstitucional(String dominioInstitucional) {
-        Objects.requireNonNull(dominioInstitucional, "dominioInstitucional");
-        this.dominio = dominioInstitucional.trim().toLowerCase(Locale.ROOT);
-        if (dominio.isEmpty()) {
+    /** Acepta uno o varios dominios separados por coma (p. ej. «unihumboldt.edu.co,cue.edu.co»). */
+
+    public ValidadorDominioInstitucional(String dominiosInstitucionales) {
+        Objects.requireNonNull(dominiosInstitucionales, "dominioInstitucional");
+        java.util.List<String> lista = java.util.Arrays.stream(dominiosInstitucionales.split(","))
+                .map(d -> d.trim().toLowerCase(Locale.ROOT)).filter(d -> !d.isEmpty()).toList();
+        if (lista.isEmpty()) {
             throw new IllegalArgumentException("El dominio institucional no puede estar vacío");
         }
-        this.correoDelDominio = Pattern.compile("^[^@\\s]+@" + Pattern.quote(dominio) + "$");
+        this.dominio = String.join(" o @", lista);
+        this.correoDelDominio = Pattern.compile("^[^@\\s]+@(?:" + lista.stream().map(Pattern::quote).collect(java.util.stream.Collectors.joining("|")) + ")$");
     }
 
     @Override

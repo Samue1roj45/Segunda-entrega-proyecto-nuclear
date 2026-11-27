@@ -28,12 +28,14 @@ public class ServicioAdministracionEstudiantesImpl implements ServicioAdministra
     private static final int LONGITUD_MAXIMA = 150;
 
     private final UsuarioRepositorio usuarioRepositorio;
+    private final java.util.List<String> dominios;
     private final String dominio;
 
     public ServicioAdministracionEstudiantesImpl(UsuarioRepositorio usuarioRepositorio,
             @Value("${app.autenticacion.dominio-institucional}") String dominioInstitucional) {
         this.usuarioRepositorio = usuarioRepositorio;
-        this.dominio = dominioInstitucional.trim().toLowerCase(Locale.ROOT);
+        this.dominios = java.util.Arrays.stream(dominioInstitucional.toLowerCase(Locale.ROOT).split(",")).map(String::trim).filter(d -> !d.isEmpty()).toList();
+        this.dominio = String.join(" o @", dominios);
     }
 
     // Opcionales: las pruebas unitarias crean el servicio sin ellos.
@@ -58,7 +60,7 @@ public class ServicioAdministracionEstudiantesImpl implements ServicioAdministra
                 || correoNormalizado.length() > LONGITUD_MAXIMA || nombre.trim().length() > LONGITUD_MAXIMA) {
             throw new SolicitudInvalidaException(MensajesAdministracion.CORREO_INVALIDO);
         }
-        if (!correoNormalizado.endsWith("@" + dominio)) {
+        if (dominios.stream().noneMatch(d -> correoNormalizado.endsWith("@" + d))) {
             throw new SolicitudInvalidaException("El correo del estudiante debe ser del dominio institucional @"
                     + dominio + "; con otro dominio no podría ingresar.");
         }
