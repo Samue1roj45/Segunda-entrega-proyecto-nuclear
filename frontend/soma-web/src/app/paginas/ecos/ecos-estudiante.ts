@@ -15,7 +15,7 @@ import { EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
   imports: [DatePipe, DecimalPipe],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Ecos de una decisión</h2>
+      <div class="cabecera-pagina"><h2 class="sr-only">Ecos de una decisión</h2>
         <p class="suave">Videojuego en Unreal Engine: vives seis actos y tomas decisiones. Tu nota la calcula SOMA con tus respuestas.</p></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
 

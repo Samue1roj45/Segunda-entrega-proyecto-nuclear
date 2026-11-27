@@ -21,7 +21,7 @@ const ESTADOS: Record<EstadoJuego, { texto: string; clase: string }> = {
   imports: [DatePipe, DecimalPipe, FormsModule],
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Mis estudiantes</h2>
+      <div class="cabecera-pagina"><h2 class="sr-only">Mis estudiantes</h2>
         <p class="suave">Invítalos por correo: al abrir el enlace crean su cuenta con ese mismo correo y quedan en tu lista.</p></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
 

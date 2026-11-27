@@ -8,7 +8,7 @@ import { EcosService } from '../../core/ecos.service';
   selector: 'app-ecos-catalogo',
   template: `
     <div class="pagina">
-      <div class="cabecera-pagina"><h2>Ecos de una decisión · catálogo</h2>
+      <div class="cabecera-pagina"><h2 class="sr-only">Ecos de una decisión · catálogo</h2>
         <p class="suave">Pega el banco de preguntas exportado del juego (campos casoVersion, casoId, nombre, criterios, preguntas).</p></div>
       @if (error(); as e) { <p class="alerta-error" role="alert">{{ e }}</p> }
       @if (aviso(); as a) { <p class="aviso-ok" role="status">{{ a }}</p> }
@@ -16,12 +16,17 @@ import { EcosService } from '../../core/ecos.service';
         <label for="json">Catálogo (JSON)</label>
         <textarea id="json" rows="14" #t [value]="texto()" (input)="texto.set(t.value)" spellcheck="false" style="width:100%;font-family:monospace"></textarea>
         <div class="acciones">
-          <input type="file" accept=".json,application/json" (change)="leer($event)" aria-label="Elegir archivo JSON" />
+          <label class="boton-suave archivo">
+            <input type="file" class="sr-only" accept=".json,application/json" (change)="leer($event)" aria-label="Elegir archivo JSON" />
+            Elegir archivo JSON
+          </label>
+          <span class="ayuda">{{ archivo() || 'Ningún archivo seleccionado' }}</span>
           <button type="button" class="boton-primario" [disabled]="ocupado() || !texto().trim()" (click)="enviar()">Cargar catálogo</button>
         </div>
       </section>
     </div>
   `,
+  styles: `.archivo { cursor: pointer; } .archivo:focus-within { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; } .acciones { align-items: center; }`,
 })
 export class EcosCatalogo {
   private readonly ecos = inject(EcosService);
@@ -29,10 +34,11 @@ export class EcosCatalogo {
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal<string | null>(null);
   protected readonly ocupado = signal(false);
+  protected readonly archivo = signal('');
 
   protected leer(e: Event): void {
     const f = (e.target as HTMLInputElement).files?.[0];
-    if (f) { void f.text().then((t) => this.texto.set(t)); }
+    if (f) { this.archivo.set(f.name); void f.text().then((t) => this.texto.set(t)); }
   }
 
   protected enviar(): void {
