@@ -60,4 +60,38 @@ describe('EcosEstudiante', () => {
     expect(apiParaJuego({ hostname: 'localhost', origin: 'http://localhost:4200' }, backend)).toBe(backend);
     expect(apiParaJuego({ hostname: '127.0.0.1', origin: 'http://127.0.0.1:4200' }, backend)).toBe(backend);
   });
+
+  it('dentro de la participación abre el juego solo, sin pedir «Jugar»', async () => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const http = TestBed.inject(HttpTestingController);
+    const f = TestBed.createComponent(EcosEstudiante);
+    f.componentRef.setInput('autoIniciar', true);
+    f.detectChanges();
+    http.expectOne('/api/ecos/v1/mis-intentos').flush({ caso: 'Caso', disponible: true, maxIntentos: 1, usados: 0, restantes: 1, intentos: [] });
+    http.expectOne('/api/ecos/v1/pixel-streaming').flush({ activo: true, url: 'https://juego.ejemplo.edu.co/', origen: 'https://juego.ejemplo.edu.co' });
+    f.detectChanges();
+
+    http.expectOne('/api/ecos/v1/sesiones').flush({
+      sesionId: 's1', codigo: 'K7Q2-9XMP', intento: 1, venceEn: new Date(Date.now() + 600000).toISOString(),
+      enlace: 'ecos://iniciar?sesion=K7Q2-9XMP&api=http://localhost:8080/api/ecos/v1',
+    });
+    http.expectOne('/api/ecos/v1/mis-intentos').flush({ caso: 'Caso', disponible: false, maxIntentos: 1, usados: 0, restantes: 1, intentos: [] });
+    f.detectChanges();
+    expect((f.nativeElement as HTMLElement).querySelector('app-visor-pixel-streaming iframe')).not.toBeNull();
+    f.destroy();
+  });
+
+  it('sin intentos disponibles no abre nada solo', async () => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const http = TestBed.inject(HttpTestingController);
+    const f = TestBed.createComponent(EcosEstudiante);
+    f.componentRef.setInput('autoIniciar', true);
+    f.detectChanges();
+    http.expectOne('/api/ecos/v1/mis-intentos').flush({ caso: 'Caso', disponible: false, maxIntentos: 1, usados: 1, restantes: 0, intentos: [] });
+    http.expectOne('/api/ecos/v1/pixel-streaming').flush({ activo: true, url: 'https://juego.ejemplo.edu.co/', origen: 'https://juego.ejemplo.edu.co' });
+    f.detectChanges();
+    http.expectNone('/api/ecos/v1/sesiones');
+    expect((f.nativeElement as HTMLElement).textContent).toContain('Ya usaste todos tus intentos');
+    f.destroy();
+  });
 });
