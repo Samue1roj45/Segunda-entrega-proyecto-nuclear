@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { EcosEstudiante } from './ecos-estudiante';
+import { EcosEstudiante, apiParaJuego } from './ecos-estudiante';
 
 describe('EcosEstudiante', () => {
   it('muestra el código y deja el enlace ecos:// intacto (sin el prefijo "unsafe:")', async () => {
@@ -51,5 +51,13 @@ describe('EcosEstudiante', () => {
     expect(el.querySelector('a.boton-primario')).toBeNull();
     expect(el.querySelector('.en-vivo')?.textContent).toContain('Esperando que el juego se conecte');
     f.destroy();
+  });
+
+  it('al juego por streaming le pasa la API de la misma página (en localhost, la del backend)', () => {
+    const backend = 'http://localhost:8080/api/ecos/v1';
+    expect(apiParaJuego({ hostname: 'front-lbjo.onrender.com', origin: 'https://front-lbjo.onrender.com' }, backend))
+      .toBe('https://front-lbjo.onrender.com/api/ecos/v1');
+    expect(apiParaJuego({ hostname: 'localhost', origin: 'http://localhost:4200' }, backend)).toBe(backend);
+    expect(apiParaJuego({ hostname: '127.0.0.1', origin: 'http://127.0.0.1:4200' }, backend)).toBe(backend);
   });
 });

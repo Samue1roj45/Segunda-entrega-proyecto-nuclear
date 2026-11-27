@@ -24,8 +24,9 @@ ECOS_PIXEL_STREAMING_URL=https://<tu-servidor>/?StreamerId=DefaultStreamer&AutoC
 ```
 
 - Solo se acepta una URL `http(s)` absoluta. Vacía = el juego se abre en el computador con `ecos://`, como antes.
-- `ECOS_API_URL` debe ser la URL **pública** de la API (por ejemplo `https://<backend>.onrender.com/api/ecos/v1`): es la que
-  el juego usa para canjear el código y enviar eventos y resultado.
+- La dirección de la API que recibe el juego es la de la **misma página** (`https://<sitio de SOMA>/api/ecos/v1`), porque
+  el servidor del frontend reenvía `/api` al backend. No hace falta configurar `ECOS_API_URL` para el streaming; solo en
+  `localhost` se usa la que publica el backend (`ECOS_API_URL`), porque `localhost` no le sirve a un servidor remoto.
 - Los enlaces de `trycloudflare.com` cambian cada vez que se reinicia el túnel: al cambiar, actualiza la variable y vuelve
   a desplegar el backend (no hace falta tocar el frontend).
 
@@ -54,6 +55,7 @@ Sin el puente el juego **igual se ve y se juega** dentro de SOMA, pero la págin
 ```
 
 Con `codigo` y `api` el juego hace exactamente lo mismo que con `-EcosSesion` y `-EcosApi`: `POST {api}/sesiones/{codigo}/canje`.
+En el sitio desplegado `api` es, por ejemplo, `https://front-lbjo.onrender.com/api/ecos/v1`.
 
 **Informar a la página** (juego → SOMA, en vivo). Con *Send Pixel Streaming Response* se envía un texto JSON. El puente lo
 reenvía a la página y el panel muestra `acto`, `punto` y `texto`/`mensaje` (cualquier otro campo sale como `clave: valor`):

@@ -6,6 +6,12 @@ import { mensajeDeError } from '../../core/con-operaciones';
 import { AvanceSesionEcos, ConfigPixelStreaming, EcosService, EstadoEcos, SesionEcos } from '../../core/ecos.service';
 import { MensajeVisor, SesionParaJuego, VisorPixelStreaming } from './visor-pixel-streaming';
 
+/** Dirección de la API que recibe el juego por Pixel Streaming (ver apiParaStreaming). */
+export function apiParaJuego(ubicacion: { hostname: string; origin: string }, apiDelBackend: string): string {
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(ubicacion.hostname);
+  return local ? apiDelBackend : `${ubicacion.origin}/api/ecos/v1`;
+}
+
 /**
  * "Ecos de una decisión" para el estudiante. El juego (Unreal Engine) corre en este computador: SOMA crea una sesión,
  * muestra el código de un solo uso y el enlace ecos:// que abre el juego ya conectado; al terminar, el juego envía el
@@ -194,11 +200,18 @@ export class EcosEstudiante implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { clearInterval(this.temporizador); }
 
-  /** Datos que el puente le entrega al juego: los mismos del enlace ecos:// (código de un solo uso y URL de la API). */
+  /** Datos que el puente le entrega al juego: el código de un solo uso y la dirección de la API de SOMA. */
   protected readonly sesionJuego = computed<SesionParaJuego | null>(() => {
     const c = this.sesion();
-    return c ? { sesionId: c.sesionId, codigo: c.codigo, api: this.api(c) } : null;
+    return c ? { sesionId: c.sesionId, codigo: c.codigo, api: this.apiParaStreaming(c) } : null;
   });
+
+  /**
+   * Con Pixel Streaming el juego corre en otro servidor y necesita una dirección pública de SOMA. Esta misma página la
+   * tiene: su servidor reenvía /api al backend. Así no hace falta configurar ECOS_API_URL. En localhost esa dirección no
+   * le sirve a un servidor remoto, así que ahí se usa la que publica el backend (la del enlace ecos://).
+   */
+  private apiParaStreaming(c: SesionEcos): string { return apiParaJuego(window.location, this.api(c)); }
 
   protected alMensaje(m: MensajeVisor): void {
     switch (m.tipo) {
