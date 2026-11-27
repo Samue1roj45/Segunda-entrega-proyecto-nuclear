@@ -57,6 +57,16 @@ class LimpiezaDeCasosTest {
             assertThat(cuantos(t)).as(t).isZero();
         }
         assertThat(cuantos("usuario")).isEqualTo(usuarios);
+
+        for (int vez = 0; vez < 2; vez++) {   // docente Samuel: repetible y con sus permisos
+            try (var c = datos.getConnection()) {
+                ScriptUtils.executeSqlScript(c, new FileSystemResource(Path.of("..", "docs", "crear-docente-samuel.sql")));
+            }
+        }
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM usuario WHERE correo_institucional = 'svelasquez_775@unihumboldt.edu.co' AND rol = 'DOCENTE' AND nombre_completo = 'Samuel Velásquez Rojas'", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM usuario_permiso p JOIN usuario u ON u.id = p.usuario_id WHERE u.correo_institucional = 'svelasquez_775@unihumboldt.edu.co'", Integer.class)).isEqualTo(8);
+        jdbc.update("DELETE FROM usuario_permiso WHERE usuario_id IN (SELECT id FROM usuario WHERE correo_institucional = 'svelasquez_775@unihumboldt.edu.co')");
+        jdbc.update("DELETE FROM usuario WHERE correo_institucional = 'svelasquez_775@unihumboldt.edu.co'");
         assertThat(cuantos("ecos_caso")).isEqualTo(1);
         assertThat(cuantos("docente_estudiante")).isEqualTo(2);
 
