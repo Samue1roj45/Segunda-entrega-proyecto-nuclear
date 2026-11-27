@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, NgZone, inject, signal, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -81,25 +81,13 @@ import { SesionService } from '../../core/sesion.service';
             <span class="caja" aria-hidden="true"></span>
             <span>Recordarme</span>
           </label>
-          <button type="button" class="olvido" (click)="noDisponible('recuperar')">¿Olvidaste tu contraseña?</button>
+          <button type="button" class="olvido" (click)="noDisponible()">¿Olvidaste tu contraseña?</button>
 
           <button type="submit" class="ingresar" [disabled]="ocupado()" [attr.aria-busy]="ocupado()">
             @if (ocupado()) { <span class="rueda" aria-hidden="true"></span> }
             <span>{{ ocupado() ? 'Ingresando…' : 'Ingresar' }}</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5" /></svg>
           </button>
-
-          <div class="separador"><span>o continúa con</span></div>
-          <div class="sociales">
-            <div #botonGoogle class="boton-google" [hidden]="!googleListo()"></div>
-            @if (!googleListo()) {
-              <button type="button" class="social-ancho" (click)="noDisponible('social')">
-                <span class="g" aria-hidden="true">G</span><span>Continuar con Google</span>
-              </button>
-            }
-          </div>
-
-          <p class="registro">¿No tienes una cuenta? <button type="button" (click)="noDisponible('registro')">Regístrate</button></p>
 
           <button type="button" class="cambio" (click)="alternarTipo()">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.15" /><path d="M5.2 19.2c.9-3.3 3.4-5 6.8-5s5.9 1.7 6.8 5" /></svg>
@@ -120,7 +108,7 @@ import { SesionService } from '../../core/sesion.service';
     .escena::before { content: ''; position: fixed; left: 0; right: 0; top: 43vh; height: 18vh; background: linear-gradient(180deg, rgba(var(--d-207_198_230),0), rgba(var(--d-207_198_230),.96) 55%); pointer-events: none; }
     /* Móvil / tableta vertical: el render queda de fondo y la tarjeta fluye debajo de la marca. */
     .tarjeta {
-      position: relative; container-type: inline-size; aspect-ratio: 610 / 772;
+      position: relative; container-type: inline-size; aspect-ratio: 610 / 668;
       width: min(92vw, 460px); margin: 3vh auto 5vh; z-index: 1;
       border-radius: 6.6% / 5.8%; overflow: visible;
       background: linear-gradient(160deg, rgba(255,255,255,.62), rgba(var(--d-236_229_250),.5) 55%, rgba(222,212,245,.45));
@@ -182,8 +170,8 @@ import { SesionService } from '../../core/sesion.service';
     .campo.invalido { box-shadow: 0 0 0 2px rgba(194,122,138,.35); }
     .recordar, .social, .ingresar, .cambio, .olvido { user-select: none; }
     .recordar input:checked + .caja::after { animation: marcar .2s ease-out both; }
-    .olvido, .registro button { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .25s ease; text-decoration: none !important; }
-    .olvido:hover, .registro button:hover, .olvido:focus-visible, .registro button:focus-visible { background-size: 100% 1px; }
+    .olvido { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .25s ease; text-decoration: none !important; }
+    .olvido:hover, .olvido:focus-visible { background-size: 100% 1px; }
     .campo input:focus-visible { outline: none; }
     @media (min-aspect-ratio: 3/2) and (min-width: 900px) { .chispas { display: block; } }
     @media (hover: none) { .tarjeta { transform: none !important; } .tarjeta .interior::before { display: none; } .campo:hover, .social:hover, .ingresar:hover { transform: none !important; } }
@@ -223,7 +211,7 @@ import { SesionService } from '../../core/sesion.service';
       .escena::before { display: none; }
       .fondo { position: absolute; inset: auto; left: 50%; top: 50%; width: max(100vw, 177.7778vh); height: auto; aspect-ratio: 1672 / 941; transform: translate(-50%, -50%); object-fit: fill; }
       .tarjeta {
-        position: absolute; margin: 0; width: calc(max(100vw, 177.7778vh) * 610 / 1672);
+        position: absolute; margin: 0; width: calc(max(100vw, 177.7778vh) * 610 / 1672); aspect-ratio: 610 / 772;
         left: calc(50vw - max(100vw, 177.7778vh) / 2 + max(100vw, 177.7778vh) * 920 / 1672);
         top: calc(50vh - max(100vw, 177.7778vh) * 941 / 3344 + max(100vw, 177.7778vh) * 138 / 1672);
         background: linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
@@ -234,10 +222,12 @@ import { SesionService } from '../../core/sesion.service';
 
     /* Todo el interior se mide en "px de referencia" (1 u = 1 px de la imagen de 1672 de ancho). */
     .interior { --u: calc(100cqw / 610); position: absolute; inset: 0; }
+    /* En móvil la tarjeta no calza con el render: se acorta y el contenido sube para no dejar huecos. */
+    @media not ((min-aspect-ratio: 3/2) and (min-width: 900px)) { .interior > * { translate: 0 calc(var(--u) * -56); } }
     .interior > * { position: absolute; }
-    .titulo { left: 0; right: 0; top: calc(var(--u) * 73); margin: 0; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: max(calc(var(--u) * 48), 26px); line-height: 1.1; color: var(--d-43335f); letter-spacing: 0; }
-    .subtitulo { left: 0; right: 0; top: calc(var(--u) * 136); margin: 0; text-align: center; font-size: max(calc(var(--u) * 19.5), 14px); line-height: 1.37; color: #6a5d86; font-weight: 400; }
-    .aviso { left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 193); margin: 0; text-align: center; font-size: calc(var(--u) * 13.5); line-height: 1.25; color: var(--d-4a3a6b); }
+    .titulo { left: 0; right: 0; top: calc(var(--u) * 123); margin: 0; text-align: center; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500; font-size: max(calc(var(--u) * 48), 26px); line-height: 1.1; color: var(--d-43335f); letter-spacing: 0; }
+    .subtitulo { left: 0; right: 0; top: calc(var(--u) * 186); margin: 0; text-align: center; font-size: max(calc(var(--u) * 19.5), 14px); line-height: 1.37; color: #6a5d86; font-weight: 400; }
+    .aviso { left: calc(var(--u) * 40); right: calc(var(--u) * 40); top: calc(var(--u) * 243); margin: 0; text-align: center; font-size: calc(var(--u) * 13.5); line-height: 1.25; color: var(--d-4a3a6b); }
     .aviso.error { color: #9b3b4e; }
 
     .campo {
@@ -248,8 +238,8 @@ import { SesionService } from '../../core/sesion.service';
       box-shadow: 0 8px 22px -12px rgba(var(--d-94_74_138),.28), inset 0 1px 0 rgba(255,255,255,.9);
       transition: border-color .18s, box-shadow .18s, background .18s;
     }
-    .c1 { top: calc(var(--u) * 219); }
-    .c2 { top: calc(var(--u) * 295); }
+    .c1 { top: calc(var(--u) * 269); }
+    .c2 { top: calc(var(--u) * 345); }
     .campo:focus-within { border-color: #8a77b8; background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.6)); box-shadow: 0 0 0 calc(var(--u) * 3) rgba(var(--d-138_119_184),.28), 0 8px 22px -12px rgba(var(--d-94_74_138),.3); }
     .campo.invalido { border-color: #c27a8a; }
     .campo input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: max(calc(var(--u) * 17), 13.5px); color: var(--d-3f3257); }
@@ -258,17 +248,17 @@ import { SesionService } from '../../core/sesion.service';
     .ojo { border: 0; background: none; padding: 0; display: flex; border-radius: 8px; cursor: pointer; }
     .ojo svg { width: calc(var(--u) * 26); height: calc(var(--u) * 26); }
 
-    .recordar { left: calc(var(--u) * 67); top: calc(var(--u) * 374); height: calc(var(--u) * 30); display: flex; align-items: center; gap: calc(var(--u) * 14); font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: var(--d-43355f); cursor: pointer; }
+    .recordar { left: calc(var(--u) * 67); top: calc(var(--u) * 424); height: calc(var(--u) * 30); display: flex; align-items: center; gap: calc(var(--u) * 14); font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: var(--d-43355f); cursor: pointer; }
     .recordar input { position: absolute; opacity: 0; width: 0; height: 0; }
     .caja { width: calc(var(--u) * 25); height: calc(var(--u) * 25); border-radius: calc(var(--u) * 6); background: rgba(255,255,255,.7); border: 1.5px solid #6f6093; transition: background .15s, box-shadow .15s; display: grid; place-items: center; }
     .recordar input:checked + .caja { background: var(--d-5b4a80); border-color: var(--d-5b4a80); }
     .recordar input:checked + .caja::after { content: ''; width: 28%; height: 52%; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-8%) rotate(45deg); }
     .recordar input:focus-visible + .caja { box-shadow: 0 0 0 3px rgba(var(--d-138_119_184),.45); }
-    .olvido { right: calc(var(--u) * 65); top: calc(var(--u) * 374); height: calc(var(--u) * 30); border: 0; background: none; padding: 0; font: inherit; font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: var(--d-43355f); cursor: pointer; }
-    .olvido:hover, .registro button:hover { text-decoration: underline; }
+    .olvido { right: calc(var(--u) * 65); top: calc(var(--u) * 424); height: calc(var(--u) * 30); border: 0; background: none; padding: 0; font: inherit; font-size: max(calc(var(--u) * 16.5), 13px); font-weight: 500; color: var(--d-43355f); cursor: pointer; }
+    .olvido:hover { text-decoration: underline; }
 
     .ingresar {
-      left: calc(var(--u) * 67); top: calc(var(--u) * 420); width: calc(var(--u) * 478); height: calc(var(--u) * 65); border-radius: calc(var(--u) * 33);
+      left: calc(var(--u) * 67); top: calc(var(--u) * 470); width: calc(var(--u) * 478); height: calc(var(--u) * 65); border-radius: calc(var(--u) * 33);
       display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.12);
       background: linear-gradient(100deg, var(--d-5e4d82) 0%, var(--d-5a4879) 60%, var(--d-55437a) 100%);
       box-shadow: 0 14px 26px -12px rgba(var(--d-63_48_95),.65), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 6px rgba(var(--d-40_28_66),.35);
@@ -281,33 +271,8 @@ import { SesionService } from '../../core/sesion.service';
     .ingresar:focus-visible { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; }
     .ingresar:disabled { opacity: .75; cursor: progress; }
 
-    .separador { left: calc(var(--u) * 67); width: calc(var(--u) * 478); top: calc(var(--u) * 506); height: calc(var(--u) * 24); display: flex; align-items: center; gap: calc(var(--u) * 22); font-size: max(calc(var(--u) * 15), 12px); color: #7b7092; }
-    .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: rgba(110,96,145,.35); }
-
-    .sociales { left: calc(var(--u) * 67); width: calc(var(--u) * 478); top: calc(var(--u) * 546); height: calc(var(--u) * 70); align-items: center; display: flex; justify-content: center; gap: calc(var(--u) * 26); }
-    .social {
-      width: calc(var(--u) * 72); height: calc(var(--u) * 70); border-radius: calc(var(--u) * 20); display: grid; place-items: center; cursor: pointer;
-      background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.16)); border: 1px solid rgba(255,255,255,.7);
-      box-shadow: 0 10px 22px -14px rgba(var(--d-94_74_138),.35), inset 0 1px 0 rgba(255,255,255,.85); transition: transform .2s, background .2s;
-    }
-    .social svg { width: calc(var(--u) * 34); height: calc(var(--u) * 34); }
-    .g { font-family: 'Figtree', sans-serif; font-weight: 700; font-size: calc(var(--u) * 34); line-height: 1; color: var(--d-4a3a6b); }
-    .boton-google { display: flex; justify-content: center; width: calc(var(--u) * 478); max-width: 100%; }
-    .social-ancho {
-      width: calc(var(--u) * 478); max-width: 100%; height: calc(var(--u) * 62); border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: .6rem; cursor: pointer;
-      font: 600 max(calc(var(--u) * 20), 14px) 'Figtree', sans-serif; color: var(--d-4a3a6b);
-      background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.4)); border: 1px solid rgba(255,255,255,.8);
-      box-shadow: 0 10px 22px -14px rgba(var(--d-94_74_138),.35), inset 0 1px 0 rgba(255,255,255,.85);
-    }
-    .social-ancho:focus-visible { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; }
-    .social:hover { transform: translateY(-2px); background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.5)); }
-    .social:focus-visible { outline: 3px solid rgba(var(--d-138_119_184),.6); outline-offset: 2px; }
-
-    .registro { left: 0; right: 0; top: calc(var(--u) * 634); margin: 0; text-align: center; font-size: max(calc(var(--u) * 16.5), 13px); color: #75698d; }
-    .registro button { border: 0; background: none; padding: 0; margin-left: calc(var(--u) * 6); font: inherit; font-weight: 600; color: var(--d-43335f); cursor: pointer; }
-
     .cambio {
-      left: calc(var(--u) * 67); top: calc(var(--u) * 684); width: calc(var(--u) * 478); height: calc(var(--u) * 68);
+      left: calc(var(--u) * 67); top: calc(var(--u) * 590); width: calc(var(--u) * 478); height: calc(var(--u) * 68);
       display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 10);
       border: 0; border-radius: calc(var(--u) * 34); background: var(--d-4a3a6b); color: #fff;
     }
@@ -363,9 +328,6 @@ export class Login extends ConOperaciones implements AfterViewInit {
   ];
   private readonly sesiones = inject(SesionService);
   private readonly router = inject(Router);
-  private readonly zona = inject(NgZone);
-  private readonly botonGoogle = viewChild<ElementRef<HTMLElement>>('botonGoogle');
-  protected readonly googleListo = signal(false);
 
   protected readonly esEstudiante = signal(false);
   protected readonly verClave = signal(false);
@@ -385,7 +347,6 @@ export class Login extends ConOperaciones implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.prepararGoogle();
     // En pantallas grandes se deja el cursor listo en el primer campo vacío (en móvil no, para no abrir el teclado).
     if (typeof window !== 'undefined' && window.matchMedia?.('(min-width: 900px) and (pointer: fine)')?.matches) {
       this.enfocar(this.correo ? (this.esEstudiante() ? 'codigo' : 'clave') : 'correo');
@@ -436,18 +397,12 @@ export class Login extends ConOperaciones implements AfterViewInit {
     this.info.set(null);
   }
 
-  /** Funciones del diseño que el backend todavía no ofrece: se avisa en lugar de fallar en silencio. */
-  protected noDisponible(que: 'recuperar' | 'social' | 'registro'): void {
+  /** Recuperar la contraseña lo hace el administrador: se avisa en lugar de fallar en silencio. */
+  protected noDisponible(): void {
     this.error.set(null);
     clearTimeout(this.temporizadorInfo);
     this.temporizadorInfo = setTimeout(() => this.info.set(null), 7000);
-    this.info.set(
-      que === 'recuperar'
-        ? 'Para restablecer tu contraseña, comunícate con el administrador de SOMA.'
-        : que === 'registro'
-          ? 'Los estudiantes crean su cuenta desde el enlace que su docente les envía por correo. Pídele una invitación.'
-          : 'El ingreso con Google no está disponible en este momento. Usa tu correo y contraseña.',
-    );
+    this.info.set('Para restablecer tu contraseña, comunícate con el administrador de SOMA.');
   }
 
   protected ingresar(formulario: NgForm): void {
@@ -475,47 +430,6 @@ export class Login extends ConOperaciones implements AfterViewInit {
         this.guardarCorreo(correo);
         void this.router.navigate(['/inicio']);
       },
-      undefined,
-      () => this.sacudir(),
-    );
-  }
-
-  /** Carga el botón oficial de Google solo si el servidor tiene configurado el ID de cliente. */
-  private prepararGoogle(): void {
-    if (typeof document === 'undefined') { return; }
-    this.sesiones.clienteGoogle().subscribe({
-      next: ({ clientId }) => { if (clientId) { this.cargarScriptGoogle(clientId); } },
-      error: () => { /* sin servidor: se queda el botón de respaldo */ },
-    });
-  }
-
-  private cargarScriptGoogle(clientId: string): void {
-    const iniciar = () => {
-      const gsi = (window as unknown as { google?: { accounts: { id: Record<string, (...a: unknown[]) => void> } } }).google;
-      const destino = this.botonGoogle()?.nativeElement;
-      if (!gsi || !destino) { return; }
-      gsi.accounts.id['initialize']({
-        client_id: clientId,
-        callback: (r: { credential: string }) => this.zona.run(() => this.ingresarConGoogle(r.credential)),
-        ux_mode: 'popup',
-      });
-      const ancho = Math.min(400, Math.max(200, Math.round(destino.parentElement?.getBoundingClientRect().width ?? 320)));
-      gsi.accounts.id['renderButton'](destino, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'center', locale: 'es', width: ancho });
-      this.googleListo.set(true);
-    };
-    if ((window as unknown as { google?: unknown }).google) { iniciar(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.async = true;
-    s.defer = true;
-    s.onload = () => this.zona.run(iniciar);
-    document.head.appendChild(s);
-  }
-
-  private ingresarConGoogle(credencial: string): void {
-    this.operar(
-      this.sesiones.iniciarGoogle(credencial, this.recordar),
-      () => void this.router.navigate(['/inicio']),
       undefined,
       () => this.sacudir(),
     );
