@@ -378,8 +378,7 @@ class EcosIntegracionTest {
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM preguntas p JOIN escenarios e ON e.id_escenario = p.id_escenario WHERE e.id_caso = ?", Integer.class, id)).isEqualTo(4);
         // Una sola correcta por pregunta y porcentaje = crédito.
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM respuestas r JOIN preguntas p ON p.id_pregunta = r.id_pregunta JOIN escenarios e ON e.id_escenario = p.id_escenario WHERE e.id_caso = ? AND r.es_correcta = TRUE", Integer.class, id)).isEqualTo(4);
-        Resp publicado = enviar("/api/casos/" + id + "/publicacion", carlos, null);
-        assertThat(publicado.estado()).as(publicado.cuerpo().toString()).isEqualTo(200);
+        assertThat(jdbc.queryForObject("SELECT estado FROM casos_estudio WHERE id_caso = ?", String.class, id)).isEqualTo("PUBLICADO");
         jdbc.update("DELETE FROM casos_estudio WHERE id_caso = ?", id);
     }
 }

@@ -3,6 +3,7 @@ package co.edu.humboldt.plataformacasos.ecos;
 import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl;
 import co.edu.humboldt.plataformacasos.casos.dsl.DocumentoDsl.*;
 import co.edu.humboldt.plataformacasos.casos.servicio.GestionCasos;
+import co.edu.humboldt.plataformacasos.casos.servicio.PublicacionCasos;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.RangoDTO;
 import co.edu.humboldt.plataformacasos.casos.servicio.dto.ResultadoImportacionDTO;
 import org.springframework.http.HttpStatus;
@@ -29,10 +30,12 @@ public class CasoDesdeEcos {
 
     private final JdbcTemplate jdbc;
     private final GestionCasos casos;
+    private final PublicacionCasos publicacion;
 
-    public CasoDesdeEcos(JdbcTemplate jdbc, GestionCasos casos) {
+    public CasoDesdeEcos(JdbcTemplate jdbc, GestionCasos casos, PublicacionCasos publicacion) {
         this.jdbc = jdbc;
         this.casos = casos;
+        this.publicacion = publicacion;
     }
 
     @Transactional
@@ -46,7 +49,9 @@ public class CasoDesdeEcos {
         if (version.isEmpty()) {
             throw new EcosException(HttpStatus.CONFLICT, "SIN_CATALOGO", "Primero el administrador debe cargar el catálogo de Ecos de una decisión.");
         }
-        return casos.importarDsl(documento(version.get(0)));
+        ResultadoImportacionDTO r = casos.importarDsl(documento(version.get(0)));
+        publicacion.publicar(r.caso().id());
+        return r;
     }
 
     DocumentoDsl documento(String version) {
