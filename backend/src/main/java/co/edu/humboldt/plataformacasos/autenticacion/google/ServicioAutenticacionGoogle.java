@@ -21,7 +21,7 @@ public class ServicioAutenticacionGoogle {
 
     static final String NO_CONFIGURADO = "El ingreso con Google no está configurado en este servidor.";
     static final String INVALIDO = "No se pudo validar tu cuenta de Google. Inténtalo de nuevo.";
-    static final String DOMINIO = "Solo se permiten correos de la Universidad Humboldt (@unihumboldt.edu.co o @cue.edu.co).";
+    static final String DOMINIO = "Solo se permiten correos @unihumboldt.edu.co, @cue.edu.co o @gmail.com.";
     static final String SIN_CUENTA = "Ese correo todavía no tiene cuenta en SOMA. Pídele una invitación a tu docente.";
 
     private final PropiedadesGoogle propiedades;

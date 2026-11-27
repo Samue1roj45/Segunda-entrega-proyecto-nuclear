@@ -43,7 +43,7 @@ app:
   google:
     # ID de cliente OAuth de Google (es público; el "secreto del cliente" NO se usa ni se pone aquí).
     client-id: ${GOOGLE_CLIENT_ID:}
-    dominios: ${GOOGLE_DOMINIOS:unihumboldt.edu.co,cue.edu.co}
+    dominios: ${GOOGLE_DOMINIOS:unihumboldt.edu.co,cue.edu.co,gmail.com}
   invitaciones:
     # Base del enlace que llega por correo: dirección donde corre el frontend.
     url-frontend: ${FRONTEND_URL:http://localhost:4200}
@@ -58,7 +58,7 @@ app:
     tolerancia-segundos: 10
   autenticacion:
     # Dominios aceptados por RF-01 (uno o varios, separados por coma). institucion.edu.co es el de las cuentas de prueba.
-    dominio-institucional: ${DOMINIO_INSTITUCIONAL:unihumboldt.edu.co,cue.edu.co,institucion.edu.co}
+    dominio-institucional: ${DOMINIO_INSTITUCIONAL:unihumboldt.edu.co,cue.edu.co,gmail.com,institucion.edu.co}
   seguridad:
     # Clave HMAC (Base64, mínimo 32 bytes) para firmar los tokens de TODOS los módulos.
     # Si se deja vacía se genera una aleatoria al arrancar (los tokens no sobreviven a un reinicio).
